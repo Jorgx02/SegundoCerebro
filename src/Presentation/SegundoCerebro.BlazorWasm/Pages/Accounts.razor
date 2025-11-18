@@ -1,0 +1,259 @@
+@page "/accounts"
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Accounts - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+            <MudText Typo="Typo.h4">Accounts</MudText>
+            <MudButton Variant="Variant.Filled" 
+                      Color="Color.Primary" 
+                      StartIcon="Icons.Material.Filled.Add"
+                      OnClick="OpenCreateDialog">
+                New Account
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Summary Cards -->
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard>
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Total Balance</MudText>
+                            <MudText Typo="Typo.h5" Color="@(totalBalance >= 0 ? Color.Success : Color.Error)">
+                                @totalBalance.ToString("C")
+                            </MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.AccountBalance" Size="Size.Large" Color="Color.Primary" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard>
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Active Accounts</MudText>
+                            <MudText Typo="Typo.h5">@accounts.Count()</MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.CreditCard" Size="Size.Large" Color="Color.Secondary" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard>
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Checking</MudText>
+                            <MudText Typo="Typo.h6">
+                                @accounts.Where(a => a.Type == AccountType.Checking).Sum(a => a.Balance).ToString("C")
+                            </MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.Payment" Size="Size.Large" Color="Color.Info" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard>
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Savings</MudText>
+                            <MudText Typo="Typo.h6">
+                                @accounts.Where(a => a.Type == AccountType.Savings).Sum(a => a.Balance).ToString("C")
+                            </MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.Savings" Size="Size.Large" Color="Color.Success" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Accounts Table -->
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">All Accounts</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTable Items="@accounts" Hover="true" Loading="@loading" LoadingProgressColor="Color.Info">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Type</MudTh>
+                    <MudTh>Balance</MudTh>
+                    <MudTh>Currency</MudTh>
+                    <MudTh>Bank</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@GetAccountIcon(context.Type)" Class="mr-3" />
+                            <div>
+                                <MudText Typo="Typo.body1">@context.Name</MudText>
+                                @if (!string.IsNullOrEmpty(context.Description))
+                                {
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText>
+                                }
+                            </div>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Type">
+                        <MudChip Size="Size.Small" Color="@GetTypeColor(context.Type)">
+                            @context.TypeName
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Balance">
+                        <MudText Typo="Typo.body1" Color="@(context.Balance >= 0 ? Color.Success : Color.Error)">
+                            @context.Balance.ToString("C")
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Currency">@context.Currency</MudTd>
+                    <MudTd DataLabel="Bank">@(context.BankName ?? "-")</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)">
+                            @(context.IsActive ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
+                            <MudIconButton Icon="Icons.Material.Filled.Edit" 
+                                         Size="Size.Small" 
+                                         Color="Color.Primary"
+                                         OnClick="() => OpenEditDialog(context)" />
+                            <MudIconButton Icon="Icons.Material.Filled.Delete" 
+                                         Size="Size.Small" 
+                                         Color="Color.Error"
+                                         OnClick="() => DeleteAccount(context)" />
+                        </MudButtonGroup>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private List<AccountDto> accounts = new();
+    private decimal totalBalance = 0;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccounts();
+    }
+
+    private async Task LoadAccounts()
+    {
+        loading = true;
+        try
+        {
+            var result = await AccountService.GetAllAsync();
+            accounts = result.ToList();
+            totalBalance = await AccountService.GetTotalBalanceAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading accounts: {ex.Message}", MudSeverity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private String GetAccountIcon(AccountType type) => type switch
+    {
+        AccountType.Cash => Icons.Material.Filled.Money,
+        AccountType.Checking => Icons.Material.Filled.Payment,
+        AccountType.Savings => Icons.Material.Filled.Savings,
+        AccountType.CreditCard => Icons.Material.Filled.CreditCard,
+        AccountType.Investment => Icons.Material.Filled.TrendingUp,
+        _ => Icons.Material.Filled.AccountBalance
+    };
+
+    private Color GetTypeColor(AccountType type) => type switch
+    {
+        AccountType.Cash => Color.Success,
+        AccountType.Checking => Color.Primary,
+        AccountType.Savings => Color.Info,
+        AccountType.CreditCard => Color.Warning,
+        AccountType.Investment => Color.Secondary,
+        _ => Color.Default
+    };
+
+    
+    private async Task OpenCreateDialog()
+    {
+        var dialog = DialogService.Show<CreateAccountDialog>("Create New Account");
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAccounts();
+            Snackbar.Add("Account created successfully!", MudSeverity.Success);
+        }
+    }
+
+    private async Task OpenEditDialog(AccountDto account)
+    {
+        var parameters = new DialogParameters { ["Account"] = account };
+        var dialog = DialogService.Show<EditAccountDialog>("Edit Account", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAccounts();
+            Snackbar.Add("Account updated successfully!", MudSeverity.Success);
+        }
+    }
+
+    private async Task DeleteAccount(AccountDto account)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Delete Account", 
+            $"Are you sure you want to delete '{account.Name}'? This action cannot be undone.", 
+            yesText:"Delete", 
+            cancelText:"Cancel");
+        
+        if (result == true)
+        {
+            try
+            {
+                var success = await AccountService.DeleteAsync(account.Id);
+                if (success)
+                {
+                    await LoadAccounts();
+                    Snackbar.Add("Account deleted successfully!", MudSeverity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete account", MudSeverity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting account: {ex.Message}", MudSeverity.Error);
+            }
+        }
+    }
+}

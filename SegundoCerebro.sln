@@ -1,0 +1,65 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "src\Core", "{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "src\Infrastructure", "{A2FE74E2-B743-11D0-AE1A-00A0C90FFFC3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "src\Presentation", "{A2FE74E3-B743-11D0-AE1A-00A0C90FFFC3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A2FE74E4-B743-11D0-AE1A-00A0C90FFFC3}"
+EndProject
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegundoCerebro.Domain", "src\Core\SegundoCerebro.Domain\SegundoCerebro.Domain.csproj", "{8BB2717D-F8D6-41C5-B3D3-54FC032C78DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegundoCerebro.Application", "src\Core\SegundoCerebro.Application\SegundoCerebro.Application.csproj", "{1AC14E77-F493-4A52-933D-F71F5C15BB58}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegundoCerebro.Infrastructure", "src\Infrastructure\SegundoCerebro.Infrastructure\SegundoCerebro.Infrastructure.csproj", "{C1AC4129-4BF8-4466-AEDE-9559C0C9C7CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegundoCerebro.WebAPI", "src\Presentation\SegundoCerebro.WebAPI\SegundoCerebro.WebAPI.csproj", "{F27412E0-5F8C-4804-8D33-4297D9AF777A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegundoCerebro.BlazorWasm", "src\Presentation\SegundoCerebro.BlazorWasm\SegundoCerebro.BlazorWasm.csproj", "{E24C65DC-7377-472B-9ABA-BC803B73C61A}"
+EndProject
+
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8BB2717D-F8D6-41C5-B3D3-54FC032C78DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BB2717D-F8D6-41C5-B3D3-54FC032C78DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BB2717D-F8D6-41C5-B3D3-54FC032C78DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BB2717D-F8D6-41C5-B3D3-54FC032C78DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AC14E77-F493-4A52-933D-F71F5C15BB58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AC14E77-F493-4A52-933D-F71F5C15BB58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AC14E77-F493-4A52-933D-F71F5C15BB58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AC14E77-F493-4A52-933D-F71F5C15BB58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1AC4129-4BF8-4466-AEDE-9559C0C9C7CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1AC4129-4BF8-4466-AEDE-9559C0C9C7CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1AC4129-4BF8-4466-AEDE-9559C0C9C7CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1AC4129-4BF8-4466-AEDE-9559C0C9C7CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F27412E0-5F8C-4804-8D33-4297D9AF777A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F27412E0-5F8C-4804-8D33-4297D9AF777A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F27412E0-5F8C-4804-8D33-4297D9AF777A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F27412E0-5F8C-4804-8D33-4297D9AF777A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E24C65DC-7377-472B-9ABA-BC803B73C61A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E24C65DC-7377-472B-9ABA-BC803B73C61A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E24C65DC-7377-472B-9ABA-BC803B73C61A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E24C65DC-7377-472B-9ABA-BC803B73C61A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3} = {8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}
+		{A2FE74E2-B743-11D0-AE1A-00A0C90FFFC3} = {8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}
+		{A2FE74E3-B743-11D0-AE1A-00A0C90FFFC3} = {8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}
+		{8BB2717D-F8D6-41C5-B3D3-54FC032C78DD} = {A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}
+		{1AC14E77-F493-4A52-933D-F71F5C15BB58} = {A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}
+		{C1AC4129-4BF8-4466-AEDE-9559C0C9C7CD} = {A2FE74E2-B743-11D0-AE1A-00A0C90FFFC3}
+		{F27412E0-5F8C-4804-8D33-4297D9AF777A} = {A2FE74E3-B743-11D0-AE1A-00A0C90FFFC3}
+		{E24C65DC-7377-472B-9ABA-BC803B73C61A} = {A2FE74E3-B743-11D0-AE1A-00A0C90FFFC3}
+	EndGlobalSection
+EndGlobal

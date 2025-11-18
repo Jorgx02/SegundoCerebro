@@ -1,0 +1,234 @@
+@page "/transactions"
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@inject ITransactionService TransactionService
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Transactions - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+            <MudText Typo="Typo.h4">Transactions</MudText>
+            <MudButton Variant="Variant.Filled" 
+                      Color="Color.Primary" 
+                      StartIcon="Icons.Material.Filled.Add"
+                      OnClick="OpenCreateDialog">
+                New Transaction
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Filters -->
+    <MudCard Class="mb-4">
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudDatePicker Label="Start Date" 
+                                  @bind-Date="startDate" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudDatePicker Label="End Date" 
+                                  @bind-Date="endDate" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect Label="Account" 
+                              @bind-Value="selectedAccountId">
+                        <MudSelectItem Value="@((Guid?)null)">All Accounts</MudSelectItem>
+                        @foreach (var account in accounts)
+                        {
+                            <MudSelectItem Value="@((Guid?)account.Id)">@account.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect Label="Type" 
+                              @bind-Value="selectedType">
+                        <MudSelectItem Value="@((TransactionType?)null)">All Types</MudSelectItem>
+                        <MudSelectItem Value="@TransactionType.Income">Income</MudSelectItem>
+                        <MudSelectItem Value="@TransactionType.Expense">Expense</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <!-- Transactions Table -->
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">All Transactions (@filteredTransactions.Count())</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTable Items="@filteredTransactions" Hover="true" Loading="@loading" LoadingProgressColor="Color.Info">
+                <HeaderContent>
+                    <MudTh>Date</MudTh>
+                    <MudTh>Description</MudTh>
+                    <MudTh>Category</MudTh>
+                    <MudTh>Account</MudTh>
+                    <MudTh>Amount</MudTh>
+                    <MudTh>Type</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Date">
+                        <MudText Typo="Typo.body2">@context.Date.ToString("dd/MM/yyyy")</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Description">
+                        <div>
+                            <MudText Typo="Typo.body2">@context.Description</MudText>
+                            @if (!string.IsNullOrEmpty(context.Reference))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Ref: @context.Reference</MudText>
+                            }
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Category">
+                        <div class="d-flex align-center">
+                            @if (!string.IsNullOrEmpty(context.CategoryIcon))
+                            {
+                                <MudIcon Icon="@context.CategoryIcon" Size="Size.Small" Class="mr-2" />
+                            }
+                            <MudText Typo="Typo.body2">@context.CategoryName</MudText>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Account">
+                        <MudText Typo="Typo.body2">@context.AccountName</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Amount">
+                        <MudText Typo="Typo.body2" 
+                                Color="@(context.Type == TransactionType.Income ? Color.Success : Color.Error)">
+                            @context.FormattedAmount
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Type">
+                        <MudChip Size="Size.Small" 
+                                Color="@(context.Type == TransactionType.Income ? Color.Success : Color.Error)">
+                            @context.TypeName
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
+                            <MudIconButton Icon="Icons.Material.Filled.Edit" 
+                                         Size="Size.Small" 
+                                         Color="Color.Primary"
+                                         OnClick="() => OpenEditDialog(context)" />
+                            <MudIconButton Icon="Icons.Material.Filled.Delete" 
+                                         Size="Size.Small" 
+                                         Color="Color.Error"
+                                         OnClick="() => DeleteTransaction(context)" />
+                        </MudButtonGroup>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No transactions found</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private List<TransactionDto> transactions = new();
+    private List<AccountDto> accounts = new();
+    private bool loading = true;
+    
+    // Filters
+    private DateTime? startDate = DateTime.Today.AddDays(-30);
+    private DateTime? endDate = DateTime.Today;
+    private Guid? selectedAccountId;
+    private TransactionType? selectedType;
+    
+    private IEnumerable<TransactionDto> filteredTransactions => transactions.Where(t =>
+        (!startDate.HasValue || t.Date >= startDate.Value) &&
+        (!endDate.HasValue || t.Date <= endDate.Value) &&
+        (!selectedAccountId.HasValue || t.AccountId == selectedAccountId.Value) &&
+        (!selectedType.HasValue || t.Type == selectedType.Value)
+    ).OrderByDescending(t => t.Date);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        loading = true;
+        try
+        {
+            var transactionsTask = TransactionService.GetAllAsync();
+            var accountsTask = AccountService.GetAllAsync();
+            
+            await Task.WhenAll(transactionsTask, accountsTask);
+            
+            transactions = (await transactionsTask).ToList();
+            accounts = (await accountsTask).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", MudSeverity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = DialogService.Show<CreateTransactionDialog>("Create New Transaction");
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+            Snackbar.Add("Transaction created successfully!", MudSeverity.Success);
+        }
+    }
+
+    private async Task OpenEditDialog(TransactionDto transaction)
+    {
+        var parameters = new DialogParameters { ["Transaction"] = transaction };
+        var dialog = DialogService.Show<EditTransactionDialog>("Edit Transaction", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+            Snackbar.Add("Transaction updated successfully!", MudSeverity.Success);
+        }
+    }
+
+    private async Task DeleteTransaction(TransactionDto transaction)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Delete Transaction", 
+            $"Are you sure you want to delete this transaction: '{transaction.Description}'? This action cannot be undone.", 
+            yesText:"Delete", cancelText:"Cancel");
+        
+        if (result == true)
+        {
+            try
+            {
+                var success = await TransactionService.DeleteAsync(transaction.Id);
+                if (success)
+                {
+                    await LoadData();
+                    Snackbar.Add("Transaction deleted successfully!", MudSeverity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete transaction", MudSeverity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting transaction: {ex.Message}", MudSeverity.Error);
+            }
+        }
+    }
+}

@@ -1,0 +1,47 @@
+@page "/"
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>Dashboard - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
+    <MudText Typo="Typo.h6" Class="mb-4">Bienvenido a SegundoCerebro</MudText>
+    
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Total Balance</MudText>
+                    <MudText Typo="Typo.h4">$0.00</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Monthly Income</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Success">$0.00</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Monthly Expenses</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Error">$0.00</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Active Budgets</MudText>
+                    <MudText Typo="Typo.h4">0</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
