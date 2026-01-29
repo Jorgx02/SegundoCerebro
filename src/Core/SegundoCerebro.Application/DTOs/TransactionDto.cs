@@ -20,6 +20,12 @@ public class TransactionDto
     
     public Guid CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
+    public string? CategoryIcon { get; set; }
+    public string? CategoryColor { get; set; }
+
+    public string FormattedAmount => Type == TransactionType.Income
+        ? $"+{Amount:C}"
+        : $"-{Amount:C}";
 }
 
 public class CreateTransactionDto

@@ -228,7 +228,7 @@ dotnet run
 
 ## 🗺️ Roadmap
 
-### 📍 **Fase 1: Fundación Financiera** (Q1 2024) ✅ **COMPLETADA**
+### 📍 **Fase 1: Fundación Financiera** (Q1 2026) ✅ **COMPLETADA**
 - [x] Arquitectura Clean + CQRS ✅
 - [x] Gestión de cuentas bancarias ✅
 - [x] Sistema de transacciones completo ✅
@@ -241,7 +241,7 @@ dotnet run
 - [x] Base de datos PostgreSQL configurada ✅
 - [x] **Sistema completamente operativo** ✅
 
-### 🚧 **Fase 2: Productividad Personal** (Q2 2024) - **PRÓXIMO**
+### 🚧 **Fase 2: Productividad Personal** (Q1 2026) - **PRÓXIMO**
 - [ ] Gestión de tareas (GTD)
 - [ ] Proyectos y objetivos
 - [ ] Time tracking
@@ -249,7 +249,7 @@ dotnet run
 - [ ] Recordatorios y notificaciones
 - [ ] Sincronización multi-dispositivo
 
-### 🎯 **Fase 3: Hábitos y Bienestar** (Q3 2024)
+### 🎯 **Fase 3: Hábitos y Bienestar** (Q2 2026)
 - [ ] Habit tracker diario
 - [ ] Métricas de bienestar
 - [ ] Gamificación (puntos, logros)
@@ -257,7 +257,7 @@ dotnet run
 - [ ] Integración con dispositivos wearables
 - [ ] Reportes de progreso
 
-### 🤖 **Fase 4: Inteligencia Artificial** (Q4 2024)
+### 🤖 **Fase 4: Inteligencia Artificial** (Q3 2026)
 - [ ] Chatbot asistente personal
 - [ ] Análisis predictivo financiero
 - [ ] Recomendaciones automáticas
@@ -265,7 +265,7 @@ dotnet run
 - [ ] Categorización automática inteligente
 - [ ] Alertas proactivas
 
-### 📱 **Fase 5: Ecosistema Móvil** (Q1 2025)
+### 📱 **Fase 5: Ecosistema Móvil** (Q3 2026)
 - [ ] App nativa con .NET MAUI
 - [ ] Sincronización offline-first
 - [ ] Notificaciones push
@@ -273,7 +273,7 @@ dotnet run
 - [ ] Integración con servicios del sistema
 - [ ] Apple/Google Wallet integration
 
-### 🌐 **Fase 6: Plataforma Social** (Q2 2025)
+### 🌐 **Fase 6: Plataforma Social** (Q4 2026)
 - [ ] Sharing de objetivos
 - [ ] Competencias familiares/amigos
 - [ ] Comunidad de usuarios
