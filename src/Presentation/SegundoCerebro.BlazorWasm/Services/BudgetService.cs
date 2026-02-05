@@ -5,7 +5,7 @@ namespace SegundoCerebro.BlazorWasm.Services;
 
 public class BudgetService : ApiService<BudgetDto, CreateBudgetDto, UpdateBudgetDto>, IBudgetService
 {
-    private readonly HttpClient _httpClient;
+    private new readonly HttpClient _httpClient;
 
     public BudgetService(HttpClient httpClient) : base(httpClient, "budgets")
     {

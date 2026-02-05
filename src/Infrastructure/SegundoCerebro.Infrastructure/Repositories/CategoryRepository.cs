@@ -12,7 +12,7 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
     {
     }
 
-    public async Task<IEnumerable<Category>> GetByTypeAsync(CategoryType type)
+    public async Task<IEnumerable<Category>> GetByTypeAsync(Domain.Enums.CategoryType type)
     {
         return await _dbSet
             .Where(c => c.Type == type && c.IsActive)
@@ -42,8 +42,6 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
     {
         return await _dbSet
             .Where(c => c.IsActive)
-            .Include(c => c.ParentCategory)
-            .Include(c => c.SubCategories)
             .OrderBy(c => c.Name)
             .ToListAsync();
     }

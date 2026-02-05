@@ -21,6 +21,16 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_content/Blazored.LocalStorage/blazored-localstorage.js"></script>
+
+    <script>
+        window.downloadFile = function (fileName, contentType, base64Data) {
+            const linkSource = `data:${contentType};base64,${base64Data}`;
+            const downloadLink = document.createElement('a');
+            downloadLink.href = linkSource;
+            downloadLink.download = fileName;
+            downloadLink.click();
+        };
+    </script>
 </body>
 
 </html>

@@ -1,7 +1,7 @@
 using MediatR;
 using SegundoCerebro.Application.DTOs;
-using SegundoCerebro.Domain.Enums;
 using SegundoCerebro.Domain.Interfaces;
+using SegundoCerebro.Domain.Enums;
 using System.Globalization;
 
 namespace SegundoCerebro.Application.Features.Reports.Queries.GetFinancialSummary;
@@ -17,21 +17,29 @@ public class GetFinancialSummaryQueryHandler : IRequestHandler<GetFinancialSumma
 
     public async Task<FinancialSummaryDto> Handle(GetFinancialSummaryQuery request, CancellationToken cancellationToken)
     {
-        var accounts = await _unitOfWork.Accounts.GetActiveAccountsAsync();
-        var transactions = await _unitOfWork.Transactions.GetByDateRangeAsync(request.StartDate, request.EndDate);
-        
-        var totalBalance = await _unitOfWork.Accounts.GetTotalBalanceAsync();
-        var totalIncome = await _unitOfWork.Transactions.GetTotalByTypeAndDateRangeAsync(
-            TransactionType.Income, request.StartDate, request.EndDate);
-        var totalExpenses = await _unitOfWork.Transactions.GetTotalByTypeAndDateRangeAsync(
-            TransactionType.Expense, request.StartDate, request.EndDate);
+        var transactions = await _unitOfWork.Transactions.GetTransactionsByDateRangeAsync(request.StartDate, request.EndDate);
+        var accounts = await _unitOfWork.Accounts.GetAllAsync();
 
-        var categoryBreakdown = transactions
-            .Where(t => t.Type == TransactionType.Expense)
-            .GroupBy(t => new { t.CategoryId, t.Category.Name })
-            .Select(g => new CategorySummaryDto
+        var summary = new FinancialSummaryDto
+        {
+            TotalBalance = accounts.Sum(a => a.Balance),
+            TotalIncome = transactions.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount),
+            TotalExpenses = transactions.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount),
+            ActiveAccounts = accounts.Count(a => a.IsActive),
+            TotalTransactions = transactions.Count()
+        };
+
+        summary.NetIncome = summary.TotalIncome - summary.TotalExpenses;
+
+        // Category Breakdown
+        var expenseTransactions = transactions.Where(t => t.Type == TransactionType.Expense).ToList();
+        var totalExpenses = expenseTransactions.Sum(t => t.Amount);
+
+        summary.CategoryBreakdown = expenseTransactions
+            .GroupBy(t => new { t.Category.Id, t.Category.Name })
+            .Select(g => new CategoryBreakdownDto
             {
-                CategoryId = g.Key.CategoryId,
+                CategoryId = g.Key.Id,
                 CategoryName = g.Key.Name,
                 Amount = g.Sum(t => t.Amount),
                 TransactionCount = g.Count(),
@@ -40,32 +48,25 @@ public class GetFinancialSummaryQueryHandler : IRequestHandler<GetFinancialSumma
             .OrderByDescending(c => c.Amount)
             .ToList();
 
-        var monthlyTrends = transactions
+        // Monthly Trends
+        summary.MonthlyTrends = transactions
             .GroupBy(t => new { t.Date.Year, t.Date.Month })
             .Select(g => new MonthlyTrendDto
             {
                 Year = g.Key.Year,
                 Month = g.Key.Month,
-                MonthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
+                MonthName = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMMM yyyy", CultureInfo.CurrentCulture),
                 Income = g.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount),
-                Expenses = g.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount),
-                Net = g.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount) - 
-                      g.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount)
+                Expenses = g.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount)
             })
-            .OrderBy(m => m.Year)
-            .ThenBy(m => m.Month)
+            .OrderBy(m => m.Year).ThenBy(m => m.Month)
             .ToList();
 
-        return new FinancialSummaryDto
+        foreach (var trend in summary.MonthlyTrends)
         {
-            TotalBalance = totalBalance,
-            TotalIncome = totalIncome,
-            TotalExpenses = totalExpenses,
-            NetIncome = totalIncome - totalExpenses,
-            ActiveAccounts = accounts.Count(),
-            TotalTransactions = transactions.Count(),
-            CategoryBreakdown = categoryBreakdown,
-            MonthlyTrends = monthlyTrends
-        };
+            trend.Net = trend.Income - trend.Expenses;
+        }
+
+        return summary;
     }
 }

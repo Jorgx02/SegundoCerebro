@@ -28,5 +28,6 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 await builder.Build().RunAsync();

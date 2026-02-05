@@ -1,5 +1,4 @@
-// filepath: src/Core/SegundoCerebro.Application/DTOs/FinancialSummaryDto.cs
-namespace SegundoCerebro.Application.DTOs;
+namespace SegundoCerebro.BlazorWasm.Models;
 
 public class FinancialSummaryDto
 {
@@ -9,7 +8,7 @@ public class FinancialSummaryDto
     public decimal NetIncome { get; set; }
     public int ActiveAccounts { get; set; }
     public int TotalTransactions { get; set; }
-    public List<CategoryBreakdownDto> CategoryBreakdown { get; set; } = new(); // CAMBIADO
+    public List<CategoryBreakdownDto> CategoryBreakdown { get; set; } = new();
     public List<MonthlyTrendDto> MonthlyTrends { get; set; } = new();
 }
 

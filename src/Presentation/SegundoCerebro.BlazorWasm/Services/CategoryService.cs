@@ -7,11 +7,8 @@ namespace SegundoCerebro.BlazorWasm.Services;
 
 public class CategoryService : ApiService<CategoryDto, CreateCategoryDto, UpdateCategoryDto>, ICategoryService
 {
-    private readonly HttpClient _httpClient;
-
     public CategoryService(HttpClient httpClient) : base(httpClient, "categories")
     {
-        _httpClient = httpClient;
     }
 
     public async Task<IEnumerable<CategoryDto>> GetByTypeAsync(CategoryType type)

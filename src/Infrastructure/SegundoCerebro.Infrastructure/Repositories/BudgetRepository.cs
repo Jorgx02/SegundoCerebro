@@ -13,29 +13,17 @@ public class BudgetRepository : Repository<Budget>, IBudgetRepository
 
     public async Task<IEnumerable<Budget>> GetActiveBudgetsAsync()
     {
-        return await _dbSet
+        return await _context.Budgets
             .Include(b => b.Category)
             .Include(b => b.Account)
-            .Where(b => b.IsActive)
-            .OrderBy(b => b.Name)
-            .ToListAsync();
-    }
-
-    public async Task<IEnumerable<Budget>> GetBudgetsByPeriodAsync(DateTime startDate, DateTime endDate)
-    {
-        return await _dbSet
-            .Include(b => b.Category)
-            .Include(b => b.Account)
-            .Where(b => b.IsActive && 
-                       b.StartDate <= endDate && 
-                       b.EndDate >= startDate)
-            .OrderBy(b => b.StartDate)
+            .Where(b => b.IsActive && b.EndDate >= DateTime.Now)
+            .OrderBy(b => b.Category.Name)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<Budget>> GetOverBudgetsAsync()
     {
-        return await _dbSet
+        return await _context.Budgets
             .Include(b => b.Category)
             .Include(b => b.Account)
             .Where(b => b.IsActive && b.Spent > b.Amount)
@@ -43,42 +31,45 @@ public class BudgetRepository : Repository<Budget>, IBudgetRepository
             .ToListAsync();
     }
 
-    public async Task<Budget?> GetBudgetByCategoryAndPeriodAsync(Guid categoryId, DateTime date)
+    public async Task<IEnumerable<Budget>> GetByPeriodAsync(DateTime startDate, DateTime endDate)
     {
-        return await _dbSet
+        return await _context.Budgets
             .Include(b => b.Category)
             .Include(b => b.Account)
-            .FirstOrDefaultAsync(b => b.CategoryId == categoryId &&
-                                    b.IsActive &&
-                                    b.StartDate <= date &&
-                                    b.EndDate >= date);
+            .Where(b => b.StartDate >= startDate && b.EndDate <= endDate)
+            .OrderBy(b => b.StartDate)
+            .ToListAsync();
+    }
+
+    public async Task<Budget?> GetBudgetWithDetailsAsync(Guid id)
+    {
+        return await _context.Budgets
+            .Include(b => b.Category)
+            .Include(b => b.Account)
+            .FirstOrDefaultAsync(b => b.Id == id);
+    }
+
+    public async Task<Budget?> GetBudgetByCategoryAndPeriodAsync(Guid categoryId, DateTime date)
+    {
+        return await _context.Budgets
+            .Include(b => b.Category)
+            .Include(b => b.Account)
+            .Where(b => b.CategoryId == categoryId
+                     && b.IsActive
+                     && b.StartDate <= date
+                     && b.EndDate >= date)
+            .FirstOrDefaultAsync();
     }
 
     public async Task UpdateBudgetSpentAsync(Guid budgetId, decimal amount)
     {
-        var budget = await _dbSet.FindAsync(budgetId);
+        var budget = await _context.Budgets.FindAsync(budgetId);
         if (budget != null)
         {
             budget.Spent += amount;
             budget.UpdatedAt = DateTime.UtcNow;
-            _dbSet.Update(budget);
+            _context.Budgets.Update(budget);
         }
-    }
-
-    public override async Task<IEnumerable<Budget>> GetAllAsync()
-    {
-        return await _dbSet
-            .Include(b => b.Category)
-            .Include(b => b.Account)
-            .OrderBy(b => b.Name)
-            .ToListAsync();
-    }
-
-    public override async Task<Budget?> GetByIdAsync(Guid id)
-    {
-        return await _dbSet
-            .Include(b => b.Category)
-            .Include(b => b.Account)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        await Task.CompletedTask;
     }
 }

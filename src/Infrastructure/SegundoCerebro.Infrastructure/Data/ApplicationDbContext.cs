@@ -1,3 +1,4 @@
+// filepath: src/Infrastructure/SegundoCerebro.Infrastructure/Data/ApplicationDbContext.cs
 using Microsoft.EntityFrameworkCore;
 using SegundoCerebro.Domain.Entities;
 
@@ -9,75 +10,72 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<Account> Accounts { get; set; }
-    public DbSet<Transaction> Transactions { get; set; }
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Budget> Budgets { get; set; }
+    public DbSet<Account> Accounts => Set<Account>();
+    public DbSet<Transaction> Transactions => Set<Transaction>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Budget> Budgets => Set<Budget>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Account Configuration
+        // Account configuration
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Currency).HasMaxLength(3);
-            entity.Property(e => e.AccountNumber).HasMaxLength(50);
-            entity.Property(e => e.BankName).HasMaxLength(100);
-            entity.Property(e => e.Balance).HasPrecision(18, 2);
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.Name).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.Currency).IsRequired().HasMaxLength(3);
+            entity.Property(a => a.Balance).HasPrecision(18, 2);
         });
 
-        // Transaction Configuration
+        // Transaction configuration
         modelBuilder.Entity<Transaction>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Description).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.Amount).HasPrecision(18, 2);
-            entity.Property(e => e.Reference).HasMaxLength(100);
-            
-            entity.HasOne(e => e.Account)
-                .WithMany(e => e.Transactions)
-                .HasForeignKey(e => e.AccountId)
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.Description).IsRequired().HasMaxLength(200);
+            entity.Property(t => t.Amount).HasPrecision(18, 2);
+
+            entity.HasOne(t => t.Account)
+                .WithMany()
+                .HasForeignKey(t => t.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
-            entity.HasOne(e => e.Category)
-                .WithMany(e => e.Transactions)
-                .HasForeignKey(e => e.CategoryId)
+
+            entity.HasOne(t => t.Category)
+                .WithMany()
+                .HasForeignKey(t => t.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // Category Configuration
+        // Category configuration
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Color).HasMaxLength(7);
-            entity.Property(e => e.Icon).HasMaxLength(50);
-            
-            entity.HasOne(e => e.ParentCategory)
-                .WithMany(e => e.SubCategories)
-                .HasForeignKey(e => e.ParentCategoryId)
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Name).IsRequired().HasMaxLength(100);
+            entity.Property(c => c.Color).HasMaxLength(7);
+            entity.Property(c => c.Icon).HasMaxLength(50);
+
+            entity.HasOne(c => c.ParentCategory)
+                .WithMany()
+                .HasForeignKey(c => c.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // Budget Configuration
+        // Budget configuration
         modelBuilder.Entity<Budget>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Amount).HasPrecision(18, 2);
-            entity.Property(e => e.Spent).HasPrecision(18, 2);
+            entity.HasKey(b => b.Id);
+            entity.Property(b => b.Name).IsRequired().HasMaxLength(100);
+            entity.Property(b => b.Amount).HasPrecision(18, 2);
+            entity.Property(b => b.Spent).HasPrecision(18, 2);
             
-            entity.HasOne(e => e.Category)
-                .WithMany(e => e.Budgets)
-                .HasForeignKey(e => e.CategoryId)
+            entity.HasOne(b => b.Category)
+                .WithMany()
+                .HasForeignKey(b => b.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
-            entity.HasOne(e => e.Account)
-                .WithMany(e => e.Budgets)
-                .HasForeignKey(e => e.AccountId)
+            
+            entity.HasOne(b => b.Account)
+                .WithMany()
+                .HasForeignKey(b => b.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
     }

@@ -1,11 +1,12 @@
 using SegundoCerebro.BlazorWasm.Models;
+using SegundoCerebro.BlazorWasm.Models.Enums;
 using System.Net.Http.Json;
 
 namespace SegundoCerebro.BlazorWasm.Services;
 
 public class TransactionService : ApiService<TransactionDto, CreateTransactionDto, UpdateTransactionDto>, ITransactionService
 {
-    private readonly HttpClient _httpClient;
+    private new readonly HttpClient _httpClient;
     public TransactionService(HttpClient httpClient) : base(httpClient, "transactions")
     {
         _httpClient = httpClient;

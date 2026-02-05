@@ -96,7 +96,7 @@
             }
             else if (!budgets.Any())
             {
-                <MudAlert Severity="Severity.Info">No budgets found. Create your first budget!</MudAlert>
+                <MudAlert Severity="MudSeverity.Info">No budgets found. Create your first budget!</MudAlert>
             }
             else
             {
@@ -131,7 +131,7 @@
                                             </MudText>
                                         </div>
                                         <MudProgressLinear Color="@budget.StatusColor" 
-                                                          Value="@budget.PercentageUsed" 
+                                                          Value="@((double)budget.PercentageUsed)" 
                                                           Size="Size.Medium" />
                                     </div>
                                     

@@ -1,4 +1,5 @@
 using SegundoCerebro.BlazorWasm.Models.Enums;
+using MudBlazor;
 
 namespace SegundoCerebro.BlazorWasm.Models;
 

@@ -1,0 +1,376 @@
+@page "/reports"
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Services
+@using System.Globalization
+@inject IReportService ReportService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Reports - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+            <MudText Typo="Typo.h4">Financial Reports</MudText>
+            <div>
+                <MudButton Variant="Variant.Outlined" 
+                          Color="Color.Success" 
+                          StartIcon="@Icons.Material.Filled.TableChart"
+                          OnClick="ExportToExcel"
+                          Class="mr-2"
+                          Disabled="@(!startDate.HasValue || !endDate.HasValue)">
+                    Export Excel
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" 
+                          Color="Color.Error" 
+                          StartIcon="@Icons.Material.Filled.PictureAsPdf"
+                          OnClick="ExportToPdf"
+                          Disabled="@(!startDate.HasValue || !endDate.HasValue)">
+                    Export PDF
+                </MudButton>
+            </div>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Date Range Filter -->
+    <MudCard Class="mb-4">
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudDatePicker Label="Start Date" 
+                                  @bind-Date="startDate"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudDatePicker Label="End Date" 
+                                  @bind-Date="endDate"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12" md="4" Class="d-flex align-end">
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              OnClick="LoadReports"
+                              FullWidth="true"
+                              Disabled="@(!startDate.HasValue || !endDate.HasValue)">
+                        Generate Report
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    @if (loading)
+    {
+        <div class="d-flex justify-center align-center" style="min-height: 400px;">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </div>
+    }
+    else if (summary != null)
+    {
+        <!-- Summary Cards -->
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <div class="d-flex justify-space-between align-center">
+                            <div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">Total Income</MudText>
+                                <MudText Typo="Typo.h5" Color="Color.Success">@summary.TotalIncome.ToString("C")</MudText>
+                            </div>
+                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" Color="Color.Success" />
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <div class="d-flex justify-space-between align-center">
+                            <div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">Total Expenses</MudText>
+                                <MudText Typo="Typo.h5" Color="Color.Error">@summary.TotalExpenses.ToString("C")</MudText>
+                            </div>
+                            <MudIcon Icon="@Icons.Material.Filled.TrendingDown" Size="Size.Large" Color="Color.Error" />
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <div class="d-flex justify-space-between align-center">
+                            <div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">Net Income</MudText>
+                                <MudText Typo="Typo.h5" Color="@(summary.NetIncome >= 0 ? Color.Success : Color.Error)">
+                                    @summary.NetIncome.ToString("C")
+                                </MudText>
+                            </div>
+                            <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="Size.Large" Color="Color.Primary" />
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <div class="d-flex justify-space-between align-center">
+                            <div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">Transactions</MudText>
+                                <MudText Typo="Typo.h5">@summary.TotalTransactions</MudText>
+                            </div>
+                            <MudIcon Icon="@Icons.Material.Filled.Receipt" Size="Size.Large" Color="Color.Info" />
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Charts -->
+        <MudGrid Class="mb-6">
+            <!-- Category Breakdown Chart -->
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Expenses by Category</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (summary.CategoryBreakdown.Any())
+                        {
+                            <MudChart ChartType="ChartType.Donut" 
+                                     InputData="@categoryData" 
+                                     InputLabels="@categoryLabels"
+                                     Width="100%" 
+                                     Height="350px" />
+                        }
+                        else
+                        {
+                            <MudAlert Severity="MudSeverity.Info">No category data available for this period</MudAlert>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <!-- Monthly Trends Chart -->
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Monthly Trends</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (summary.MonthlyTrends.Any())
+                        {
+                            <MudChart ChartType="ChartType.Line" 
+                                     ChartSeries="@monthlyChartSeries" 
+                                     XAxisLabels="@monthLabels"
+                                     Width="100%" 
+                                     Height="350px" />
+                        }
+                        else
+                        {
+                            <MudAlert Severity="MudSeverity.Info">No trend data available for this period</MudAlert>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Category Breakdown Table -->
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Category Breakdown Details</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (summary.CategoryBreakdown.Any())
+                {
+                    <MudTable Items="@summary.CategoryBreakdown" Hover="true" Striped="true" Dense="true">
+                        <HeaderContent>
+                            <MudTh>Category</MudTh>
+                            <MudTh>Amount</MudTh>
+                            <MudTh>Transactions</MudTh>
+                            <MudTh>Percentage</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Category">
+                                <MudText Typo="Typo.body2">@context.CategoryName</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Amount">
+                                <MudText Typo="Typo.body2" Color="Color.Error">@context.Amount.ToString("C")</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Transactions">
+                                <MudChip Size="Size.Small" Color="Color.Info">@context.TransactionCount</MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Percentage">
+                                <div class="d-flex align-center">
+                                    <MudProgressLinear Color="Color.Primary" 
+                                                      Value="@((double)context.Percentage)" 
+                                                      Size="Size.Medium" 
+                                                      Class="mr-2" 
+                                                      Style="width: 100px;" />
+                                    <MudText Typo="Typo.body2">@context.Percentage.ToString("F1")%</MudText>
+                                </div>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else
+                {
+                    <MudAlert Severity="MudSeverity.Info">No categories to display</MudAlert>
+                }
+            </MudCardContent>
+        </MudCard>
+    }
+    else
+    {
+        <MudCard Elevation="2" Class="pa-8">
+            <MudCardContent Class="d-flex flex-column align-center justify-center" Style="min-height: 300px;">
+                <MudIcon Icon="@Icons.Material.Filled.Assessment" Size="Size.Large" Color="Color.Primary" Class="mb-4" />
+                <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-2">No Report Generated</MudText>
+                <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary">
+                    Select a date range and click "Generate Report" to view your financial analysis
+                </MudText>
+            </MudCardContent>
+        </MudCard>
+    }
+</MudContainer>
+
+@code {
+    private bool loading = false;
+    private DateTime? startDate = DateTime.Today.AddMonths(-1);
+    private DateTime? endDate = DateTime.Today;
+    private FinancialSummaryDto? summary;
+
+    // Chart data
+    private double[] categoryData = Array.Empty<double>();
+    private string[] categoryLabels = Array.Empty<string>();
+    private string[] monthLabels = Array.Empty<string>();
+    private List<ChartSeries> monthlyChartSeries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReports();
+    }
+
+    private async Task LoadReports()
+    {
+        if (!startDate.HasValue || !endDate.HasValue)
+        {
+            Snackbar.Add("Please select both start and end dates", MudSeverity.Warning);
+            return;
+        }
+
+        if (startDate.Value > endDate.Value)
+        {
+            Snackbar.Add("Start date must be before end date", MudSeverity.Warning);
+            return;
+        }
+
+        loading = true;
+        try
+        {
+            summary = await ReportService.GetFinancialSummaryAsync(startDate.Value, endDate.Value);
+            
+            // Prepare chart data
+            PrepareChartData();
+            
+            Snackbar.Add("Report generated successfully", MudSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error generating report: {ex.Message}", MudSeverity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void PrepareChartData()
+    {
+        if (summary == null) return;
+
+        // Category breakdown chart
+        categoryData = summary.CategoryBreakdown.Select(c => (double)c.Amount).ToArray();
+        categoryLabels = summary.CategoryBreakdown.Select(c => c.CategoryName).ToArray();
+
+        // Monthly trends chart
+        monthLabels = summary.MonthlyTrends.Select(m => m.MonthName).ToArray();
+        
+        monthlyChartSeries = new List<ChartSeries>
+        {
+            new ChartSeries 
+            { 
+                Name = "Income", 
+                Data = summary.MonthlyTrends.Select(m => (double)m.Income).ToArray() 
+            },
+            new ChartSeries 
+            { 
+                Name = "Expenses", 
+                Data = summary.MonthlyTrends.Select(m => (double)m.Expenses).ToArray() 
+            },
+            new ChartSeries 
+            { 
+                Name = "Net", 
+                Data = summary.MonthlyTrends.Select(m => (double)m.Net).ToArray() 
+            }
+        };
+    }
+
+    private async Task ExportToExcel()
+    {
+        if (!startDate.HasValue || !endDate.HasValue)
+        {
+            Snackbar.Add("Please select a date range first", MudSeverity.Warning);
+            return;
+        }
+
+        try
+        {
+            var fileBytes = await ReportService.ExportTransactionsToExcelAsync(startDate.Value, endDate.Value);
+            var fileName = $"transactions_{startDate.Value:yyyyMMdd}_{endDate.Value:yyyyMMdd}.xlsx";
+            await DownloadFile(fileBytes, fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            Snackbar.Add("Excel file downloaded successfully", MudSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting to Excel: {ex.Message}", MudSeverity.Error);
+        }
+    }
+
+    private async Task ExportToPdf()
+    {
+        if (!startDate.HasValue || !endDate.HasValue)
+        {
+            Snackbar.Add("Please select a date range first", MudSeverity.Warning);
+            return;
+        }
+
+        try
+        {
+            var fileBytes = await ReportService.ExportTransactionsToPdfAsync(startDate.Value, endDate.Value);
+            var fileName = $"transactions_{startDate.Value:yyyyMMdd}_{endDate.Value:yyyyMMdd}.pdf";
+            await DownloadFile(fileBytes, fileName, "application/pdf");
+            Snackbar.Add("PDF file downloaded successfully", MudSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting to PDF: {ex.Message}", MudSeverity.Error);
+        }
+    }
+
+    private async Task DownloadFile(byte[] fileBytes, string fileName, string contentType)
+    {
+        var base64 = Convert.ToBase64String(fileBytes);
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, contentType, base64);
+    }
+}

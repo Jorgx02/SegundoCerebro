@@ -1,5 +1,10 @@
+using Microsoft.EntityFrameworkCore;
 using SegundoCerebro.Application;
 using SegundoCerebro.Infrastructure;
+using SegundoCerebro.Infrastructure.Data;
+using QuestPDF.Infrastructure;
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 

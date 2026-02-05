@@ -2,7 +2,7 @@ using SegundoCerebro.BlazorWasm.Models;
 
 namespace SegundoCerebro.BlazorWasm.Services;
 
-public interface IBudgetService : IApiService<BudgetDto, CreateBudgetDto, UpdateBadgetDto>
+public interface IBudgetService : IApiService<BudgetDto, CreateBudgetDto, UpdateBudgetDto>
 {
     Task<IEnumerable<BudgetDto>> GetActiveBudgetsAsync();
     Task<IEnumerable<BudgetDto>> GetOverBudgetsAsync();

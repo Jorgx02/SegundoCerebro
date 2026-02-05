@@ -1,0 +1,170 @@
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@inject IBudgetService BudgetService
+@inject ICategoryService CategoryService
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@model" @ref="@form">
+            <MudCardContent>
+                <MudTextField @bind-Value="model.Name" 
+                              For="@(() => model.Name)" 
+                              Immediately="true" 
+                              Label="Budget Name"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+                <MudTextField @bind-Value="model.Description" 
+                              For="@(() => model.Description)" 
+                              Label="Description (Optional)"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Lines="2" />
+
+                <MudNumericField @bind-Value="model.Amount" 
+                                 For="@(() => model.Amount)"
+                                 Label="Budget Amount"
+                                 Variant="Variant.Outlined"
+                                 Margin="Margin.Dense"
+                                 Format="C"
+                                 Culture="@System.Globalization.CultureInfo.CurrentCulture" />
+
+                <MudSelect @bind-Value="model.Period" 
+                           For="@(() => model.Period)"
+                           Label="Period" 
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           T="BudgetPeriod">
+                    @foreach (BudgetPeriod period in Enum.GetValues<BudgetPeriod>())
+                    {
+                        <MudSelectItem Value="@period">@period.ToString()</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudDatePicker @bind-Date="startDate" 
+                              Label="Start Date"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              DateFormat="dd/MM/yyyy" />
+
+                <MudDatePicker @bind-Date="endDate" 
+                              Label="End Date"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              DateFormat="dd/MM/yyyy"
+                              Disabled="@(model.Period != BudgetPeriod.Custom)" />
+
+                <MudSelect @bind-Value="model.CategoryId" 
+                           For="@(() => model.CategoryId)"
+                           Label="Category" 
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           T="Guid">
+                    @foreach (var category in categories)
+                    {
+                        <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect @bind-Value="model.AccountId" 
+                           For="@(() => model.AccountId)"
+                           Label="Account (Optional)" 
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           Clearable="true"
+                           T="Guid?">
+                    @foreach (var account in accounts)
+                    {
+                        <MudSelectItem Value="@((Guid?)account.Id)">@account.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSwitch @bind-Value="model.IsActive" Color="Color.Primary" Label="Active" />
+            </MudCardContent>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Update Budget</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public BudgetDto Budget { get; set; } = null!;
+
+    private UpdateBudgetDto model = new();
+    private MudForm form = null!;
+    private List<CategoryDto> categories = new();
+    private List<AccountDto> accounts = new();
+    
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        model.Name = Budget.Name;
+        model.Description = Budget.Description;
+        model.Amount = Budget.Amount;
+        model.Period = Budget.Period;
+        model.CategoryId = Budget.CategoryId;
+        model.AccountId = Budget.AccountId;
+        model.IsActive = Budget.IsActive;
+        
+        startDate = Budget.StartDate;
+        endDate = Budget.EndDate;
+        
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            var categoriesTask = CategoryService.GetAllAsync();
+            var accountsTask = AccountService.GetAllAsync();
+            
+            await Task.WhenAll(categoriesTask, accountsTask);
+            
+            categories = (await categoriesTask).ToList();
+            accounts = (await accountsTask).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", MudSeverity.Error);
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (!form.IsValid)
+        {
+            Snackbar.Add("Please fix validation errors", MudSeverity.Warning);
+            return;
+        }
+
+        try
+        {
+            model.StartDate = startDate ?? Budget.StartDate;
+            model.EndDate = endDate ?? Budget.EndDate;
+            
+            await BudgetService.UpdateAsync(Budget.Id, model);
+            Snackbar.Add("Budget updated successfully", MudSeverity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating budget: {ex.Message}", MudSeverity.Error);
+        }
+    }
+}
