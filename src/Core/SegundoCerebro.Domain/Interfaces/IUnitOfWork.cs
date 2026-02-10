@@ -6,7 +6,7 @@ public interface IUnitOfWork : IDisposable
 {
     IAccountRepository Accounts { get; }
     ITransactionRepository Transactions { get; }
-    IRepository<Category> Categories { get; }
+    ICategoryRepository Categories { get; }
     IBudgetRepository Budgets { get; }
 
     Task<int> SaveChangesAsync();

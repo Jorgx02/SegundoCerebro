@@ -16,7 +16,7 @@ public class ExportTransactionsToExcelQueryHandler : IRequestHandler<ExportTrans
 
     public async Task<byte[]> Handle(ExportTransactionsToExcelQuery request, CancellationToken cancellationToken)
     {
-        var transactions = await _unitOfWork.Transactions.GetTransactionsByDateRangeAsync(request.StartDate, request.EndDate);
+        var transactions = await _unitOfWork.Transactions.GetByDateRangeAsync(request.StartDate, request.EndDate);
 
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Transactions");

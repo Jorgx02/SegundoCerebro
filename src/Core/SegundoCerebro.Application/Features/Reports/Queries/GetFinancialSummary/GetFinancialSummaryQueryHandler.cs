@@ -17,7 +17,7 @@ public class GetFinancialSummaryQueryHandler : IRequestHandler<GetFinancialSumma
 
     public async Task<FinancialSummaryDto> Handle(GetFinancialSummaryQuery request, CancellationToken cancellationToken)
     {
-        var transactions = await _unitOfWork.Transactions.GetTransactionsByDateRangeAsync(request.StartDate, request.EndDate);
+        var transactions = await _unitOfWork.Transactions.GetByDateRangeAsync(request.StartDate, request.EndDate);
         var accounts = await _unitOfWork.Accounts.GetAllAsync();
 
         var summary = new FinancialSummaryDto

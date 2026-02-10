@@ -8,6 +8,6 @@ public interface IBudgetRepository : IRepository<Budget>
     Task<IEnumerable<Budget>> GetOverBudgetsAsync();
     Task<IEnumerable<Budget>> GetByPeriodAsync(DateTime startDate, DateTime endDate);
     Task<Budget?> GetBudgetWithDetailsAsync(Guid id);
-    Task<Budget?> GetBudgetByCategoryAndPeriodsAsync(Guid categoryId, DateTime date);
+    Task<Budget?> GetBudgetByCategoryAndPeriodAsync(Guid categoryId, DateTime date);
     Task UpdateBudgetSpentAsync(Guid budgetId, decimal amount);
 }

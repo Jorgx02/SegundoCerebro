@@ -5,11 +5,8 @@ namespace SegundoCerebro.BlazorWasm.Services;
 
 public class BudgetService : ApiService<BudgetDto, CreateBudgetDto, UpdateBudgetDto>, IBudgetService
 {
-    private new readonly HttpClient _httpClient;
-
     public BudgetService(HttpClient httpClient) : base(httpClient, "budgets")
     {
-        _httpClient = httpClient;
     }
 
     public async Task<IEnumerable<BudgetDto>> GetActiveBudgetsAsync()

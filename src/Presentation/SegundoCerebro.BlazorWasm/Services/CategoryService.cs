@@ -1,4 +1,3 @@
-// filepath: src/Presentation/SegundoCerebro.BlazorWasm/Services/CategoryService.cs
 using SegundoCerebro.BlazorWasm.Models;
 using SegundoCerebro.BlazorWasm.Models.Enums;
 using System.Net.Http.Json;

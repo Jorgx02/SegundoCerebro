@@ -19,7 +19,7 @@ public class ExportTransactionsToPdfQueryHandler : IRequestHandler<ExportTransac
 
     public async Task<byte[]> Handle(ExportTransactionsToPdfQuery request, CancellationToken cancellationToken)
     {
-        var transactions = await _unitOfWork.Transactions.GetTransactionsByDateRangeAsync(request.StartDate, request.EndDate);
+        var transactions = await _unitOfWork.Transactions.GetByDateRangeAsync(request.StartDate, request.EndDate);
         var transactionsList = transactions.OrderByDescending(t => t.Date).ToList();
 
         var document = Document.Create(container =>

@@ -1,15 +1,12 @@
 using SegundoCerebro.BlazorWasm.Models;
-using SegundoCerebro.BlazorWasm.Models.Enums;
 using System.Net.Http.Json;
 
 namespace SegundoCerebro.BlazorWasm.Services;
 
 public class TransactionService : ApiService<TransactionDto, CreateTransactionDto, UpdateTransactionDto>, ITransactionService
 {
-    private new readonly HttpClient _httpClient;
     public TransactionService(HttpClient httpClient) : base(httpClient, "transactions")
     {
-        _httpClient = httpClient;
     }
 
     public async Task<IEnumerable<TransactionDto>> GetByAccountIdAsync(Guid accountId)
@@ -34,7 +31,6 @@ public class TransactionService : ApiService<TransactionDto, CreateTransactionDt
     public async Task<decimal> GetAccountBalanceAsync(Guid accountId)
     {
         var transactions = await GetByAccountIdAsync(accountId);
-        return transactions.Sum(t => t.Type == TransactionType.Income ? t.Amount : -t.Amount);
+        return transactions.Sum(t => t.Type == Models.Enums.TransactionType.Income ? t.Amount : -t.Amount);
     }
-
 }
