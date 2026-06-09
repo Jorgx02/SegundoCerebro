@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SegundoCerebro.Application.DTOs;
 using SegundoCerebro.Application.Features.Budgets.Commands.CreateBudget;
 using SegundoCerebro.Application.Features.Budgets.Commands.UpdateBudget;
+using SegundoCerebro.Application.Features.Budgets.Commands.DeleteBudget;
 using SegundoCerebro.Application.Features.Budgets.Queries.GetAllBudgets;
 using SegundoCerebro.Application.Features.Budgets.Queries.GetBudgetById;
 
@@ -30,7 +31,7 @@ public class BudgetsController : ControllerBase
     public async Task<ActionResult<BudgetDto>> GetBudget(Guid id)
     {
         var budget = await _mediator.Send(new GetBudgetByIdQuery(id));
-        
+
         if (budget == null)
             return NotFound();
 
@@ -56,5 +57,16 @@ public class BudgetsController : ControllerBase
         {
             return NotFound();
         }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteBudget(Guid id)
+    {
+        var result = await _mediator.Send(new DeleteBudgetCommand(id));
+
+        if (!result)
+            return NotFound();
+
+        return NoContent();
     }
 }

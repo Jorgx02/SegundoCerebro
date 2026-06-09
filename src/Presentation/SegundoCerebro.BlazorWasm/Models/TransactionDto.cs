@@ -11,25 +11,24 @@ public class TransactionDto
     public DateTime Date { get; set; }
     public string? Reference { get; set; }
     public string? Notes { get; set; }
-    public bool IsRecurring { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     // Account information
     public Guid AccountId { get; set; }
     public string AccountName { get; set; } = string.Empty;
-    
+
     // Category information
     public Guid CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public string? CategoryColor { get; set; }
     public string? CategoryIcon { get; set; }
-    
+
     // Calculated properties
-    public string FormattedAmount => Type == TransactionType.Income 
-        ? $"+{Amount:C}" 
+    public string FormattedAmount => Type == TransactionType.Income
+        ? $"+{Amount:C}"
         : $"-{Amount:C}";
-        
+
     public string TypeName => Type.ToString();
 }
 
@@ -41,7 +40,6 @@ public class CreateTransactionDto
     public DateTime Date { get; set; } = DateTime.Today;
     public string? Reference { get; set; }
     public string? Notes { get; set; }
-    public bool IsRecurring { get; set; }
     public Guid AccountId { get; set; }
     public Guid CategoryId { get; set; }
 }
@@ -54,7 +52,6 @@ public class UpdateTransactionDto
     public DateTime Date { get; set; }
     public string? Reference { get; set; }
     public string? Notes { get; set; }
-    public bool IsRecurring { get; set; }
     public Guid AccountId { get; set; }
     public Guid CategoryId { get; set; }
 }

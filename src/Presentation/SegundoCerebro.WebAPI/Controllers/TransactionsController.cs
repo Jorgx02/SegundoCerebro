@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SegundoCerebro.Application.DTOs;
 using SegundoCerebro.Application.Features.Transactions.Commands.CreateTransaction;
 using SegundoCerebro.Application.Features.Transactions.Commands.UpdateTransaction;
+using SegundoCerebro.Application.Features.Transactions.Commands.DeleteTransaction;
 using SegundoCerebro.Application.Features.Transactions.Queries.GetAllTransactions;
 using SegundoCerebro.Application.Features.Transactions.Queries.GetTransactionById;
 
@@ -30,7 +31,7 @@ public class TransactionsController : ControllerBase
     public async Task<ActionResult<TransactionDto>> GetTransaction(Guid id)
     {
         var transaction = await _mediator.Send(new GetTransactionByIdQuery(id));
-        
+
         if (transaction == null)
             return NotFound();
 
@@ -63,5 +64,16 @@ public class TransactionsController : ControllerBase
         {
             return NotFound();
         }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteTransaction(Guid id)
+    {
+        var result = await _mediator.Send(new DeleteTransactionCommand(id));
+
+        if (!result)
+            return NotFound();
+
+        return NoContent();
     }
 }

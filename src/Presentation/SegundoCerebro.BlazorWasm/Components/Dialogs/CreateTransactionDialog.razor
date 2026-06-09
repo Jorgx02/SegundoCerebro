@@ -10,74 +10,43 @@
     <DialogContent>
         <MudForm Model="@model" @ref="@form">
             <MudCardContent>
-                <MudTextField @bind-Value="model.Description" 
-                              For="@(() => model.Description)" 
-                              Immediately="true" 
-                              Label="Description"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense" />
+                <MudTextField @bind-Value="model.Description" For="@(() => model.Description)" Immediately="true"
+                              Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-                <MudNumericField @bind-Value="model.Amount" 
-                                 For="@(() => model.Amount)"
-                                 Label="Amount"
-                                 Variant="Variant.Outlined"
-                                 Margin="Margin.Dense"
-                                 Format="N2"
+                <MudNumericField @bind-Value="model.Amount" For="@(() => model.Amount)" Label="Amount"
+                                 Variant="Variant.Outlined" Margin="Margin.Dense" Format="N2"
                                  Culture="@System.Globalization.CultureInfo.CurrentCulture" />
 
-                <MudSelect @bind-Value="model.Type" 
-                           For="@(() => model.Type)"
-                           Label="Transaction Type" 
-                           Variant="Variant.Outlined"
-                           Margin="Margin.Dense">
+                <MudSelect @bind-Value="model.Type" For="@(() => model.Type)" Label="Transaction Type"
+                           Variant="Variant.Outlined" Margin="Margin.Dense">
                     <MudSelectItem Value="@TransactionType.Income">Income</MudSelectItem>
                     <MudSelectItem Value="@TransactionType.Expense">Expense</MudSelectItem>
                 </MudSelect>
 
-                <MudDatePicker @bind-Date="transactionDate" 
-                               Label="Date"
-                               Variant="Variant.Outlined"
+                <MudDatePicker @bind-Date="transactionDate" Label="Date" Variant="Variant.Outlined"
                                Margin="Margin.Dense" />
 
-                <MudSelect @bind-Value="model.AccountId" 
-                           For="@(() => model.AccountId)"
-                           Label="Account" 
-                           Variant="Variant.Outlined"
-                           Margin="Margin.Dense">
+                <MudSelect @bind-Value="model.AccountId" For="@(() => model.AccountId)" Label="Account"
+                           Variant="Variant.Outlined" Margin="Margin.Dense">
                     @foreach (var account in accounts)
                     {
                         <MudSelectItem Value="@account.Id">@account.Name</MudSelectItem>
                     }
                 </MudSelect>
 
-                <MudSelect @bind-Value="model.CategoryId" 
-                           For="@(() => model.CategoryId)"
-                           Label="Category" 
-                           Variant="Variant.Outlined"
-                           Margin="Margin.Dense">
+                <MudSelect @bind-Value="model.CategoryId" For="@(() => model.CategoryId)" Label="Category"
+                           Variant="Variant.Outlined" Margin="Margin.Dense">
                     @foreach (var category in categories)
                     {
                         <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
                     }
                 </MudSelect>
 
-                <MudTextField @bind-Value="model.Reference" 
-                              For="@(() => model.Reference)" 
-                              Label="Reference (Optional)"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense" />
+                <MudTextField @bind-Value="model.Reference" For="@(() => model.Reference)" Label="Reference (Optional)"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-                <MudTextField @bind-Value="model.Notes" 
-                              For="@(() => model.Notes)" 
-                              Label="Notes (Optional)"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              Lines="3" />
-
-                <MudSwitch @bind-Value="model.IsRecurring" 
-                           For="@(() => model.IsRecurring)"
-                           Label="Recurring Transaction" 
-                           Color="Color.Primary" />
+                <MudTextField @bind-Value="model.Notes" For="@(() => model.Notes)" Label="Notes (Optional)"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
             </MudCardContent>
         </MudForm>
     </DialogContent>
@@ -94,14 +63,14 @@
     private MudForm form = null!;
     private List<AccountDto> accounts = new();
     private List<CategoryDto> categories = new();
-    
+
     private DateTime? transactionDate = DateTime.Today;
 
     protected override async Task OnInitializedAsync()
     {
         model.Date = DateTime.Today;
         model.Type = TransactionType.Expense;
-        
+
         await LoadData();
     }
 
@@ -110,12 +79,12 @@
         try
         {
             var accountsTask = AccountService.GetAllAsync();
-            var categoriesTask = LoadMockCategories(); // Por ahora usamos categorías mock
-            
+            var categoriesTask = CategoryService.GetAllAsync(); // Por ahora usamos categorías mock
+
             await Task.WhenAll(accountsTask, categoriesTask);
-            
+
             accounts = (await accountsTask).ToList();
-            categories = await categoriesTask;
+            categories = (await categoriesTask).ToList();
         }
         catch (Exception ex)
         {
@@ -155,9 +124,9 @@
     private async Task Submit()
     {
         model.Date = transactionDate ?? DateTime.Today;
-        
+
         await form.Validate();
-        
+
         if (form.IsValid)
         {
             try
