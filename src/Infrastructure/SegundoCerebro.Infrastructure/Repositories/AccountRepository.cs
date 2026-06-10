@@ -13,7 +13,7 @@ public class AccountRepository : Repository<Account>, IAccountRepository
 
     public async Task<IEnumerable<Account>> GetActiveAccountsAsync()
     {
-        return await _dbSet.Where(a => a.IsActive).ToListAsync();
+        return await _dbSet.ToListAsync();
     }
 
     public async Task<Account?> GetByAccountNumberAsync(string accountNumber)

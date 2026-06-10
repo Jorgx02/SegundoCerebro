@@ -79,7 +79,7 @@
         try
         {
             var accountsTask = AccountService.GetAllAsync();
-            var categoriesTask = CategoryService.GetAllAsync(); // Por ahora usamos categorías mock
+            var categoriesTask = CategoryService.GetAllAsync();
 
             await Task.WhenAll(accountsTask, categoriesTask);
 
@@ -90,22 +90,6 @@
         {
             Snackbar.Add($"Error loading data: {ex.Message}", MudSeverity.Error);
         }
-    }
-
-    // Método temporal mientras implementamos CategoryService
-    private async Task<List<CategoryDto>> LoadMockCategories()
-    {
-        await Task.CompletedTask;
-        return new List<CategoryDto>
-        {
-            new() { Id = Guid.NewGuid(), Name = "Food & Dining", Type = CategoryType.Expense },
-            new() { Id = Guid.NewGuid(), Name = "Transportation", Type = CategoryType.Expense },
-            new() { Id = Guid.NewGuid(), Name = "Shopping", Type = CategoryType.Expense },
-            new() { Id = Guid.NewGuid(), Name = "Entertainment", Type = CategoryType.Expense },
-            new() { Id = Guid.NewGuid(), Name = "Salary", Type = CategoryType.Income },
-            new() { Id = Guid.NewGuid(), Name = "Freelance", Type = CategoryType.Income },
-            new() { Id = Guid.NewGuid(), Name = "Investment", Type = CategoryType.Income }
-        };
     }
 
     protected override void OnParametersSet()

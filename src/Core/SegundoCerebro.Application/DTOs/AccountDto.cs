@@ -38,4 +38,5 @@ public class UpdateAccountDto
     public string? BankName { get; set; }
     public string? AccountNumber { get; set; }
     public bool IsActive { get; set; }
+    public decimal Balance { get; set; }
 }

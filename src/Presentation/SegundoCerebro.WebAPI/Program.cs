@@ -3,6 +3,7 @@ using SegundoCerebro.Application;
 using SegundoCerebro.Infrastructure;
 using SegundoCerebro.Infrastructure.Data;
 using QuestPDF.Infrastructure;
+using SegundoCerebro.WebAPI.Middlewares;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -31,6 +32,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseCors("AllowAll");
+
+app.UseMiddleware<ExceptionMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -39,8 +44,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors("AllowAll");
 
 app.UseAuthorization();
 

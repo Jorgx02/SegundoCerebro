@@ -23,6 +23,11 @@ public class UpdateAccountCommandHandler : IRequestHandler<UpdateAccountCommand,
             throw new KeyNotFoundException($"Account with ID {request.Id} not found");
 
         _mapper.Map(request.Account, existingAccount);
+
+        // Asignación explícita para evitar que AutoMapper lo ignore por seguridad
+        existingAccount.Balance = request.Account.Balance;
+        existingAccount.IsActive = request.Account.IsActive;
+
         existingAccount.UpdatedAt = DateTime.UtcNow;
 
         await _unitOfWork.Accounts.UpdateAsync(existingAccount);

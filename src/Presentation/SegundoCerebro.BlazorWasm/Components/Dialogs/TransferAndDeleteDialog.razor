@@ -1,0 +1,95 @@
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Services
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            La cuenta <strong>@AccountToDelete.Name</strong> tiene un saldo de
+            <strong>@AccountToDelete.Balance.ToString("N2") @AccountToDelete.Currency</strong>.
+            <br />
+            Para desactivarla de forma segura, primero debes transferir los fondos a otra cuenta activa.
+        </MudText>
+
+        @if (!AvailableAccounts.Any())
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error" Class="mt-4">
+                No tienes otras cuentas activas a las que transferir el dinero. Por favor, crea una nueva cuenta antes de
+                desactivar esta.
+            </MudAlert>
+        }
+        else
+        {
+            <MudSelect T="Guid" Label="Cuenta de Destino" @bind-Value="targetAccountId" Variant="Variant.Outlined"
+                       Margin="Margin.Dense">
+                @foreach (var acc in AvailableAccounts)
+                {
+                    <MudSelectItem Value="@acc.Id">@acc.Name (@acc.Balance.ToString("N2") @acc.Currency)</MudSelectItem>
+                }
+            </MudSelect>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Error" OnClick="Submit" Variant="Variant.Filled"
+                   Disabled="@(targetAccountId == Guid.Empty)">
+            Transferir y Desactivar
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public AccountDto AccountToDelete { get; set; } = null!;
+    [Parameter] public List<AccountDto> AvailableAccounts { get; set; } = new();
+
+    private Guid targetAccountId;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (targetAccountId == Guid.Empty) return;
+
+        var targetAccount = AvailableAccounts.First(a => a.Id == targetAccountId);
+
+        try
+        {
+            // 1. Actualizamos el balance de la cuenta destino sumando el dinero de la eliminada
+            var updateDto = new UpdateAccountDto
+            {
+                Name = targetAccount.Name,
+                Description = targetAccount.Description,
+                Type = targetAccount.Type,
+                Currency = targetAccount.Currency,
+                AccountNumber = targetAccount.AccountNumber,
+                BankName = targetAccount.BankName,
+                IsActive = targetAccount.IsActive,
+                Balance = targetAccount.Balance + AccountToDelete.Balance
+            };
+            await AccountService.UpdateAsync(targetAccount.Id, updateDto);
+
+            // 2. En lugar de eliminar, desactivamos la cuenta de origen y ponemos su balance a 0
+            var deactivateDto = new UpdateAccountDto
+            {
+                Name = AccountToDelete.Name,
+                Description = AccountToDelete.Description,
+                Type = AccountToDelete.Type,
+                Currency = AccountToDelete.Currency,
+                AccountNumber = AccountToDelete.AccountNumber,
+                BankName = AccountToDelete.BankName,
+                IsActive = false,
+                Balance = 0
+            };
+            await AccountService.UpdateAsync(AccountToDelete.Id, deactivateDto);
+
+            Snackbar.Add("Fondos transferidos y cuenta desactivada correctamente.", MudSeverity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error en el proceso: {ex.Message}", MudSeverity.Error);
+        }
+    }
+}

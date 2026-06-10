@@ -1,0 +1,109 @@
+@using SegundoCerebro.BlazorWasm.Models
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<MudDialog>
+    <DialogContent>
+        @if (Account == null)
+        {
+            <MudProgressCircular Indeterminate="true" />
+        }
+        else
+        {
+            <MudText Typo="Typo.body1" Class="mb-4">
+                Cuenta: <strong>@Account.Name</strong><br />
+                Balance actual: <strong>@Account.Balance.ToString("N2") @Account.Currency</strong>
+            </MudText>
+
+            <MudSelect T="string" Label="Convertir a Divisa" Value="@targetCurrency" ValueChanged="OnTargetCurrencyChanged"
+                       Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var curr in availableCurrencies.Where(c => c != Account.Currency))
+                {
+                    <MudSelectItem Value="@curr">@curr</MudSelectItem>
+                }
+            </MudSelect>
+
+            @if (isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mt-4" Color="Color.Primary" />
+            }
+            else if (exchangeRate > 0)
+            {
+                <MudAlert Severity="MudBlazor.Severity.Warning" Class="mt-4" Icon="Icons.Material.Filled.Warning">
+                    ¿Estás seguro de que deseas convertir esta cuenta?<br /><br />
+                    Tasa en tiempo real: <strong>1 @Account.Currency = @exchangeRate @targetCurrency</strong><br />
+                    El balance pasará a ser de: <strong>@((Account.Balance * exchangeRate).ToString("N2"))
+                    @targetCurrency</strong>
+                </MudAlert>
+            }
+            else if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="MudBlazor.Severity.Error" Class="mt-4">@errorMessage</MudAlert>
+            }
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="Submit" Variant="Variant.Filled" Disabled="@(exchangeRate <= 0)">
+            Convertir y Guardar</MudButton>
+        </DialogActions>
+    </MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public AccountDto Account { get; set; } = null!;
+
+    private string? targetCurrency;
+    private decimal exchangeRate = 0;
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    private readonly string[] availableCurrencies = { "EUR", "USD", "GBP", "JPY", "CAD", "AUD", "CHF", "CNY" };
+
+    private async Task OnTargetCurrencyChanged(string value)
+    {
+        targetCurrency = value;
+        exchangeRate = 0;
+        errorMessage = "";
+
+        if (string.IsNullOrEmpty(targetCurrency)) return;
+
+        isLoading = true;
+        try
+        {
+            // Usamos una API pública y gratuita para obtener la tasa en tiempo real
+            var response = await
+Http.GetFromJsonAsync<ExchangeRateResponse>($"https://open.er-api.com/v6/latest/{Account.Currency}");
+            if (response != null && response.rates.TryGetValue(targetCurrency, out var rate))
+            {
+                exchangeRate = (decimal)rate;
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Error al conectar con el servicio de tasas de cambio.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(new CurrencyConversionResult { NewCurrency = targetCurrency!, Rate = exchangeRate }));
+    }
+
+    private class ExchangeRateResponse
+    {
+        public Dictionary<string, double> rates { get; set; } = new();
+    }
+
+    public class CurrencyConversionResult
+    {
+        public string NewCurrency { get; set; } = "";
+        public decimal Rate { get; set; }
+    }
+}

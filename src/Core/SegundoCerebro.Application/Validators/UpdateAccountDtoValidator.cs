@@ -25,5 +25,8 @@ public class UpdateAccountDtoValidator : AbstractValidator<UpdateAccountDto>
         RuleFor(x => x.BankName)
             .MaximumLength(100).WithMessage("El nombre del banco no puede exceder 100 caracteres")
             .When(x => !string.IsNullOrEmpty(x.BankName));
+
+        RuleFor(x => x.Balance)
+            .GreaterThanOrEqualTo(0).WithMessage("El saldo no puede ser negativo");
     }
 }

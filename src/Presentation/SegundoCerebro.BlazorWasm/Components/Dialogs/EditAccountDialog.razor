@@ -8,54 +8,12 @@
     <DialogContent>
         <MudForm Model="@model" @ref="@form">
             <MudCardContent>
-                <MudTextField @bind-Value="model.Name" 
-                              For="@(() => model.Name)" 
-                              Immediately="true" 
-                              Label="Account Name"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense" />
+                <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true" Label="Account Name"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-                <MudTextField @bind-Value="model.Description" 
-                              For="@(() => model.Description)" 
-                              Label="Description (Optional)"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              Lines="2" />
+                <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
+                              Label="Description (Optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
 
-                <MudSelect @bind-Value="model.Type" 
-                           For="@(() => model.Type)"
-                           Label="Account Type" 
-                           Variant="Variant.Outlined"
-                           Margin="Margin.Dense">
-                    @foreach (AccountType type in Enum.GetValues<AccountType>())
-                    {
-                        <MudSelectItem Value="@type">@type.ToString()</MudSelectItem>
-                    }
-                </MudSelect>
-
-                <MudTextField @bind-Value="model.Currency" 
-                              For="@(() => model.Currency)" 
-                              Label="Currency"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              MaxLength="3" />
-
-                <MudTextField @bind-Value="model.AccountNumber" 
-                              For="@(() => model.AccountNumber)" 
-                              Label="Account Number (Optional)"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense" />
-
-                <MudTextField @bind-Value="model.BankName" 
-                              For="@(() => model.BankName)" 
-                              Label="Bank Name (Optional)"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense" />
-
-                <MudSwitch @bind-Value="model.IsActive" 
-                           For="@(() => model.IsActive)"
-                           Label="Active Account" 
-                           Color="Color.Primary" />
             </MudCardContent>
         </MudForm>
     </DialogContent>
@@ -81,6 +39,7 @@
         model.AccountNumber = Account.AccountNumber;
         model.BankName = Account.BankName;
         model.IsActive = Account.IsActive;
+        model.Balance = Account.Balance;
     }
 
     private void Cancel()
@@ -91,7 +50,7 @@
     private async Task Submit()
     {
         await form.Validate();
-        
+
         if (form.IsValid)
         {
             try

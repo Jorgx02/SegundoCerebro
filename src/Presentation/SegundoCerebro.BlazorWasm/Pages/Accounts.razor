@@ -12,10 +12,8 @@
     <MudGrid>
         <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
             <MudText Typo="Typo.h4">Accounts</MudText>
-            <MudButton Variant="Variant.Filled" 
-                      Color="Color.Primary" 
-                      StartIcon="Icons.Material.Filled.Add"
-                      OnClick="OpenCreateDialog">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="Icons.Material.Filled.Add"
+                       OnClick="OpenCreateDialog">
                 New Account
             </MudButton>
         </MudItem>
@@ -30,7 +28,7 @@
                         <div>
                             <MudText Typo="Typo.body2" Color="Color.Secondary">Total Balance</MudText>
                             <MudText Typo="Typo.h5" Color="@(totalBalance >= 0 ? Color.Success : Color.Error)">
-                                @totalBalance.ToString("C")
+                                @totalBalance.ToString("N2")
                             </MudText>
                         </div>
                         <MudIcon Icon="Icons.Material.Filled.AccountBalance" Size="Size.Large" Color="Color.Primary" />
@@ -38,21 +36,21 @@
                 </MudCardContent>
             </MudCard>
         </MudItem>
-        
+
         <MudItem xs="12" sm="6" md="3">
             <MudCard>
                 <MudCardContent>
                     <div class="d-flex justify-space-between">
                         <div>
                             <MudText Typo="Typo.body2" Color="Color.Secondary">Active Accounts</MudText>
-                            <MudText Typo="Typo.h5">@accounts.Count()</MudText>
+                            <MudText Typo="Typo.h5">@allAccounts.Count(a => a.IsActive)</MudText>
                         </div>
                         <MudIcon Icon="Icons.Material.Filled.CreditCard" Size="Size.Large" Color="Color.Secondary" />
                     </div>
                 </MudCardContent>
             </MudCard>
         </MudItem>
-        
+
         <MudItem xs="12" sm="6" md="3">
             <MudCard>
                 <MudCardContent>
@@ -60,7 +58,8 @@
                         <div>
                             <MudText Typo="Typo.body2" Color="Color.Secondary">Checking</MudText>
                             <MudText Typo="Typo.h6">
-                                @accounts.Where(a => a.Type == AccountType.Checking).Sum(a => a.Balance).ToString("C")
+                                @allAccounts.Where(a => a.IsActive && a.Type == AccountType.Checking).Sum(a =>
+                                a.Balance).ToString("N2")
                             </MudText>
                         </div>
                         <MudIcon Icon="Icons.Material.Filled.Payment" Size="Size.Large" Color="Color.Info" />
@@ -68,7 +67,7 @@
                 </MudCardContent>
             </MudCard>
         </MudItem>
-        
+
         <MudItem xs="12" sm="6" md="3">
             <MudCard>
                 <MudCardContent>
@@ -76,7 +75,8 @@
                         <div>
                             <MudText Typo="Typo.body2" Color="Color.Secondary">Savings</MudText>
                             <MudText Typo="Typo.h6">
-                                @accounts.Where(a => a.Type == AccountType.Savings).Sum(a => a.Balance).ToString("C")
+                                @allAccounts.Where(a => a.IsActive && a.Type == AccountType.Savings).Sum(a =>
+                                a.Balance).ToString("N2")
                             </MudText>
                         </div>
                         <MudIcon Icon="Icons.Material.Filled.Savings" Size="Size.Large" Color="Color.Success" />
@@ -90,11 +90,21 @@
     <MudCard>
         <MudCardHeader>
             <CardHeaderContent>
-                <MudText Typo="Typo.h6">All Accounts</MudText>
+                <div class="d-flex justify-space-between align-center">
+                    <MudText Typo="Typo.h6">All Accounts</MudText>
+                    <MudSelect T="AccountStatusFilter" Value="statusFilter" ValueChanged="OnStatusFilterChanged"
+                               Label="Tipo de cuenta" Variant="Variant.Text" Margin="Margin.Dense" Dense="true"
+                               Style="max-width: 110px;" Class="ml-auto" AnchorOrigin="Origin.BottomRight"
+                               TransformOrigin="Origin.TopRight">
+                        <MudSelectItem Value="AccountStatusFilter.Active">Activas</MudSelectItem>
+                        <MudSelectItem Value="AccountStatusFilter.Inactive">Inactivas</MudSelectItem>
+                        <MudSelectItem Value="AccountStatusFilter.All">Todas</MudSelectItem>
+                    </MudSelect>
+                </div>
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
-            <MudTable Items="@accounts" Hover="true" Loading="@loading" LoadingProgressColor="Color.Info">
+            <MudTable Items="@FilteredAccounts" Hover="true" Loading="@loading" LoadingProgressColor="Color.Info">
                 <HeaderContent>
                     <MudTh>Name</MudTh>
                     <MudTh>Type</MudTh>
@@ -124,7 +134,7 @@
                     </MudTd>
                     <MudTd DataLabel="Balance">
                         <MudText Typo="Typo.body1" Color="@(context.Balance >= 0 ? Color.Success : Color.Error)">
-                            @context.Balance.ToString("C")
+                            @context.Balance.ToString("N2")
                         </MudText>
                     </MudTd>
                     <MudTd DataLabel="Currency">@context.Currency</MudTd>
@@ -135,16 +145,13 @@
                         </MudChip>
                     </MudTd>
                     <MudTd DataLabel="Actions">
-                        <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
-                            <MudIconButton Icon="Icons.Material.Filled.Edit" 
-                                         Size="Size.Small" 
-                                         Color="Color.Primary"
-                                         OnClick="() => OpenEditDialog(context)" />
-                            <MudIconButton Icon="Icons.Material.Filled.Delete" 
-                                         Size="Size.Small" 
-                                         Color="Color.Error"
-                                         OnClick="() => DeleteAccount(context)" />
-                        </MudButtonGroup>
+                        <MudIconButton Icon="Icons.Material.Filled.CurrencyExchange" Size="Size.Small"
+                                       Color="Color.Warning" Variant="Variant.Filled" Class="mr-2"
+                                       OnClick="() => OpenChangeCurrencyDialog(context)" Title="Cambiar Divisa" />
+                        <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                       Variant="Variant.Filled" Class="mr-2" OnClick="() => OpenEditDialog(context)" />
+                        <MudIconButton Icon="Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                       Variant="Variant.Filled" OnClick="() => DeleteAccount(context)" />
                     </MudTd>
                 </RowTemplate>
             </MudTable>
@@ -153,9 +160,26 @@
 </MudContainer>
 
 @code {
-    private List<AccountDto> accounts = new();
+    private List<AccountDto> allAccounts = new();
     private decimal totalBalance = 0;
     private bool loading = true;
+    private AccountStatusFilter statusFilter = AccountStatusFilter.Active;
+
+    private enum AccountStatusFilter { All, Active, Inactive }
+
+    private void OnStatusFilterChanged(AccountStatusFilter newValue)
+    {
+        statusFilter = newValue;
+        StateHasChanged();
+    }
+
+    private IEnumerable<AccountDto> FilteredAccounts =>
+        statusFilter switch
+        {
+            AccountStatusFilter.Active => allAccounts.Where(a => a.IsActive),
+            AccountStatusFilter.Inactive => allAccounts.Where(a => !a.IsActive),
+            _ => allAccounts
+        };
 
     protected override async Task OnInitializedAsync()
     {
@@ -168,7 +192,7 @@
         try
         {
             var result = await AccountService.GetAllAsync();
-            accounts = result.ToList();
+            allAccounts = result.ToList();
             totalBalance = await AccountService.GetTotalBalanceAsync();
         }
         catch (Exception ex)
@@ -201,7 +225,6 @@
         _ => Color.Default
     };
 
-    
     private async Task OpenCreateDialog()
     {
         var dialog = DialogService.Show<CreateAccountDialog>("Create New Account");
@@ -229,30 +252,96 @@
 
     private async Task DeleteAccount(AccountDto account)
     {
+        if (account.Balance < 0)
+        {
+            Snackbar.Add("No se puede desactivar una cuenta con saldo negativo.", MudSeverity.Error);
+            return;
+        }
+
+        if (!account.IsActive && account.Balance == 0)
+        {
+            Snackbar.Add("La cuenta ya se encuentra inactiva y vacía.", MudSeverity.Info);
+            return;
+        }
+
+        if (account.Balance > 0)
+        {
+            var parameters = new DialogParameters
+            {
+                ["AccountToDelete"] = account,
+                ["AvailableAccounts"] = allAccounts.Where(a => a.Id != account.Id && a.IsActive).ToList()
+            };
+            var dialog = DialogService.Show<TransferAndDeleteDialog>("Transferir Fondos y Desactivar", parameters);
+            var dialogResult = await dialog.Result;
+            if (!dialogResult.Canceled) await LoadAccounts();
+            return;
+        }
+
         bool? result = await DialogService.ShowMessageBox(
-            "Delete Account", 
-            $"Are you sure you want to delete '{account.Name}'? This action cannot be undone.", 
-            yesText:"Delete", 
-            cancelText:"Cancel");
-        
+            "Desactivar Cuenta",
+            $"¿Estás seguro de que deseas desactivar la cuenta '{account.Name}'?",
+            yesText: "Desactivar",
+            cancelText: "Cancelar");
+
         if (result == true)
         {
             try
             {
-                var success = await AccountService.DeleteAsync(account.Id);
-                if (success)
+                var updateDto = new UpdateAccountDto
                 {
-                    await LoadAccounts();
-                    Snackbar.Add("Account deleted successfully!", MudSeverity.Success);
-                }
-                else
-                {
-                    Snackbar.Add("Failed to delete account", MudSeverity.Error);
-                }
+                    Name = account.Name,
+                    Description = account.Description,
+                    Type = account.Type,
+                    Currency = account.Currency,
+                    AccountNumber = account.AccountNumber,
+                    BankName = account.BankName,
+                    IsActive = false,
+                    Balance = 0
+                };
+                await AccountService.UpdateAsync(account.Id, updateDto);
+
+                await LoadAccounts();
+                Snackbar.Add("Cuenta desactivada correctamente.", MudSeverity.Success);
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error deleting account: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error al desactivar la cuenta: {ex.Message}", MudSeverity.Error);
+            }
+        }
+    }
+
+    private async Task OpenChangeCurrencyDialog(AccountDto account)
+    {
+        var parameters = new DialogParameters { ["Account"] = account };
+        var dialog = DialogService.Show<ChangeCurrencyDialog>("Cambiar Divisa", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data != null)
+        {
+            try
+            {
+                var data = (ChangeCurrencyDialog.CurrencyConversionResult)result.Data;
+
+                // Actualizamos la divisa usando el servicio de actualización que ya tienes
+                var updateDto = new UpdateAccountDto
+                {
+                    Name = account.Name,
+                    Description = account.Description,
+                    Type = account.Type,
+                    Currency = data.NewCurrency,
+                    AccountNumber = account.AccountNumber,
+                    BankName = account.BankName,
+                    IsActive = account.IsActive,
+                    Balance = account.Balance * data.Rate
+                };
+
+                await AccountService.UpdateAsync(account.Id, updateDto);
+                await LoadAccounts();
+                Snackbar.Add($"Divisa cambiada a {data.NewCurrency} y balance actualizado correctamente.", MudSeverity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error al cambiar divisa: {ex.Message}", MudSeverity.Error);
             }
         }
     }
