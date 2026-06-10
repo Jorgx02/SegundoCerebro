@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador de FluentValidation para el DTO de actualización de cuentas.
+/// Asegura que los datos de entrada cumplan con las reglas de negocio en el backend.
+/// </summary>
 public class UpdateAccountDtoValidator : AbstractValidator<UpdateAccountDto>
 {
+    /// <summary>
+    /// Define las reglas y restricciones para actualizar una cuenta de forma segura.
+    /// </summary>
     public UpdateAccountDtoValidator()
     {
         RuleFor(x => x.Name)

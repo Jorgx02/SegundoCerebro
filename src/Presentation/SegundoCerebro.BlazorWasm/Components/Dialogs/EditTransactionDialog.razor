@@ -2,57 +2,25 @@
 @using SegundoCerebro.BlazorWasm.Models.Enums
 @using SegundoCerebro.BlazorWasm.Services
 @inject ITransactionService TransactionService
-@inject IAccountService AccountService
-@inject ICategoryService CategoryService;
 @inject ISnackbar Snackbar
 
 <MudDialog>
     <DialogContent>
+        <MudAlert Severity="MudBlazor.Severity.Info" Class="mb-4">
+            Por motivos de seguridad, solo es posible añadir o modificar las notas de una transacción ya registrada. El
+            resto de datos no pueden ser alterados.
+        </MudAlert>
+
         <MudForm Model="@model" @ref="@form">
             <MudCardContent>
-                <MudTextField @bind-Value="model.Description" For="@(() => model.Description)" Immediately="true"
-                              Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense" />
-
-                <MudNumericField @bind-Value="model.Amount" For="@(() => model.Amount)" Label="Amount"
-                                 Variant="Variant.Outlined" Margin="Margin.Dense" Format="N2"
-                                 Culture="@System.Globalization.CultureInfo.CurrentCulture" />
-
-                <MudSelect @bind-Value="model.Type" For="@(() => model.Type)" Label="Transaction Type"
-                           Variant="Variant.Outlined" Margin="Margin.Dense">
-                    <MudSelectItem Value="@TransactionType.Income">Income</MudSelectItem>
-                    <MudSelectItem Value="@TransactionType.Expense">Expense</MudSelectItem>
-                </MudSelect>
-
-                <MudDatePicker @bind-Date="transactionDate" Label="Date" Variant="Variant.Outlined"
-                               Margin="Margin.Dense" />
-
-                <MudSelect @bind-Value="model.AccountId" For="@(() => model.AccountId)" Label="Account"
-                           Variant="Variant.Outlined" Margin="Margin.Dense">
-                    @foreach (var account in accounts)
-                    {
-                        <MudSelectItem Value="@account.Id">@account.Name</MudSelectItem>
-                    }
-                </MudSelect>
-
-                <MudSelect @bind-Value="model.CategoryId" For="@(() => model.CategoryId)" Label="Category"
-                           Variant="Variant.Outlined" Margin="Margin.Dense">
-                    @foreach (var category in categories)
-                    {
-                        <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
-                    }
-                </MudSelect>
-
-                <MudTextField @bind-Value="model.Reference" For="@(() => model.Reference)" Label="Reference (Optional)"
-                              Variant="Variant.Outlined" Margin="Margin.Dense" />
-
-                <MudTextField @bind-Value="model.Notes" For="@(() => model.Notes)" Label="Notes (Optional)"
-                              Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
+                <MudTextField @bind-Value="model.Notes" For="@(() => model.Notes)" Label="Notas (Opcional)"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" Lines="4" />
             </MudCardContent>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Update Transaction</MudButton>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar Notas</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -62,12 +30,8 @@
 
     private UpdateTransactionDto model = new();
     private MudForm form = null!;
-    private List<AccountDto> accounts = new();
-    private List<CategoryDto> categories = new();
 
-    private DateTime? transactionDate;
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         model.Description = Transaction.Description;
         model.Amount = Transaction.Amount;
@@ -77,62 +41,12 @@
         model.Notes = Transaction.Notes;
         model.AccountId = Transaction.AccountId;
         model.CategoryId = Transaction.CategoryId;
-
-        transactionDate = Transaction.Date;
-
-        await LoadData();
     }
 
-    private async Task LoadData()
-    {
-        try
-        {
-            var accountsTask = AccountService.GetAllAsync();
-            var categoriesTask = CategoryService.GetAllAsync();
-
-            await Task.WhenAll(accountsTask, categoriesTask);
-
-            accounts = (await accountsTask).ToList();
-            categories = (await categoriesTask).ToList();
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error loading data: {ex.Message}", MudSeverity.Error);
-        }
-    }
-
-    private async Task<List<CategoryDto>> LoadMockCategories()
-    {
-        await Task.CompletedTask;
-        return new List<CategoryDto>
-        {
-            new() { Id = Guid.NewGuid(), Name = "Food & Dining", Type = CategoryType.Expense },
-            new() { Id = Guid.NewGuid(), Name = "Transportation", Type = CategoryType.Expense },
-            new() { Id = Guid.NewGuid(), Name = "Shopping", Type = CategoryType.Expense },
-            new() { Id = Guid.NewGuid(), Name = "Entertainment", Type = CategoryType.Expense },
-            new() { Id = Guid.NewGuid(), Name = "Salary", Type = CategoryType.Income },
-            new() { Id = Guid.NewGuid(), Name = "Freelance", Type = CategoryType.Income },
-            new() { Id = Guid.NewGuid(), Name = "Investment", Type = CategoryType.Income }
-        };
-    }
-
-    protected override void OnParametersSet()
-    {
-        if (transactionDate.HasValue)
-        {
-            model.Date = transactionDate.Value;
-        }
-    }
-
-    private void Cancel()
-    {
-        MudDialog.Cancel();
-    }
+    private void Cancel() => MudDialog.Cancel();
 
     private async Task Submit()
     {
-        model.Date = transactionDate ?? model.Date;
-
         await form.Validate();
 
         if (form.IsValid)

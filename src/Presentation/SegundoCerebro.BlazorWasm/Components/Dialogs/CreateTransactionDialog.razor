@@ -8,6 +8,13 @@
 
 <MudDialog>
     <DialogContent>
+        @if (!allCategories.Any() || !accounts.Any(a => a.IsActive))
+        {
+            <MudAlert Severity="MudBlazor.Severity.Warning" Class="mb-4">
+                Debes tener al menos una Cuenta activa y una Categoría creada para poder añadir transacciones.
+            </MudAlert>
+        }
+
         <MudForm Model="@model" @ref="@form">
             <MudCardContent>
                 <MudTextField @bind-Value="model.Description" For="@(() => model.Description)" Immediately="true"
@@ -17,28 +24,32 @@
                                  Variant="Variant.Outlined" Margin="Margin.Dense" Format="N2"
                                  Culture="@System.Globalization.CultureInfo.CurrentCulture" />
 
-                <MudSelect @bind-Value="model.Type" For="@(() => model.Type)" Label="Transaction Type"
-                           Variant="Variant.Outlined" Margin="Margin.Dense">
-                    <MudSelectItem Value="@TransactionType.Income">Income</MudSelectItem>
-                    <MudSelectItem Value="@TransactionType.Expense">Expense</MudSelectItem>
+                <MudSelect T="TransactionType?" Value="selectedType" ValueChanged="OnTransactionTypeChanged"
+                           Label="Transaction Type" Placeholder="Selecciona un tipo..." Variant="Variant.Outlined"
+                           Margin="Margin.Dense">
+                    <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Income)">Income
+                    </MudSelectItem>
+                    <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Expense)">Expense
+                    </MudSelectItem>
                 </MudSelect>
 
                 <MudDatePicker @bind-Date="transactionDate" Label="Date" Variant="Variant.Outlined"
                                Margin="Margin.Dense" />
 
-                <MudSelect @bind-Value="model.AccountId" For="@(() => model.AccountId)" Label="Account"
+                <MudSelect T="Guid" @bind-Value="model.AccountId" For="@(() => model.AccountId)" Label="Account"
                            Variant="Variant.Outlined" Margin="Margin.Dense">
-                    @foreach (var account in accounts)
+                    @foreach (var account in accounts.Where(a => a.IsActive))
                     {
-                        <MudSelectItem Value="@account.Id">@account.Name</MudSelectItem>
+                        <MudSelectItem T="Guid" Value="@account.Id">@account.Name</MudSelectItem>
                     }
                 </MudSelect>
 
-                <MudSelect @bind-Value="model.CategoryId" For="@(() => model.CategoryId)" Label="Category"
-                           Variant="Variant.Outlined" Margin="Margin.Dense">
-                    @foreach (var category in categories)
+                <MudSelect T="Guid" @bind-Value="model.CategoryId" For="@(() => model.CategoryId)" Label="Category"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(selectedType == null)"
+                           Placeholder="Selecciona primero un tipo">
+                    @foreach (var category in filteredCategories)
                     {
-                        <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
+                        <MudSelectItem T="Guid" Value="@category.Id">@category.Name</MudSelectItem>
                     }
                 </MudSelect>
 
@@ -52,7 +63,8 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Create Transaction</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled"
+                   Disabled="@(!allCategories.Any() || !accounts.Any(a => a.IsActive))">Create Transaction</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -62,15 +74,14 @@
     private CreateTransactionDto model = new();
     private MudForm form = null!;
     private List<AccountDto> accounts = new();
-    private List<CategoryDto> categories = new();
+    private List<CategoryDto> allCategories = new();
+    private IEnumerable<CategoryDto> filteredCategories = Enumerable.Empty<CategoryDto>();
 
-    private DateTime? transactionDate = DateTime.Today;
+    private DateTime? transactionDate;
+    private TransactionType? selectedType;
 
     protected override async Task OnInitializedAsync()
     {
-        model.Date = DateTime.Today;
-        model.Type = TransactionType.Expense;
-
         await LoadData();
     }
 
@@ -78,17 +89,37 @@
     {
         try
         {
-            var accountsTask = AccountService.GetAllAsync();
-            var categoriesTask = CategoryService.GetAllAsync();
-
-            await Task.WhenAll(accountsTask, categoriesTask);
-
-            accounts = (await accountsTask).ToList();
-            categories = (await categoriesTask).ToList();
+            var result = await AccountService.GetAllAsync();
+            accounts = result.ToList();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading data: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al cargar cuentas: {ex.Message}", MudSeverity.Error);
+        }
+
+        try
+        {
+            var result = await CategoryService.GetAllAsync();
+            allCategories = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar categorías: {ex.Message}", MudSeverity.Error);
+        }
+    }
+
+    private void OnTransactionTypeChanged(TransactionType? newType)
+    {
+        selectedType = newType;
+        model.CategoryId = Guid.Empty; // Reset category selection
+        if (selectedType.HasValue)
+        {
+            var categoryType = (CategoryType)newType.Value;
+            filteredCategories = allCategories.Where(c => c.Type == categoryType);
+        }
+        else
+        {
+            filteredCategories = Enumerable.Empty<CategoryDto>();
         }
     }
 
@@ -108,6 +139,26 @@
     private async Task Submit()
     {
         model.Date = transactionDate ?? DateTime.Today;
+
+        if (selectedType == null)
+        {
+            Snackbar.Add("Por favor, selecciona un tipo de transacción.", MudSeverity.Warning);
+            return;
+        }
+        model.Type = selectedType.Value;
+
+        var selectedAccount = accounts.FirstOrDefault(a => a.Id == model.AccountId);
+        if (selectedAccount != null && selectedAccount.Type == AccountType.Savings && model.Type == TransactionType.Expense)
+        {
+            Snackbar.Add("No se pueden registrar gastos en una cuenta de Ahorros.", MudSeverity.Error);
+            return;
+        }
+
+        if (model.CategoryId == Guid.Empty || model.AccountId == Guid.Empty)
+        {
+            Snackbar.Add("Por favor, selecciona una cuenta y una categoría.", MudSeverity.Warning);
+            return;
+        }
 
         await form.Validate();
 

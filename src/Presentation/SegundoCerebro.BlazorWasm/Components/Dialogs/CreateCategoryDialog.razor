@@ -1,0 +1,71 @@
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@inject ICategoryService CategoryService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@model" @ref="@form">
+            <MudCardContent>
+                <MudTextField @bind-Value="model.Name" For="@(() => model.Name)"
+                              Label="Nombre de la Categoría (Ej: Sueldo, Comida)" Variant="Variant.Outlined"
+                              Margin="Margin.Dense" />
+
+                <MudTextField @bind-Value="model.Description" For="@(() => model.Description)" Label="Descripción"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+                <MudSelect T="CategoryType" @bind-Value="model.Type" For="@(() => model.Type)" Label="Tipo"
+                           Variant="Variant.Outlined" Margin="Margin.Dense">
+                    <MudSelectItem T="CategoryType" Value="CategoryType.Income">Ingreso</MudSelectItem>
+                    <MudSelectItem T="CategoryType" Value="CategoryType.Expense">Gasto</MudSelectItem>
+                </MudSelect>
+
+                <MudColorPicker @bind-Text="model.Color" Label="Color Identificativo" Variant="Variant.Outlined"
+                                Margin="Margin.Dense" />
+            </MudCardContent>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Crear</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    private CreateCategoryDto model = new()
+    {
+        Color = "#1976D2",
+        Icon = "category", // Por defecto para cumplir la base de datos
+        Type = CategoryType.Expense
+    };
+    private MudForm form = null!;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                // Aseguramos que el color no tenga canal alfa (transparencia)
+                if (model.Color.Length > 7)
+                {
+                    model.Color = model.Color.Substring(0, 7);
+                }
+
+                await CategoryService.CreateAsync(model);
+                Snackbar.Add("Categoría creada", MudSeverity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", MudSeverity.Error);
+            }
+        }
+    }
+}

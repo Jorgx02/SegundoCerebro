@@ -1,0 +1,101 @@
+@page "/categories"
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@inject ICategoryService CategoryService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Categorías - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+            <MudText Typo="Typo.h4">Categorías</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="Icons.Material.Filled.Add"
+                       OnClick="OpenCreateDialog">
+                Nueva Categoría
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    <MudCard Elevation="4" Class="rounded-lg">
+        <MudCardContent>
+            <MudTable Items="@categories" Hover="true" Striped="true" Dense="true" Loading="@loading">
+                <HeaderContent>
+                    <MudTh>Color</MudTh>
+                    <MudTh>Nombre</MudTh>
+                    <MudTh>Descripción</MudTh>
+                    <MudTh>Tipo</MudTh>
+                    <MudTh>Acciones</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Color">
+                        <div style="width: 24px; height: 24px; border-radius: 50%; background-color: @context.Color">
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Nombre">
+                        <MudText Typo="Typo.body1">@context.Name</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Descripción">@context.Description</MudTd>
+                    <MudTd DataLabel="Tipo">
+                        <MudChip Size="Size.Small"
+                                 Color="@(context.Type == CategoryType.Income ? Color.Success : Color.Error)">
+                            @(context.Type == CategoryType.Income ? "Ingreso" : "Gasto")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Acciones">
+                        <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                       OnClick="() => OpenEditDialog(context)" />
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No hay categorías creadas. Crea una para poder registrar transacciones.</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private List<CategoryDto> categories = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        loading = true;
+        try
+        {
+            var result = await CategoryService.GetAllAsync();
+            categories = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar categorías: {ex.Message}", MudSeverity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = DialogService.Show<CreateCategoryDialog>("Nueva Categoría");
+        var result = await dialog.Result;
+        if (!result.Canceled) await LoadData();
+    }
+
+    private async Task OpenEditDialog(CategoryDto category)
+    {
+        var parameters = new DialogParameters { ["Category"] = category };
+        var dialog = DialogService.Show<EditCategoryDialog>("Editar Categoría", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled) await LoadData();
+    }
+}

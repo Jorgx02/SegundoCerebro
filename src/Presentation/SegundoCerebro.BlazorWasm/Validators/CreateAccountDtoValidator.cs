@@ -3,8 +3,15 @@ using SegundoCerebro.BlazorWasm.Models;
 
 namespace SegundoCerebro.BlazorWasm.Validators;
 
+/// <summary>
+/// Validador de FluentValidation para el DTO de creación de cuentas en el Frontend (Blazor).
+/// Previene llamadas innecesarias a la API si los datos no son válidos.
+/// </summary>
 public class CreateAccountDtoValidator : AbstractValidator<CreateAccountDto>
 {
+    /// <summary>
+    /// Define las reglas de validación en tiempo real para el formulario de creación.
+    /// </summary>
     public CreateAccountDtoValidator()
     {
         RuleFor(x => x.Name)
@@ -31,8 +38,14 @@ public class CreateAccountDtoValidator : AbstractValidator<CreateAccountDto>
     }
 }
 
+/// <summary>
+/// Validador de FluentValidation para el DTO de actualización de cuentas en el Frontend.
+/// </summary>
 public class UpdateAccountDtoValidator : AbstractValidator<UpdateAccountDto>
 {
+    /// <summary>
+    /// Define las reglas de validación en tiempo real para el formulario de edición.
+    /// </summary>
     public UpdateAccountDtoValidator()
     {
         RuleFor(x => x.Name)

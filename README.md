@@ -7,7 +7,7 @@
 ![PostgreSQL 15+](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-*Tu asistente personal inteligente para la gestión completa de vida*
+_Tu asistente personal inteligente para la gestión completa de vida_
 
 [🚀 Demo en Vivo](#) • [📖 Documentación](#documentación) • [🐛 Reportar Bug](../../issues) • [💡 Solicitar Feature](../../issues)
 
@@ -36,9 +36,11 @@
 **SegundoCerebro** es una aplicación integral de gestión personal que actúa como tu "segundo cerebro" digital. Combina gestión financiera, organización de tareas, seguimiento de hábitos, y análisis de productividad en una sola plataforma potente y fácil de usar.
 
 ### 🌟 Visión
+
 Convertirse en el ecosistema definitivo para la organización personal, donde cada aspecto de tu vida productiva esté conectado e inteligentemente optimizado.
 
 ### 🎯 Misión
+
 Empoderar a las personas para que tomen el control total de su vida financiera, productiva y personal a través de herramientas intuitivas y análisis inteligentes.
 
 ---
@@ -46,27 +48,32 @@ Empoderar a las personas para que tomen el control total de su vida financiera, 
 ## ✨ Características
 
 ### 💰 **Módulo Financiero** (v1.0 - Completado ✅)
+
 - 📊 **Dashboard Financiero**: Vista completa de tu situación económica
-- 🏦 **Gestión de Cuentas**: Múltiples tipos (efectivo, bancarias, inversiones)
-- 💸 **Transacciones Completas**: Sistema CRUD completo con filtros avanzados
-- 📈 **Presupuestos Dinámicos**: Creación y seguimiento de presupuestos mensuales
+- 🏦 **Gestión de Cuentas**: 5 tipos (Corriente, Ahorro, Tarjeta, Inversión, Efectivo) con generación de IBAN automático
+- �️ **Seguridad Financiera**: Soft-delete de cuentas con flujo de transferencia y transacciones inmutables (solo notas)
+- 💸 **Transacciones Completas**: Sistema de registro dinámico con reglas de negocio (ej. bloqueo de gastos en cuentas de ahorro)
+- �📈 **Presupuestos Dinámicos**: Creación y seguimiento de presupuestos mensuales
 - 📊 **Reportes Avanzados**: Análisis de tendencias y proyecciones
-- 🏷️ **Categorías Personalizables**: Sistema flexible de clasificación
+- 🏷️ **Categorías Personalizables**: Sistema flexible de clasificación inteligente por Ingresos/Gastos
 - 🔍 **Filtros Inteligentes**: Por fecha, cuenta, categoría y tipo
-- 💱 **Gestión Multi-Cuenta**: Transferencias y balances consolidados
+- 💱 **Gestión Multi-Cuenta**: Transferencias seguras y balances consolidados (EUR)
 
 ### 🎯 **Módulo de Productividad** (v2.0 - Planificado)
+
 - ✅ **Gestión de Tareas**: Sistema GTD completo
 - 📅 **Planificación de Proyectos**: Metodologías ágiles integradas
 - ⏰ **Time Tracking**: Seguimiento detallado del tiempo
 - 🎯 **Objetivos SMART**: Definición y seguimiento de metas
 
 ### 🔄 **Módulo de Hábitos** (v3.0 - Planificado)
+
 - 📊 **Habit Tracker**: Seguimiento diario de hábitos
 - 🎮 **Gamificación**: Sistema de puntos y logros
 - 📈 **Análisis de Patrones**: IA para identificar patrones de comportamiento
 
 ### 🤖 **Inteligencia Artificial** (v4.0 - Futuro)
+
 - 🧠 **Asistente Personal**: Chatbot inteligente integrado
 - 💡 **Recomendaciones**: Sugerencias personalizadas basadas en datos
 - 🔍 **Análisis Predictivo**: Predicciones financieras y de productividad
@@ -93,6 +100,7 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 ```
 
 ### 🔧 Patrones Implementados
+
 - **Clean Architecture**: Separación clara de responsabilidades
 - **CQRS + MediatR**: Separación de comandos y consultas
 - **Repository Pattern**: Abstracción del acceso a datos
@@ -104,6 +112,7 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 ## 🛠️ Tecnologías
 
 ### Backend
+
 - **Framework**: .NET 9.0
 - **Lenguaje**: C# 12
 - **ORM**: Entity Framework Core 9.0
@@ -114,6 +123,7 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 - **Testing**: xUnit, FluentAssertions
 
 ### Frontend
+
 - **Framework**: Blazor WebAssembly
 - **UI Components**: MudBlazor
 - **Storage**: Blazored LocalStorage
@@ -121,6 +131,7 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 - **Validación**: FluentValidation
 
 ### DevOps & Herramientas
+
 - **Containerization**: Docker & Docker Compose
 - **CI/CD**: GitHub Actions
 - **Monitoring**: Serilog + Seq
@@ -132,17 +143,20 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 ## 🚀 Instalación
 
 ### Prerrequisitos
+
 - [.NET 9.0 SDK](https://dotnet.microsoft.com/download)
 - [PostgreSQL 15+](https://www.postgresql.org/download/)
 - [Node.js 18+](https://nodejs.org/) (opcional, para herramientas de desarrollo)
 
 ### 1. Clonar el Repositorio
+
 ```bash
 git clone https://github.com/Jorgx02/SegundoCerebro.git
 cd SegundoCerebro
 ```
 
 ### 2. Configurar Base de Datos
+
 ```bash
 # Crear base de datos PostgreSQL
 createdb segundo_cerebro_db
@@ -151,17 +165,20 @@ createdb segundo_cerebro_db
 ```
 
 ### 3. Restaurar Dependencias
+
 ```bash
 dotnet restore
 ```
 
 ### 4. Ejecutar Migraciones
+
 ```bash
 cd src/Presentation/SegundoCerebro.WebAPI
 dotnet ef database update
 ```
 
 ### 5. Ejecutar la Aplicación
+
 ```bash
 # Terminal 1: API Backend
 cd src/Presentation/SegundoCerebro.WebAPI
@@ -173,6 +190,7 @@ dotnet run
 ```
 
 ### 6. Acceder a la Aplicación
+
 - **Frontend**: http://localhost:5173
 - **API**: http://localhost:7099
 - **Swagger**: http://localhost:7099/swagger
@@ -184,6 +202,7 @@ dotnet run
 ### Gestión Financiera Básica
 
 1. **Crear Cuenta Bancaria**
+
    ```
    Navegar a "Accounts" → "New Account"
    Completar información de la cuenta
@@ -191,6 +210,7 @@ dotnet run
    ```
 
 2. **Registrar Transacciones**
+
    ```
    Ir a "Transactions" → "New Transaction"
    Seleccionar tipo (Ingreso/Gasto)
@@ -199,6 +219,7 @@ dotnet run
    ```
 
 3. **Filtrar y Buscar**
+
    ```
    Usar filtros por:
    - Rango de fechas
@@ -208,6 +229,7 @@ dotnet run
    ```
 
 4. **Crear Presupuesto**
+
    ```
    Acceder a "Budgets" → "Create Budget"
    Definir límites por categoría
@@ -229,6 +251,7 @@ dotnet run
 ## 🗺️ Roadmap
 
 ### 📍 **Fase 1: Fundación Financiera** (Q1 2026) ✅ **COMPLETADA**
+
 - [x] Arquitectura Clean + CQRS ✅
 - [x] Gestión de cuentas bancarias ✅
 - [x] Sistema de transacciones completo ✅
@@ -242,6 +265,7 @@ dotnet run
 - [x] **Sistema completamente operativo** ✅
 
 ### 🚧 **Fase 2: Productividad Personal** (Q1 2026) - **PRÓXIMO**
+
 - [ ] Gestión de tareas (GTD)
 - [ ] Proyectos y objetivos
 - [ ] Time tracking
@@ -250,6 +274,7 @@ dotnet run
 - [ ] Sincronización multi-dispositivo
 
 ### 🎯 **Fase 3: Hábitos y Bienestar** (Q2 2026)
+
 - [ ] Habit tracker diario
 - [ ] Métricas de bienestar
 - [ ] Gamificación (puntos, logros)
@@ -258,6 +283,7 @@ dotnet run
 - [ ] Reportes de progreso
 
 ### 🤖 **Fase 4: Inteligencia Artificial** (Q3 2026)
+
 - [ ] Chatbot asistente personal
 - [ ] Análisis predictivo financiero
 - [ ] Recomendaciones automáticas
@@ -266,6 +292,7 @@ dotnet run
 - [ ] Alertas proactivas
 
 ### 📱 **Fase 5: Ecosistema Móvil** (Q3 2026)
+
 - [ ] App nativa con .NET MAUI
 - [ ] Sincronización offline-first
 - [ ] Notificaciones push
@@ -274,6 +301,7 @@ dotnet run
 - [ ] Apple/Google Wallet integration
 
 ### 🌐 **Fase 6: Plataforma Social** (Q4 2026)
+
 - [ ] Sharing de objetivos
 - [ ] Competencias familiares/amigos
 - [ ] Comunidad de usuarios
@@ -286,6 +314,7 @@ dotnet run
 ## 📊 Métricas del Proyecto
 
 ### Estado Actual (v1.0) ✅ **APLICACIÓN OPERATIVA**
+
 - ✅ **Backend**: 100% funcional y compilando
 - ✅ **Base de datos**: PostgreSQL configurada y operativa
 - ✅ **API REST**: 20+ endpoints funcionando
@@ -298,6 +327,7 @@ dotnet run
 - 🚧 **Documentación**: En progreso
 
 ### Funcionalidades Implementadas
+
 - **👤 Gestión de Cuentas**: Crear, editar, eliminar, listar
 - **💸 Gestión de Transacciones**: CRUD completo con filtros
 - **🏷️ Sistema de Categorías**: Categorización inteligente
@@ -307,6 +337,7 @@ dotnet run
 - **🔄 Navegación**: Menú lateral y enrutado funcional
 
 ### Estadísticas de Código
+
 ```
 - Líneas de código: ~12,000+
 - Proyectos: 5
@@ -324,6 +355,7 @@ dotnet run
 ## 🔌 API Reference
 
 ### Accounts
+
 ```http
 GET    /api/accounts              # Obtener todas las cuentas
 GET    /api/accounts/{id}         # Obtener cuenta por ID
@@ -334,6 +366,7 @@ GET    /api/accounts/{id}/balance # Obtener balance de cuenta
 ```
 
 ### Transactions
+
 ```http
 GET    /api/transactions              # Obtener todas las transacciones
 GET    /api/transactions/{id}         # Obtener transacción por ID
@@ -346,6 +379,7 @@ GET    /api/transactions/daterange    # Transacciones por rango de fechas
 ```
 
 ### Categories
+
 ```http
 GET    /api/categories            # Obtener todas las categorías
 GET    /api/categories/{id}       # Obtener categoría por ID
@@ -355,6 +389,7 @@ DELETE /api/categories/{id}       # Eliminar categoría
 ```
 
 ### Budgets
+
 ```http
 GET    /api/budgets               # Obtener todos los presupuestos
 GET    /api/budgets/{id}          # Obtener presupuesto por ID
@@ -364,6 +399,7 @@ DELETE /api/budgets/{id}          # Eliminar presupuesto
 ```
 
 ### Reports
+
 ```http
 GET    /api/reports/financial-summary  # Resumen financiero
 GET    /api/reports/monthly-breakdown  # Desglose mensual
@@ -379,22 +415,26 @@ GET    /api/reports/category-analysis  # Análisis por categorías
 ¡Las contribuciones son bienvenidas! Aquí tienes cómo puedes ayudar:
 
 ### 1. Fork del Proyecto
+
 ```bash
 git clone https://github.com/Jorgx02/SegundoCerebro.git
 cd SegundoCerebro
 ```
 
 ### 2. Crear Branch de Feature
+
 ```bash
 git checkout -b feature/nueva-caracteristica
 ```
 
 ### 3. Commit Changes
+
 ```bash
 git commit -m "Add: nueva característica increíble"
 ```
 
 ### 4. Push a Branch
+
 ```bash
 git push origin feature/nueva-caracteristica
 ```
@@ -402,6 +442,7 @@ git push origin feature/nueva-caracteristica
 ### 5. Abrir Pull Request
 
 ### 📋 Guidelines de Contribución
+
 - Seguir Clean Code principles
 - Escribir tests para nuevas funcionalidades
 - Actualizar documentación relevante
@@ -409,7 +450,9 @@ git push origin feature/nueva-caracteristica
 - Respetar la arquitectura establecida
 
 ### 🐛 Reportar Bugs
+
 Usa nuestro [template de issues](../../issues/new) e incluye:
+
 - Descripción detallada del problema
 - Pasos para reproducir
 - Comportamiento esperado vs actual

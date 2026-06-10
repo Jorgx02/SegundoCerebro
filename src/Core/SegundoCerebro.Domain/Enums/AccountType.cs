@@ -6,7 +6,5 @@ public enum AccountType
     Savings = 2,     // Cuenta de ahorro
     CreditCard = 3,  // Tarjeta de crédito
     Investment = 4,  // Cuenta de inversión
-    Loan = 5,        // Préstamo
-    Cash = 6,        // Efectivo
-    Other = 99       // Otros
+    Cash = 5         // Efectivo
 }

@@ -36,12 +36,12 @@ public class ApplicationDbContext : DbContext
             entity.Property(t => t.Amount).HasPrecision(18, 2);
 
             entity.HasOne(t => t.Account)
-                .WithMany()
+                .WithMany(a => a.Transactions)
                 .HasForeignKey(t => t.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(t => t.Category)
-                .WithMany()
+                .WithMany(c => c.Transactions)
                 .HasForeignKey(t => t.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
@@ -67,14 +67,14 @@ public class ApplicationDbContext : DbContext
             entity.Property(b => b.Name).IsRequired().HasMaxLength(100);
             entity.Property(b => b.Amount).HasPrecision(18, 2);
             entity.Property(b => b.Spent).HasPrecision(18, 2);
-            
+
             entity.HasOne(b => b.Category)
-                .WithMany()
+                .WithMany(c => c.Budgets)
                 .HasForeignKey(b => b.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             entity.HasOne(b => b.Account)
-                .WithMany()
+                .WithMany(a => a.Budgets)
                 .HasForeignKey(b => b.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
         });

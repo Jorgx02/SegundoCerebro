@@ -7,7 +7,8 @@
     <DialogContent>
         <MudText Typo="Typo.body1" Class="mb-4">
             La cuenta <strong>@AccountToDelete.Name</strong> tiene un saldo de
-            <strong>@AccountToDelete.Balance.ToString("N2") @AccountToDelete.Currency</strong>.
+            <!-- <strong>@AccountToDelete.Balance.ToString("N2") @AccountToDelete.Currency</strong>. -->
+            <strong>@AccountToDelete.Balance.ToString("N2") EUR</strong>.
             <br />
             Para desactivarla de forma segura, primero debes transferir los fondos a otra cuenta activa.
         </MudText>
@@ -25,7 +26,8 @@
                        Margin="Margin.Dense">
                 @foreach (var acc in AvailableAccounts)
                 {
-                    <MudSelectItem Value="@acc.Id">@acc.Name (@acc.Balance.ToString("N2") @acc.Currency)</MudSelectItem>
+                    <!-- <MudSelectItem Value="@acc.Id">@acc.Name (@acc.Balance.ToString("N2") @acc.Currency)</MudSelectItem> -->
+                    <MudSelectItem Value="@acc.Id">@acc.Name (@acc.Balance.ToString("N2") EUR)</MudSelectItem>
                 }
             </MudSelect>
         }

@@ -18,13 +18,14 @@
                            Variant="Variant.Outlined" Margin="Margin.Dense">
                     @foreach (AccountType type in Enum.GetValues<AccountType>())
                     {
-                        <MudSelectItem Value="@type">@type.ToString()</MudSelectItem>
+                        <MudSelectItem Value="@type">@GetAccountTypeName(type)</MudSelectItem>
                     }
                 </MudSelect>
 
                 <MudNumericField @bind-Value="model.InitialBalance" For="@(() => model.InitialBalance)"
                                  Label="Initial Balance" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N2" />
 
+                <!-- Funcionalidad de divisas oculta temporalmente
                 <MudSelect @bind-Value="model.Currency" For="@(() => model.Currency)" Label="Currency"
                            Variant="Variant.Outlined" Margin="Margin.Dense">
                     <MudSelectItem Value="@("EUR")">EUR - Euro</MudSelectItem>
@@ -36,12 +37,18 @@
                     <MudSelectItem Value="@("CHF")">CHF - Franco Suizo</MudSelectItem>
                     <MudSelectItem Value="@("CNY")">CNY - Yuan Chino</MudSelectItem>
                 </MudSelect>
+                -->
+
+                <MudSelect T="string" Value="model.BankName" ValueChanged="OnBankSelected" For="@(() => model.BankName)"
+                           Label="Banco" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var bank in AvailableBanks)
+                    {
+                        <MudSelectItem T="string" Value="@bank.Name">@bank.Name</MudSelectItem>
+                    }
+                </MudSelect>
 
                 <MudTextField @bind-Value="model.AccountNumber" For="@(() => model.AccountNumber)"
-                              Label="Account Number (Optional)" Variant="Variant.Outlined" Margin="Margin.Dense" />
-
-                <MudTextField @bind-Value="model.BankName" For="@(() => model.BankName)" Label="Bank Name (Optional)"
-                              Variant="Variant.Outlined" Margin="Margin.Dense" />
+                              Label="Número de Cuenta IBAN" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" />
             </MudCardContent>
         </MudForm>
     </DialogContent>
@@ -61,6 +68,89 @@
     {
         model.Currency = "EUR";
         model.Type = AccountType.Checking;
+    }
+
+    private string GetAccountTypeName(AccountType type) => type switch
+    {
+        AccountType.Checking => "Normal",
+        AccountType.Savings => "Ahorros",
+        AccountType.CreditCard => "Tarjeta de Crédito",
+        AccountType.Investment => "Inversión",
+        AccountType.Cash => "Efectivo",
+        _ => type.ToString()
+    };
+
+    private class BankInfo
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+    }
+
+    private List<BankInfo> AvailableBanks = new()
+    {
+        new BankInfo { Name = "Santander", Code = "0049" },
+        new BankInfo { Name = "BBVA", Code = "0182" },
+        new BankInfo { Name = "CaixaBank", Code = "2100" },
+        new BankInfo { Name = "Banco Sabadell", Code = "0081" },
+        new BankInfo { Name = "Bankinter", Code = "0128" },
+        new BankInfo { Name = "Unicaja Banco", Code = "2103" },
+        new BankInfo { Name = "Ibercaja", Code = "2048" },
+        new BankInfo { Name = "Kutxabank", Code = "2095" },
+        new BankInfo { Name = "Abanca", Code = "2080" },
+        new BankInfo { Name = "ING", Code = "0146" },
+        new BankInfo { Name = "Openbank", Code = "1465" },
+        new BankInfo { Name = "N26", Code = "1563" },
+        new BankInfo { Name = "Revolut", Code = "1580" }
+    };
+
+    private void OnBankSelected(string bankName)
+    {
+        model.BankName = bankName;
+        var bank = AvailableBanks.FirstOrDefault(b => b.Name == bankName);
+        if (bank != null)
+        {
+            model.AccountNumber = GenerateIBAN(bank.Code);
+        }
+    }
+
+    private string GenerateIBAN(string bankCode)
+    {
+        string branchCode = "0001"; // Oficina genérica por defecto
+
+        // Generar cuenta de 10 dígitos aleatoria
+        var rand = new Random();
+        string account = "";
+        for (int i = 0; i < 10; i++) account += rand.Next(0, 10).ToString();
+
+        // Calcular Dígitos de Control (DC)
+        int dc1 = CalculateDCDigit("00" + bankCode + branchCode);
+        int dc2 = CalculateDCDigit(account);
+        string ccc = bankCode + branchCode + dc1 + dc2 + account;
+
+        // Calcular Dígitos de Control del IBAN (ES = 1428)
+        string ibanNumberStr = ccc + "142800";
+        int checkDigit = 98 - Mod97(ibanNumberStr);
+
+        return "ES" + checkDigit.ToString("D2") + ccc;
+    }
+
+    private int CalculateDCDigit(string input)
+    {
+        int[] weights = { 1, 2, 4, 8, 5, 10, 9, 7, 3, 6 };
+        int sum = 0;
+        for (int i = 0; i < 10; i++) sum += (input[i] - '0') * weights[i];
+
+        int digit = 11 - (sum % 11);
+        if (digit == 11) return 0;
+        if (digit == 10) return 1;
+        return digit;
+    }
+
+    private int Mod97(string input)
+    {
+        int remainder = 0;
+        foreach (char c in input) remainder = (remainder * 10 + (c - '0')) % 97;
+        return remainder;
     }
 
     private void Cancel()

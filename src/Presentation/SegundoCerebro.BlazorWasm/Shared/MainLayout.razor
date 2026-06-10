@@ -1,27 +1,28 @@
 @inherits LayoutComponentBase
 @using MudBlazor
 
-<MudThemeProvider />
+<MudThemeProvider Theme="_currentTheme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="0" Color="Color.Primary">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+    <MudAppBar Elevation="1" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="@((e) => DrawerToggle())" />
+        <MudIcon Icon="@Icons.Material.Filled.Psychology" Size="Size.Large" Class="ml-2 mr-2" />
+        <MudText Typo="Typo.h5" Style="font-weight: 700;">SegundoCerebro</MudText>
         <MudSpacer />
-        <MudText Variant="Variant.h4" Style="font-weight: bold; color: white;">SegundoCerebro</MudText>
-        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Class="mr-4" />
+        <MudAvatar Color="Color.Secondary" Variant="Variant.Filled">J</MudAvatar>
     </MudAppBar>
-    
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
-        <MudDrawerHeader Style="background: var(--mud-palette-primary); color: white; text-align: center; padding: 24px 16px;">
-            <MudText Variant="Variant.h6" Style="font-weight: bold; margin: 0;">Navigation</MudText>
-        </MudDrawerHeader>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always">
+        <div class="mt-4"></div>
         <NavMenu />
     </MudDrawer>
-    
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
+
+    <MudMainContent Style="background-color: var(--mud-palette-background-grey); min-height: 100vh;">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="pt-6 pb-12">
             @Body
         </MudContainer>
     </MudMainContent>
@@ -34,4 +35,20 @@
     {
         _drawerOpen = !_drawerOpen;
     }
+
+    private MudTheme _currentTheme = new MudTheme()
+    {
+        Palette = new PaletteLight()
+        {
+            Primary = "#512BD4", // Color morado corporativo de tu README
+            Secondary = "#10b981", // Verde esmeralda para acentos
+            AppbarBackground = "#512BD4",
+            Background = "#f4f6f8", // Gris muy sutil para contraste
+            DrawerBackground = "#ffffff"
+        },
+        LayoutProperties = new LayoutProperties()
+        {
+            DefaultBorderRadius = "12px" // Bordes redondeados en toda la app
+        }
+    };
 }

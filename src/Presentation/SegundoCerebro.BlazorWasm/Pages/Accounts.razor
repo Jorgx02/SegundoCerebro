@@ -22,7 +22,7 @@
     <!-- Summary Cards -->
     <MudGrid Class="mb-6">
         <MudItem xs="12" sm="6" md="3">
-            <MudCard>
+            <MudCard Elevation="3" Class="rounded-lg">
                 <MudCardContent>
                     <div class="d-flex justify-space-between">
                         <div>
@@ -38,7 +38,7 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="3">
-            <MudCard>
+            <MudCard Elevation="3" Class="rounded-lg">
                 <MudCardContent>
                     <div class="d-flex justify-space-between">
                         <div>
@@ -52,7 +52,7 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="3">
-            <MudCard>
+            <MudCard Elevation="3" Class="rounded-lg">
                 <MudCardContent>
                     <div class="d-flex justify-space-between">
                         <div>
@@ -69,7 +69,7 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="3">
-            <MudCard>
+            <MudCard Elevation="3" Class="rounded-lg">
                 <MudCardContent>
                     <div class="d-flex justify-space-between">
                         <div>
@@ -87,7 +87,7 @@
     </MudGrid>
 
     <!-- Accounts Table -->
-    <MudCard>
+    <MudCard Elevation="4" Class="rounded-lg">
         <MudCardHeader>
             <CardHeaderContent>
                 <div class="d-flex justify-space-between align-center">
@@ -104,12 +104,13 @@
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
-            <MudTable Items="@FilteredAccounts" Hover="true" Loading="@loading" LoadingProgressColor="Color.Info">
+            <MudTable Items="@FilteredAccounts" Hover="true" Striped="true" Dense="true" Elevation="0"
+                      Loading="@loading" LoadingProgressColor="Color.Info">
                 <HeaderContent>
                     <MudTh>Name</MudTh>
                     <MudTh>Type</MudTh>
                     <MudTh>Balance</MudTh>
-                    <MudTh>Currency</MudTh>
+                    <!-- <MudTh>Currency</MudTh> -->
                     <MudTh>Bank</MudTh>
                     <MudTh>Status</MudTh>
                     <MudTh>Actions</MudTh>
@@ -137,7 +138,7 @@
                             @context.Balance.ToString("N2")
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Currency">@context.Currency</MudTd>
+                    <!-- <MudTd DataLabel="Currency">@context.Currency</MudTd> -->
                     <MudTd DataLabel="Bank">@(context.BankName ?? "-")</MudTd>
                     <MudTd DataLabel="Status">
                         <MudChip Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)">
@@ -145,9 +146,9 @@
                         </MudChip>
                     </MudTd>
                     <MudTd DataLabel="Actions">
-                        <MudIconButton Icon="Icons.Material.Filled.CurrencyExchange" Size="Size.Small"
+                        <!-- <MudIconButton Icon="Icons.Material.Filled.CurrencyExchange" Size="Size.Small"
                                        Color="Color.Warning" Variant="Variant.Filled" Class="mr-2"
-                                       OnClick="() => OpenChangeCurrencyDialog(context)" Title="Cambiar Divisa" />
+                                       OnClick="() => OpenChangeCurrencyDialog(context)" Title="Cambiar Divisa" /> -->
                         <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
                                        Variant="Variant.Filled" Class="mr-2" OnClick="() => OpenEditDialog(context)" />
                         <MudIconButton Icon="Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
@@ -207,21 +208,21 @@
 
     private String GetAccountIcon(AccountType type) => type switch
     {
-        AccountType.Cash => Icons.Material.Filled.Money,
         AccountType.Checking => Icons.Material.Filled.Payment,
         AccountType.Savings => Icons.Material.Filled.Savings,
         AccountType.CreditCard => Icons.Material.Filled.CreditCard,
         AccountType.Investment => Icons.Material.Filled.TrendingUp,
+        AccountType.Cash => Icons.Material.Filled.Money,
         _ => Icons.Material.Filled.AccountBalance
     };
 
     private Color GetTypeColor(AccountType type) => type switch
     {
-        AccountType.Cash => Color.Success,
         AccountType.Checking => Color.Primary,
         AccountType.Savings => Color.Info,
         AccountType.CreditCard => Color.Warning,
         AccountType.Investment => Color.Secondary,
+        AccountType.Cash => Color.Success,
         _ => Color.Default
     };
 
@@ -310,6 +311,7 @@
         }
     }
 
+    /* Funcionalidad de divisas oculta temporalmente
     private async Task OpenChangeCurrencyDialog(AccountDto account)
     {
         var parameters = new DialogParameters { ["Account"] = account };
@@ -345,4 +347,5 @@
             }
         }
     }
+    */
 }

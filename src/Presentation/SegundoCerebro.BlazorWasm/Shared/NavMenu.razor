@@ -1,8 +1,27 @@
 <!-- filepath: src/Presentation/SegundoCerebro.BlazorWasm/Shared/NavMenu.razor -->
-<MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="/accounts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AccountBalance">Accounts</MudNavLink>
-    <MudNavLink Href="/transactions" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Receipt">Transactions</MudNavLink>
-    <MudNavLink Href="/budgets" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PieChart">Budgets</MudNavLink>
-    <MudNavLink Href="/reports" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Assessment">Reports</MudNavLink>
+<MudNavMenu Class="px-3">
+    <div class="pb-2">
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-4 mb-2 d-block"
+                 Style="font-weight: 700; letter-spacing: 1px;">GENERAL</MudText>
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SpaceDashboard"
+                    Class="rounded-lg mb-1">Dashboard</MudNavLink>
+    </div>
+
+    <div class="pb-2">
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-4 mb-2 d-block mt-4"
+                 Style="font-weight: 700; letter-spacing: 1px;">FINANZAS</MudText>
+        <MudNavLink Href="/accounts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AccountBalanceWallet"
+                    Class="rounded-lg mb-1">Cuentas</MudNavLink>
+        <MudNavLink Href="/transactions" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SyncAlt"
+                    Class="rounded-lg mb-1">Transacciones</MudNavLink>
+        <MudNavLink Href="/budgets" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DonutSmall"
+                    Class="rounded-lg mb-1">Presupuestos</MudNavLink>
+    </div>
+
+    <div class="pb-2">
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-4 mb-2 d-block mt-4"
+                 Style="font-weight: 700; letter-spacing: 1px;">ANÁLISIS</MudText>
+        <MudNavLink Href="/reports" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.InsertChartOutlined"
+                    Class="rounded-lg mb-1">Reportes</MudNavLink>
+    </div>
 </MudNavMenu>
