@@ -1,10 +1,11 @@
-// filepath: src/Infrastructure/SegundoCerebro.Infrastructure/Data/ApplicationDbContext.cs
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SegundoCerebro.Domain.Entities;
 
 namespace SegundoCerebro.Infrastructure.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -24,6 +25,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(a => a.Id);
             entity.Property(a => a.Name).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.UserId).IsRequired().HasMaxLength(450); // Mismo tamaño que IdentityUser.Id
             entity.Property(a => a.Currency).IsRequired().HasMaxLength(3);
             entity.Property(a => a.Balance).HasPrecision(18, 2);
         });
@@ -34,6 +36,7 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(t => t.Id);
             entity.Property(t => t.Description).IsRequired().HasMaxLength(200);
             entity.Property(t => t.Amount).HasPrecision(18, 2);
+            entity.Property(t => t.UserId).IsRequired().HasMaxLength(450);
 
             entity.HasOne(t => t.Account)
                 .WithMany(a => a.Transactions)
@@ -67,6 +70,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(b => b.Name).IsRequired().HasMaxLength(100);
             entity.Property(b => b.Amount).HasPrecision(18, 2);
             entity.Property(b => b.Spent).HasPrecision(18, 2);
+            entity.Property(b => b.UserId).IsRequired().HasMaxLength(450);
 
             entity.HasOne(b => b.Category)
                 .WithMany(c => c.Budgets)

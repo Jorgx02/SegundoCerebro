@@ -13,6 +13,9 @@ public class Budget : BaseEntity
     public DateTime EndDate { get; set; }
     public bool IsActive { get; set; } = true;
 
+    // Relación con el usuario propietario
+    public string UserId { get; set; } = string.Empty;
+
     // Relationships
     public Guid CategoryId { get; set; }
     public Category Category { get; set; } = null!;

@@ -13,11 +13,14 @@ public class Transaction
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
-    
+
+    // Relación con el usuario propietario
+    public string UserId { get; set; } = string.Empty;
+
     // Foreign Keys
     public Guid AccountId { get; set; }
     public Guid CategoryId { get; set; }
-    
+
     // Navigation properties
     public Account Account { get; set; } = null!;
     public Category Category { get; set; } = null!;

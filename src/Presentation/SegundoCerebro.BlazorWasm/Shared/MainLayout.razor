@@ -1,7 +1,7 @@
 @inherits LayoutComponentBase
 @using MudBlazor
 
-<MudThemeProvider Theme="_currentTheme" />
+<MudThemeProvider Theme="_currentTheme" @bind-IsDarkMode="_isDarkMode" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -12,6 +12,8 @@
         <MudIcon Icon="@Icons.Material.Filled.Psychology" Size="Size.Large" Class="ml-2 mr-2" />
         <MudText Typo="Typo.h5" Style="font-weight: 700;">SegundoCerebro</MudText>
         <MudSpacer />
+        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                       Color="Color.Inherit" OnClick="ToggleDarkMode" Title="Cambiar Tema" />
         <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Class="mr-4" />
         <MudAvatar Color="Color.Secondary" Variant="Variant.Filled">J</MudAvatar>
     </MudAppBar>
@@ -30,10 +32,16 @@
 
 @code {
     bool _drawerOpen = true;
+    bool _isDarkMode = false;
 
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    void ToggleDarkMode()
+    {
+        _isDarkMode = !_isDarkMode;
     }
 
     private MudTheme _currentTheme = new MudTheme()
@@ -45,6 +53,17 @@
             AppbarBackground = "#512BD4",
             Background = "#f4f6f8", // Gris muy sutil para contraste
             DrawerBackground = "#ffffff"
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = "#7c5cdb", // Morado un poco más claro para modo oscuro
+            Secondary = "#10b981",
+            AppbarBackground = "#1e1e2d",
+            Background = "#1a1a27",
+            Surface = "#1e1e2d",
+            DrawerBackground = "#1a1a27",
+            TextPrimary = "#ffffff",
+            TextSecondary = "#b2b0bf"
         },
         LayoutProperties = new LayoutProperties()
         {
