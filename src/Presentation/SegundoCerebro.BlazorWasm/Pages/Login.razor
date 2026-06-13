@@ -15,34 +15,66 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudForm @ref="form">
-            <MudTextField @bind-Value="model.Email" Label="Correo Electrónico" Variant="Variant.Outlined"
-                          Margin="Margin.Dense" Class="mb-4" Required="true" />
-            <MudTextField @bind-Value="model.Password" Label="Contraseña" InputType="InputType.Password"
-                          Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Required="true" />
+        @if (!show2FA)
+        {
+            <MudForm @ref="form">
+                <MudTextField @bind-Value="model.Email" Label="Correo Electrónico" Variant="Variant.Outlined"
+                              Margin="Margin.Dense" Class="mb-4" Required="true" />
+                <MudTextField @bind-Value="model.Password" Label="Contraseña" InputType="InputType.Password"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Required="true" />
 
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="Submit"
-                       Disabled="@loading" Class="mt-2 py-2">
-                @if (loading)
-                {
-                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                }
-                else
-                {
-                    <span>Entrar</span>
-                }
-            </MudButton>
-        </MudForm>
-        <MudText Align="Align.Center" Class="mt-4">
-            ¿No tienes cuenta? <MudLink Href="/register">Regístrate aquí</MudLink>
-        </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="Submit"
+                           Disabled="@loading" Class="mt-2 py-2">
+                    @if (loading)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    }
+                    else
+                    {
+                        <span>Entrar</span>
+                    }
+                </MudButton>
+            </MudForm>
+            <MudText Align="Align.Center" Class="mt-4">
+                ¿No tienes cuenta? <MudLink Href="/register">Regístrate aquí</MudLink>
+            </MudText>
+            <MudText Align="Align.Center" Class="mt-2">
+                <MudLink Href="/forgot-password" Color="Color.Secondary" Typo="Typo.body2">¿Has olvidado tu contraseña?
+                </MudLink>
+            </MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-4">Hemos enviado un código a tu correo.</MudText>
+            <MudForm @ref="form2FA">
+                <MudTextField @bind-Value="verifyModel.Code" Label="Código de 6 dígitos" Variant="Variant.Outlined"
+                              Margin="Margin.Dense" Class="mb-4" Required="true" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="Submit2FA"
+                           Disabled="@loading" Class="mt-2 py-2">
+                    @if (loading)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    }
+                    else
+                    {
+
+                        <span>Verificar y Entrar</span>
+                    }
+                </MudButton>
+            </MudForm>
+            <MudButton Variant="Variant.Text" Color="Color.Default" FullWidth="true" OnClick="() => show2FA = false"
+                       Class="mt-2">Volver al Login</MudButton>
+        }
     </MudCardContent>
 </MudCard>
 
 @code {
     private LoginDto model = new();
+    private Verify2FALoginDto verifyModel = new();
     private MudForm form = null!;
+    private MudForm form2FA = null!;
     private bool loading = false;
+    private bool show2FA = false;
 
     private async Task Submit()
     {
@@ -50,19 +82,43 @@
         if (form.IsValid)
         {
             loading = true;
+            StateHasChanged();
             try
             {
-                await AuthService.LoginAsync(model);
-                NavigationManager.NavigateTo("/");
+                var response = await AuthService.LoginAsync(model);
+                if (response.Requires2FA)
+                {
+                    show2FA = true;
+                    verifyModel.Email = response.Email;
+                }
+                else
+                {
+                    NavigationManager.NavigateTo("/");
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Snackbar.Add("Error al iniciar sesión. Comprueba tus credenciales.", MudSeverity.Error);
+                Snackbar.Add($"Error: {ex.Message}. Comprueba tus credenciales.", MudSeverity.Error);
             }
             finally
             {
                 loading = false;
+                StateHasChanged();
             }
         }
+    }
+
+    private async Task Submit2FA()
+    {
+        await form2FA.Validate();
+        if (!form2FA.IsValid) return;
+        loading = true;
+        try
+        {
+            await AuthService.Verify2FALoginAsync(verifyModel);
+            NavigationManager.NavigateTo("/");
+        }
+        catch { Snackbar.Add("Código incorrecto o expirado.", MudSeverity.Error); }
+        finally { loading = false; }
     }
 }

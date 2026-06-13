@@ -47,12 +47,20 @@ Empoderar a las personas para que tomen el control total de su vida financiera, 
 
 ## ✨ Características
 
-### 💰 **Módulo Financiero** (v1.0 - Completado ✅)
+### 🔐 **Autenticación y Seguridad** (Completado ✅)
+
+- 🛡️ **Sistema JWT**: Autenticación robusta y segura mediante JSON Web Tokens.
+- 👤 **Gestión de Perfil**: Registro, inicio de sesión y personalización de cuenta.
+- 🔒 **Doble Factor (2FA)**: Capa de seguridad adicional con códigos de verificación por email.
+- 📧 **Recuperación de Acceso**: Flujo completo de restablecimiento de contraseña mediante Mailtrap.
+- 🛡️ **Privacidad Total**: Aislamiento estricto de datos financieros por usuario.
+
+### **Módulo Financiero** (v1.0 - Completado ✅)
 
 - 📊 **Dashboard Financiero**: Vista completa de tu situación económica
 - 🏦 **Gestión de Cuentas**: 5 tipos (Corriente, Ahorro, Tarjeta, Inversión, Efectivo) con generación de IBAN automático
 - �️ **Seguridad Financiera**: Soft-delete de cuentas con flujo de transferencia y transacciones inmutables (solo notas)
-- 💸 **Transacciones Completas**: Sistema de registro dinámico con reglas de negocio (ej. bloqueo de gastos en cuentas de ahorro)
+- � **Transacciones Completas**: Sistema de registro dinámico con reglas de negocio (ej. bloqueo de gastos en cuentas de ahorro)
 - �📈 **Presupuestos Dinámicos**: Creación y seguimiento de presupuestos mensuales
 - 📊 **Reportes Avanzados**: Análisis de tendencias y proyecciones
 - 🏷️ **Categorías Personalizables**: Sistema flexible de clasificación inteligente por Ingresos/Gastos
@@ -147,6 +155,7 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 - [.NET 9.0 SDK](https://dotnet.microsoft.com/download)
 - [PostgreSQL 15+](https://www.postgresql.org/download/)
 - [Node.js 18+](https://nodejs.org/) (opcional, para herramientas de desarrollo)
+- Cuenta gratuita en [Mailtrap](https://mailtrap.io/) (para recibir los correos de recuperación y 2FA)
 
 ### 1. Clonar el Repositorio
 
@@ -157,12 +166,21 @@ cd SegundoCerebro
 
 ### 2. Configurar Base de Datos
 
-```bash
+````bash
 # Crear base de datos PostgreSQL
 createdb segundo_cerebro_db
 
 # Configurar connection string en appsettings.Development.json
-```
+"En el proyecto SegundoCerebro.WebAPI, configura tu archivo appsettings.Development.json con tus credenciales:" +```json +
+{
+"ConnectionStrings": {
+"DefaultConnection": "Host=localhost;Database=segundo_cerebro_db;Username=postgres;Password=tu_password"
+},
+"Jwt": {
+"Key": "TuClaveSuperSecretaDeDesarrolloParaJWT123456789"
+} +} +``` +
+(Nota: Las credenciales SMTP de Mailtrap están configuradas en AuthController.cs para el entorno de desarrollo).
+````
 
 ### 3. Restaurar Dependencias
 
@@ -328,12 +346,13 @@ dotnet run
 
 ### Funcionalidades Implementadas
 
+- **🔐 Autenticación**: JWT, 2FA, Recuperación de contraseña y Perfiles de Usuario
 - **👤 Gestión de Cuentas**: Crear, editar, eliminar, listar
 - **💸 Gestión de Transacciones**: CRUD completo con filtros
 - **🏷️ Sistema de Categorías**: Categorización inteligente
 - **🔍 Filtros Avanzados**: Por fecha, tipo, cuenta, categoría
 - **📊 Dashboard**: Vista general de finanzas
-- **🎨 UI Profesional**: Diseño moderno y responsivo
+- **🎨 UI Profesional**: Diseño moderno, responsivo y **Modo Oscuro Global**
 - **🔄 Navegación**: Menú lateral y enrutado funcional
 
 ### Estadísticas de Código
@@ -342,10 +361,10 @@ dotnet run
 - Líneas de código: ~12,000+
 - Proyectos: 5
 - Entidades de dominio: 6+
-- Endpoints API: 20+
+- Endpoints API: 30+
 - Páginas frontend: 8+
 - Componentes UI: 15+
-- Tests unitarios: En desarrollo
+- Tests unitarios: Operativos (xUnit + Moq)
 - Cobertura: TBD
 - Dependencias: ~30
 ```

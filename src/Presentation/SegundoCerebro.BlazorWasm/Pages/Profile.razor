@@ -79,28 +79,69 @@
                     </MudCard>
                 </MudItem>
 
-                <!-- Zona de Peligro -->
+                <!-- Doble Factor de Autenticación (2FA) -->
                 <MudItem xs="12">
-                    <MudCard Elevation="3" Class="rounded-lg mt-2 border-solid border-2 mud-border-error">
+                    <MudCard Elevation="3" Class="rounded-lg mt-2">
                         <MudCardHeader>
                             <CardHeaderContent>
-                                <MudText Typo="Typo.h6" Color="Color.Error">Zona de Peligro</MudText>
+                                <MudText Typo="Typo.h6">Autenticación de Dos Factores (2FA)</MudText>
                             </CardHeaderContent>
                         </MudCardHeader>
                         <MudCardContent>
-                            <MudText Typo="Typo.body2" Class="mb-4">
-                                Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, asegúrate bien. No podrás
-                                eliminarla si tienes cuentas bancarias con fondos (positivos o negativos).
-                            </MudText>
-                            <MudTextField @bind-Value="deletePassword" Label="Contraseña para confirmar"
-                                          InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
-                            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteUserAccount">Eliminar mi
-                                Cuenta</MudButton>
-                            </MudCardContent>
-                        </MudCard>
-                    </MudItem>
-                </MudGrid>
-            </MudContainer>
+                            <div class="d-flex align-center mb-4">
+                                <MudText Typo="Typo.body1" Class="mr-4">Estado actual:</MudText>
+                                <MudChip Size="Size.Small" Color="@(is2FAEnabled ? Color.Success : Color.Default)">
+                                    @(is2FAEnabled ? "Activado" : "Desactivado")</MudChip>
+                                </div>
+                                <MudText Typo="Typo.body2" Class="mb-4">Protege tu cuenta con una capa adicional de seguridad. Al
+                                    activarlo, te enviaremos un código de verificación al correo cuando inicies sesión.</MudText>
+
+                                    @if (!show2FACodeInput)
+                                    {
+                                        <MudTextField @bind-Value="twoFactorPassword" Label="Contraseña para confirmar"
+                                                      InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4"
+                                                      Style="max-width: 300px;" />
+                                        <MudButton Variant="Variant.Filled" Color="@(is2FAEnabled ? Color.Error : Color.Success)"
+                                                   OnClick="Toggle2FA">
+                                            @(is2FAEnabled ? "Desactivar 2FA" : "Activar 2FA")
+                                        </MudButton>
+                                    }
+                                    else
+                                    {
+                                        <MudTextField @bind-Value="confirmCode" Label="Código de 6 dígitos del correo"
+                                                      Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Style="max-width: 300px;" />
+                                        <div class="d-flex gap-2">
+                                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm2FA">Confirmar
+                                                Activación</MudButton>
+                                                <MudButton Variant="Variant.Text" OnClick="() => show2FACodeInput = false">Cancelar</MudButton>
+                                            </div>
+                                        }
+                                    </MudCardContent>
+                                </MudCard>
+                            </MudItem>
+
+                            <!-- Zona de Peligro -->
+                            <MudItem xs="12">
+                                <MudCard Elevation="3" Class="rounded-lg mt-2 border-solid border-2 mud-border-error">
+                                    <MudCardHeader>
+                                        <CardHeaderContent>
+                                            <MudText Typo="Typo.h6" Color="Color.Error">Zona de Peligro</MudText>
+                                        </CardHeaderContent>
+                                    </MudCardHeader>
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.body2" Class="mb-4">
+                                            Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, asegúrate bien. No podrás
+                                            eliminarla si tienes cuentas bancarias con fondos (positivos o negativos).
+                                        </MudText>
+                                        <MudTextField @bind-Value="deletePassword" Label="Contraseña para confirmar"
+                                                      InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
+                                        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteUserAccount">Eliminar mi
+                                            Cuenta</MudButton>
+                                        </MudCardContent>
+                                    </MudCard>
+                                </MudItem>
+                            </MudGrid>
+                        </MudContainer>
 
 @code {
     private string userEmail = "";
@@ -111,6 +152,11 @@
     private string confirmPassword = "";
 
     private string deletePassword = "";
+
+    private bool is2FAEnabled = false;
+    private string twoFactorPassword = "";
+    private bool show2FACodeInput = false;
+    private string confirmCode = "";
 
     private string selectedLanguage = "es";
 
@@ -125,6 +171,17 @@
 
             userName = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? userEmail.Split('@').FirstOrDefault() ??
 "";
+
+            try
+            {
+                is2FAEnabled = await AuthService.Get2FAStatusAsync();
+            }
+            catch (Exception)
+            {
+                // Si el token expira o hay error, evitamos que la aplicación "crashee"
+                Snackbar.Add("Tu sesión ha expirado o hay un problema de red. Por favor, cierra sesión y vuelve a entrar.",
+MudSeverity.Warning);
+            }
         }
     }
 
@@ -166,6 +223,54 @@ MudSeverity.Success);
         catch (Exception)
         {
             Snackbar.Add("Error al cambiar la contraseña. Verifica tu contraseña actual.", MudSeverity.Error);
+        }
+    }
+
+    private async Task Toggle2FA()
+    {
+        if (string.IsNullOrWhiteSpace(twoFactorPassword))
+        {
+            Snackbar.Add("Debes introducir tu contraseña para modificar el 2FA.", MudSeverity.Warning);
+            return;
+        }
+        try
+        {
+            var dto = new Toggle2FADto { Password = twoFactorPassword, Enable = !is2FAEnabled };
+            var response = await AuthService.Toggle2FAAsync(dto);
+
+            if (response.RequiresCode)
+            {
+                show2FACodeInput = true;
+                Snackbar.Add("Revisa tu correo para el código de confirmación.", MudSeverity.Info);
+            }
+            else
+            {
+                is2FAEnabled = false;
+                twoFactorPassword = "";
+                Snackbar.Add("2FA desactivado correctamente.", MudSeverity.Success);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Contraseña incorrecta o error al modificar 2FA.", MudSeverity.Error);
+        }
+    }
+
+    private async Task Confirm2FA()
+    {
+        if (string.IsNullOrWhiteSpace(confirmCode)) { Snackbar.Add("Introduce el código.", MudSeverity.Warning); return; }
+        try
+        {
+            await AuthService.Confirm2FAAsync(new Confirm2FADto { Code = confirmCode });
+            is2FAEnabled = true;
+            show2FACodeInput = false;
+            twoFactorPassword = "";
+            confirmCode = "";
+            Snackbar.Add("2FA activado de forma exitosa.", MudSeverity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Código incorrecto o expirado.", MudSeverity.Error);
         }
     }
 
