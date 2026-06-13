@@ -1,0 +1,208 @@
+@page "/profile"
+@using System.Security.Claims
+@using SegundoCerebro.BlazorWasm.Models.Auth
+@using SegundoCerebro.BlazorWasm.Services
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IAuthService AuthService
+@inject IAccountService AccountService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Mi Perfil - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-6">Mi Perfil</MudText>
+
+    <MudGrid>
+        <!-- Información del Usuario -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="3" Class="rounded-lg h-100">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Información Personal</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextField @bind-Value="userEmail" Label="Correo Electrónico" Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" Class="mb-4" />
+                    <MudTextField @bind-Value="userName" Label="Nombre de Usuario" Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="SaveProfile">Guardar
+                        Cambios</MudButton>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <!-- Cambiar Contraseña -->
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="3" Class="rounded-lg h-100">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Seguridad</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudTextField @bind-Value="currentPassword" Label="Contraseña Actual" InputType="InputType.Password"
+                                      Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
+                        <MudTextField @bind-Value="newPassword" Label="Nueva Contraseña" InputType="InputType.Password"
+                                      Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
+                        <MudTextField @bind-Value="confirmPassword" Label="Confirmar Nueva Contraseña"
+                                      InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="mt-4" OnClick="ChangePassword">
+                            Actualizar Contraseña</MudButton>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <!-- Preferencias -->
+                <MudItem xs="12">
+                    <MudCard Elevation="3" Class="rounded-lg mt-2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Preferencias de la Aplicación</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudSelect T="string" @bind-Value="selectedLanguage" Label="Idioma de la Interfaz"
+                                       Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Style="max-width: 300px;">
+                                <MudSelectItem Value="@("es")">Español</MudSelectItem>
+                                <MudSelectItem Value="@("en")">English</MudSelectItem>
+                            </MudSelect>
+
+                            <MudAlert Severity="MudBlazor.Severity.Info" Class="mt-2">
+                                Nota: Las opciones de cambio de contraseña e idioma se conectarán con la base de datos en el
+                                próximo paso de desarrollo. El Modo Oscuro ya se puede cambiar globalmente desde el botón
+                                superior de la luna/sol.
+                            </MudAlert>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <!-- Zona de Peligro -->
+                <MudItem xs="12">
+                    <MudCard Elevation="3" Class="rounded-lg mt-2 border-solid border-2 mud-border-error">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6" Color="Color.Error">Zona de Peligro</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2" Class="mb-4">
+                                Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, asegúrate bien. No podrás
+                                eliminarla si tienes cuentas bancarias con fondos (positivos o negativos).
+                            </MudText>
+                            <MudTextField @bind-Value="deletePassword" Label="Contraseña para confirmar"
+                                          InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
+                            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteUserAccount">Eliminar mi
+                                Cuenta</MudButton>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+
+@code {
+    private string userEmail = "";
+    private string userName = "";
+
+    private string currentPassword = "";
+    private string newPassword = "";
+    private string confirmPassword = "";
+
+    private string deletePassword = "";
+
+    private string selectedLanguage = "es";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is not null && user.Identity.IsAuthenticated)
+        {
+            userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? "";
+
+            userName = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? userEmail.Split('@').FirstOrDefault() ??
+"";
+        }
+    }
+
+    private async Task SaveProfile()
+    {
+        try
+        {
+            var dto = new UpdateProfileDto { Email = userEmail, UserName = userName };
+            await AuthService.UpdateProfileAsync(dto);
+            Snackbar.Add("Perfil actualizado con éxito. Inicia sesión de nuevo para ver los cambios en tu correo.",
+MudSeverity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Error al actualizar. Es posible que el correo ya esté en uso.", MudSeverity.Error);
+        }
+    }
+
+    private async Task ChangePassword()
+    {
+        if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword))
+        {
+            Snackbar.Add("Rellena todos los campos de contraseña.", MudSeverity.Warning);
+            return;
+        }
+        if (newPassword != confirmPassword)
+        {
+            Snackbar.Add("Las contraseñas nuevas no coinciden.", MudSeverity.Error);
+            return;
+        }
+
+        try
+        {
+            var dto = new ChangePasswordDto { CurrentPassword = currentPassword, NewPassword = newPassword };
+            await AuthService.ChangePasswordAsync(dto);
+            Snackbar.Add("Contraseña cambiada exitosamente.", MudSeverity.Success);
+            currentPassword = ""; newPassword = ""; confirmPassword = "";
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Error al cambiar la contraseña. Verifica tu contraseña actual.", MudSeverity.Error);
+        }
+    }
+
+    private async Task DeleteUserAccount()
+    {
+        if (string.IsNullOrWhiteSpace(deletePassword))
+        {
+            Snackbar.Add("Debes introducir tu contraseña para eliminar la cuenta.", MudSeverity.Warning);
+            return;
+        }
+
+        var accounts = await AccountService.GetAllAsync();
+        var accountsWithFunds = accounts.Where(a => a.Balance != 0).ToList();
+
+        if (accountsWithFunds.Any())
+        {
+            var accountNames = string.Join(", ", accountsWithFunds.Select(a => $"{a.Name} ({a.Balance:N2})"));
+            Snackbar.Add($"No puedes eliminar tu cuenta. Tienes fondos en: {accountNames}. Transfiérelos o ponlos a cero primero.",
+MudSeverity.Error);
+            return;
+        }
+
+        bool? result = await DialogService.ShowMessageBox("Eliminar Cuenta Definitivamente", "¿Estás seguro? Esta acción borrará todos tus datos, cuentas y transacciones para siempre.", yesText: "Eliminar Todo", cancelText: "Cancelar");
+
+        if (result == true)
+        {
+            try
+            {
+                await AuthService.DeleteAccountAsync(new DeleteAccountDto { Password = deletePassword });
+                Snackbar.Add("Cuenta eliminada correctamente. ¡Hasta pronto!", MudSeverity.Success);
+                await AuthService.LogoutAsync();
+                NavigationManager.NavigateTo("/login", replace: true);
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Contraseña incorrecta o error de conexión.", MudSeverity.Error);
+            }
+        }
+    }
+}

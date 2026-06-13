@@ -1,0 +1,68 @@
+@page "/login"
+@attribute [AllowAnonymous]
+@layout EmptyLayout
+@using SegundoCerebro.BlazorWasm.Services
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Login - SegundoCerebro</PageTitle>
+
+<MudCard Elevation="4" Class="pa-6 rounded-lg">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: bold;">Iniciar Sesión</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudForm @ref="form">
+            <MudTextField @bind-Value="model.Email" Label="Correo Electrónico" Variant="Variant.Outlined"
+                          Margin="Margin.Dense" Class="mb-4" Required="true" />
+            <MudTextField @bind-Value="model.Password" Label="Contraseña" InputType="InputType.Password"
+                          Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Required="true" />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="Submit"
+                       Disabled="@loading" Class="mt-2 py-2">
+                @if (loading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <span>Entrar</span>
+                }
+            </MudButton>
+        </MudForm>
+        <MudText Align="Align.Center" Class="mt-4">
+            ¿No tienes cuenta? <MudLink Href="/register">Regístrate aquí</MudLink>
+        </MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private LoginDto model = new();
+    private MudForm form = null!;
+    private bool loading = false;
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            loading = true;
+            try
+            {
+                await AuthService.LoginAsync(model);
+                NavigationManager.NavigateTo("/");
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Error al iniciar sesión. Comprueba tus credenciales.", MudSeverity.Error);
+            }
+            finally
+            {
+                loading = false;
+            }
+        }
+    }
+}

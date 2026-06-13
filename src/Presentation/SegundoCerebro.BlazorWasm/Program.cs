@@ -2,17 +2,27 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using SegundoCerebro.BlazorWasm;
 using SegundoCerebro.BlazorWasm.Services;
+using SegundoCerebro.BlazorWasm.Providers;
 using MudBlazor.Services;
 using Blazored.LocalStorage;
 using FluentValidation;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Reflection;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// HTTP Client con la URL correcta del API
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:7099/") });
+// Configurar el interceptor de tokens JWT
+builder.Services.AddTransient<JwtAuthorizationMessageHandler>();
+
+// Configurar el HttpClient para que use el interceptor
+builder.Services.AddScoped(sp =>
+{
+    var handler = sp.GetRequiredService<JwtAuthorizationMessageHandler>();
+    handler.InnerHandler = new HttpClientHandler();
+    return new HttpClient(handler) { BaseAddress = new Uri("http://localhost:7099/") };
+});
 
 // MudBlazor
 builder.Services.AddMudServices();
@@ -24,6 +34,9 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 // Services
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();

@@ -1,0 +1,15 @@
+@inherits LayoutComponentBase
+@using MudBlazor
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudMainContent
+        Style="background-color: var(--mud-palette-background-grey); min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+        <MudContainer MaxWidth="MaxWidth.Small">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>

@@ -14,8 +14,21 @@
         <MudSpacer />
         <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
                        Color="Color.Inherit" OnClick="ToggleDarkMode" Title="Cambiar Tema" />
-        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Class="mr-4" />
-        <MudAvatar Color="Color.Secondary" Variant="Variant.Filled">J</MudAvatar>
+        <AuthorizeView>
+            <Authorized>
+                <MudIconButton Href="/logout" Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Class="mr-4"
+                               Title="Cerrar Sesión" />
+                <a href="/profile" style="text-decoration: none;">
+                    <MudAvatar Color="Color.Secondary" Variant="Variant.Filled" Style="cursor: pointer;"
+                               Title="Mi Perfil">
+                        @(context.User.Claims.FirstOrDefault(c => c.Type ==
+                        System.Security.Claims.ClaimTypes.Name)?.Value.FirstOrDefault().ToString().ToUpper() ??
+                          context.User.Claims.FirstOrDefault(c => c.Type ==
+                        System.Security.Claims.ClaimTypes.Email)?.Value.FirstOrDefault().ToString().ToUpper() ?? "U")
+                    </MudAvatar>
+                </a>
+            </Authorized>
+        </AuthorizeView>
     </MudAppBar>
 
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always">

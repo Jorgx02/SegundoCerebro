@@ -1,0 +1,103 @@
+@page "/register"
+@attribute [AllowAnonymous]
+@layout EmptyLayout
+@using SegundoCerebro.BlazorWasm.Services
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Registro - SegundoCerebro</PageTitle>
+
+<MudCard Elevation="4" Class="pa-6 rounded-lg">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: bold;">Crear Cuenta</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudForm @ref="form">
+            <MudTextField @bind-Value="model.Email" Label="Correo Electrónico" Variant="Variant.Outlined"
+                          Margin="Margin.Dense" Class="mb-4" Required="true"
+                          Validation="@(new Func<string, IEnumerable<string>>(ValidateEmail))" />
+            <MudTextField @bind-Value="model.Password" Label="Contraseña" InputType="InputType.Password"
+                          Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Required="true"
+                          Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" OnClick="Submit"
+                       Disabled="@loading" Class="mt-2 py-2">
+                @if (loading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <span>Registrarse</span>
+                }
+            </MudButton>
+        </MudForm>
+        <MudText Align="Align.Center" Class="mt-4">
+            ¿Ya tienes cuenta? <MudLink Href="/login">Inicia Sesión</MudLink>
+        </MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private RegisterDto model = new();
+    private MudForm form = null!;
+    private bool loading = false;
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            loading = true;
+            try
+            {
+                var success = await AuthService.RegisterAsync(model);
+                if (success)
+                {
+                    Snackbar.Add("Registro exitoso. Ya puedes iniciar sesión.", MudSeverity.Success);
+                    NavigationManager.NavigateTo("/login");
+                }
+                else
+                {
+                    Snackbar.Add("Error al registrar. El email podría estar en uso o la contraseña no ser segura.", MudSeverity.Error);
+                }
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Error de conexión con el servidor.", MudSeverity.Error);
+            }
+            finally
+            {
+                loading = false;
+            }
+        }
+    }
+
+    private IEnumerable<string> ValidateEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            yield return "El correo es obligatorio.";
+            yield break;
+        }
+        if (!System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            yield return "El formato del correo no es válido.";
+    }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "La contraseña es obligatoria.";
+            yield break;
+        }
+        if (pw.Length < 8) yield return "Debe tener al menos 8 caracteres.";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(pw, @"[A-Z]")) yield return "Debe contener al menos una letra mayúscula.";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(pw, @"[a-z]")) yield return "Debe contener al menos una letra minúscula.";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(pw, @"[0-9]")) yield return "Debe contener al menos un número.";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(pw, @"[\W_]")) yield return "Debe contener al menos un carácter especial (ej. !@#$%).";
+    }
+}

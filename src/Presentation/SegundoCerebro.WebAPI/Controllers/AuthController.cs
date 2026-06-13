@@ -1,10 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Linq;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using SegundoCerebro.Application.DTOs.Auth;
+using SegundoCerebro.Infrastructure.Data;
 
 namespace SegundoCerebro.WebAPI.Controllers;
 
@@ -65,6 +68,7 @@ public class AuthController : ControllerBase
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
             new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+            new Claim("username", user.UserName ?? user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
@@ -79,5 +83,64 @@ public class AuthController : ControllerBase
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
         return Ok(new AuthResponseDto { Token = tokenHandler.WriteToken(token), Email = user.Email! });
+    }
+
+    [Authorize]
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        if (user.Email != request.Email)
+        {
+            var existing = await _userManager.FindByEmailAsync(request.Email);
+            if (existing != null && existing.Id != user.Id) return BadRequest(new { message = "El email ya está en uso." });
+            user.Email = request.Email;
+        }
+
+        user.UserName = request.UserName;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded) return BadRequest(result.Errors);
+        return Ok(new { message = "Perfil actualizado." });
+    }
+
+    [Authorize]
+    [HttpPut("password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId!);
+        if (user == null) return NotFound();
+
+        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!result.Succeeded) return BadRequest(result.Errors);
+        return Ok(new { message = "Contraseña actualizada." });
+    }
+
+    [Authorize]
+    [HttpPost("delete-account")]
+    public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto request, [FromServices] ApplicationDbContext dbContext)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId!);
+        if (user == null) return NotFound();
+
+        if (!await _userManager.CheckPasswordAsync(user, request.Password))
+            return Unauthorized(new { message = "Contraseña incorrecta." });
+
+        // Eliminamos de forma segura los datos financieros asociados antes de borrar al usuario
+        dbContext.Budgets.RemoveRange(dbContext.Budgets.Where(b => b.UserId == userId));
+        dbContext.Transactions.RemoveRange(dbContext.Transactions.Where(t => t.UserId == userId));
+        dbContext.Accounts.RemoveRange(dbContext.Accounts.Where(a => a.UserId == userId));
+        await dbContext.SaveChangesAsync();
+
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded) return BadRequest(result.Errors);
+        return Ok(new { message = "Cuenta eliminada." });
     }
 }
