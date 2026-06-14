@@ -40,7 +40,8 @@ public class GetAllTodoItemsQueryHandlerTests
             new TodoItemDto { Id = todos[1].Id, Title = "Tarea 2" }
         };
 
-        _unitOfWorkMock.Setup(u => u.TodoItems.GetAllAsync()).ReturnsAsync(todos);
+        // Cambiamos el Mock para que simule el nuevo método
+        _unitOfWorkMock.Setup(u => u.TodoItems.GetTodoItemsWithProjectsAsync()).ReturnsAsync(todos);
         _mapperMock.Setup(m => m.Map<IEnumerable<TodoItemDto>>(todos)).Returns(todoDtos);
 
         var query = new GetAllTodoItemsQuery();
@@ -49,6 +50,8 @@ public class GetAllTodoItemsQueryHandlerTests
         Assert.NotNull(result);
         result.Should().HaveCount(2);
         result.Should().BeEquivalentTo(todoDtos);
-        _unitOfWorkMock.Verify(u => u.TodoItems.GetAllAsync(), Times.Once);
+
+        // Verificamos que se haya llamado al nuevo método
+        _unitOfWorkMock.Verify(u => u.TodoItems.GetTodoItemsWithProjectsAsync(), Times.Once);
     }
 }

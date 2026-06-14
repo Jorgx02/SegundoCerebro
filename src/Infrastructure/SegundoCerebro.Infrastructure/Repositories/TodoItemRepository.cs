@@ -37,4 +37,11 @@ public class TodoItemRepository : Repository<TodoItem>, ITodoItemRepository
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<TodoItem>> GetTodoItemsWithProjectsAsync()
+    {
+        return await _dbSet
+            .Include(t => t.Project)
+            .ToListAsync();
+    }
 }

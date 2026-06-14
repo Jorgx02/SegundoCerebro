@@ -1,0 +1,208 @@
+@page "/todoitems"
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@using SegundoCerebro.BlazorWasm.Components.Dialogs
+@inject ITodoItemService TodoItemService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Tareas - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+            <MudText Typo="Typo.h4">Tareas (GTD)</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="Icons.Material.Filled.AddTask"
+                       OnClick="OpenCreateDialog">
+                Nueva Tarea
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Summary Cards -->
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="3" Class="rounded-lg">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Bandeja de Entrada</MudText>
+                            <MudText Typo="Typo.h5">@allTodos.Count(t => t.Status == TodoItemStatus.Inbox)</MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.Inbox" Size="Size.Large" Color="Color.Primary" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="3" Class="rounded-lg">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Próximas Acciones</MudText>
+                            <MudText Typo="Typo.h5">@allTodos.Count(t => t.Status == TodoItemStatus.NextAction)</MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.PlayArrow" Size="Size.Large" Color="Color.Info" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="3" Class="rounded-lg">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Programadas</MudText>
+                            <MudText Typo="Typo.h5">@allTodos.Count(t => t.Status == TodoItemStatus.Scheduled)</MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.CalendarMonth" Size="Size.Large" Color="Color.Warning" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="3" Class="rounded-lg">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Completadas</MudText>
+                            <MudText Typo="Typo.h5">@allTodos.Count(t => t.Status == TodoItemStatus.Completed)</MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Todos Table -->
+    <MudCard Elevation="4" Class="rounded-lg">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <div class="d-flex justify-space-between align-center">
+                    <MudText Typo="Typo.h6">Todas las Tareas</MudText>
+                </div>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTable Items="@allTodos" Hover="true" Striped="true" Dense="true" Elevation="0"
+                      Loading="@loading" LoadingProgressColor="Color.Info">
+                <HeaderContent>
+                    <MudTh></MudTh> <!-- Para el Checkbox rápido -->
+                    <MudTh>Tarea</MudTh>
+                    <MudTh>Proyecto</MudTh>
+                    <MudTh>Estado</MudTh>
+                    <MudTh>Prioridad</MudTh>
+                    <MudTh>Vencimiento</MudTh>
+                    <MudTh>Acciones</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        @if(context.Status != TodoItemStatus.Completed)
+                        {
+                            <MudIconButton Icon="Icons.Material.Filled.RadioButtonUnchecked" Color="Color.Default" 
+                                           OnClick="() => MarkAsCompleted(context)" Size="Size.Small" Title="Marcar Completada"/>
+                        }
+                        else
+                        {
+                            <MudIcon Icon="Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Tarea">
+                        <MudText Typo="Typo.body1" Class="@(context.Status == TodoItemStatus.Completed ? "text-decoration-line-through text-muted" : "font-weight-bold")">
+                            @context.Title
+                        </MudText>
+                        @if (!string.IsNullOrEmpty(context.Description))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-truncate" Style="max-width: 250px;">@context.Description</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Proyecto">
+                        @(context.ProjectName ?? "-")
+                    </MudTd>
+                    <MudTd DataLabel="Estado">
+                        <MudChip Size="Size.Small" Color="@GetStatusColor(context.Status)">@GetStatusName(context.Status)</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Prioridad">
+                        <MudIcon Icon="@GetPriorityIcon(context.Priority)" Color="@GetPriorityColor(context.Priority)" Size="Size.Small" Class="mr-1"/>
+                        <MudText Typo="Typo.caption">@context.Priority.ToString()</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Vencimiento">
+                        @(context.DueDate?.ToString("dd/MM/yyyy") ?? "-")
+                    </MudTd>
+                    <MudTd DataLabel="Acciones">
+                        @if (context.Status != TodoItemStatus.Completed)
+                        {
+                            <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                           Variant="Variant.Filled" Class="mr-2" OnClick="() => OpenEditDialog(context)" />
+                        }
+                        <MudIconButton Icon="Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                       Variant="Variant.Filled" OnClick="() => DeleteTodo(context)" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private List<TodoItemDto> allTodos = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadTodos();
+
+    private async Task LoadTodos()
+    {
+        loading = true;
+        try
+        {
+            var result = await TodoItemService.GetAllAsync();
+            allTodos = result.OrderBy(t => t.Status == TodoItemStatus.Completed).ThenBy(t => t.DueDate ?? DateTime.MaxValue).ToList();
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", MudSeverity.Error); }
+        finally { loading = false; }
+    }
+
+    private async Task MarkAsCompleted(TodoItemDto todo)
+    {
+        var updateDto = new UpdateTodoItemDto { Title = todo.Title, Description = todo.Description, Priority = todo.Priority, DueDate = todo.DueDate, ProjectId = todo.ProjectId, Status = TodoItemStatus.Completed };
+        await TodoItemService.UpdateAsync(todo.Id, updateDto);
+        await LoadTodos();
+        Snackbar.Add("¡Tarea completada!", MudSeverity.Success);
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = DialogService.Show<CreateTodoItemDialog>("Nueva Tarea");
+        var result = await dialog.Result;
+        if (!result.Canceled) { await LoadTodos(); Snackbar.Add("Tarea creada", MudSeverity.Success); }
+    }
+
+    private async Task OpenEditDialog(TodoItemDto todo)
+    {
+        var parameters = new DialogParameters { ["TodoItem"] = todo };
+        var dialog = DialogService.Show<EditTodoItemDialog>("Editar Tarea", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled) { await LoadTodos(); Snackbar.Add("Tarea actualizada", MudSeverity.Success); }
+    }
+
+    private async Task DeleteTodo(TodoItemDto todo)
+    {
+        bool? result = await DialogService.ShowMessageBox("Eliminar", $"¿Deseas eliminar la tarea '{todo.Title}'?", yesText: "Eliminar", cancelText: "Cancelar");
+        if (result == true)
+        {
+            await TodoItemService.DeleteAsync(todo.Id);
+            await LoadTodos();
+            Snackbar.Add("Tarea eliminada", MudSeverity.Success);
+        }
+    }
+
+    private string GetStatusName(TodoItemStatus s) => s switch { TodoItemStatus.Inbox => "Inbox", TodoItemStatus.NextAction => "Próxima Acción", TodoItemStatus.WaitingFor => "En Espera", TodoItemStatus.Scheduled => "Programada", TodoItemStatus.Completed => "Completada", _ => "Algún día" };
+    private Color GetStatusColor(TodoItemStatus s) => s switch { TodoItemStatus.Inbox => Color.Primary, TodoItemStatus.NextAction => Color.Info, TodoItemStatus.WaitingFor => Color.Warning, TodoItemStatus.Scheduled => Color.Secondary, TodoItemStatus.Completed => Color.Success, _ => Color.Default };
+    private string GetPriorityIcon(PriorityLevel p) => p switch { PriorityLevel.Low => Icons.Material.Filled.ArrowDownward, PriorityLevel.Critical => Icons.Material.Filled.Warning, PriorityLevel.High => Icons.Material.Filled.ArrowUpward, _ => Icons.Material.Filled.Remove };
+    private Color GetPriorityColor(PriorityLevel p) => p switch { PriorityLevel.Critical => Color.Error, PriorityLevel.High => Color.Warning, PriorityLevel.Low => Color.Info, _ => Color.Default };
+}

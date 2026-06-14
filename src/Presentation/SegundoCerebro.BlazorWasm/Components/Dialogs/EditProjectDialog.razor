@@ -1,0 +1,78 @@
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@inject IProjectService ProjectService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@model" @ref="@form">
+            <MudCardContent>
+                <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true" Label="Nombre del Proyecto"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+                <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
+                              Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
+
+                <MudSelect @bind-Value="model.Status" For="@(() => model.Status)" Label="Estado"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3">
+                    <MudSelectItem Value="@ProjectStatus.NotStarted">No Iniciado</MudSelectItem>
+                    <MudSelectItem Value="@ProjectStatus.Active">Activo</MudSelectItem>
+                    <MudSelectItem Value="@ProjectStatus.OnHold">En Pausa</MudSelectItem>
+                    <MudSelectItem Value="@ProjectStatus.Completed">Completado</MudSelectItem>
+                    <MudSelectItem Value="@ProjectStatus.Cancelled">Cancelado</MudSelectItem>
+                </MudSelect>
+
+                <MudDatePicker @bind-Date="model.StartDate" Label="Fecha de Inicio" 
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3" />
+                
+                <MudDatePicker @bind-Date="model.EndDate" Label="Fecha de Fin Estimada" 
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3" />
+            </MudCardContent>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar Proyecto</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public ProjectDto Project { get; set; } = null!;
+
+    private UpdateProjectDto model = new();
+    private MudForm form = null!;
+
+    protected override void OnInitialized()
+    {
+        model.Name = Project.Name;
+        model.Description = Project.Description;
+        model.Status = Project.Status;
+        model.StartDate = Project.StartDate;
+        model.EndDate = Project.EndDate;
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            try
+            {
+                await ProjectService.UpdateAsync(Project.Id, model);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error actualizando el proyecto: {ex.Message}", MudSeverity.Error);
+            }
+        }
+    }
+}

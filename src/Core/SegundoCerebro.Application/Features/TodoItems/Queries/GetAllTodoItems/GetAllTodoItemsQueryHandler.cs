@@ -18,7 +18,7 @@ public class GetAllTodoItemsQueryHandler : IRequestHandler<GetAllTodoItemsQuery,
 
     public async Task<IEnumerable<TodoItemDto>> Handle(GetAllTodoItemsQuery request, CancellationToken cancellationToken)
     {
-        var todoItems = await _unitOfWork.TodoItems.GetAllAsync();
+        var todoItems = await _unitOfWork.TodoItems.GetTodoItemsWithProjectsAsync();
         return _mapper.Map<IEnumerable<TodoItemDto>>(todoItems);
     }
 }

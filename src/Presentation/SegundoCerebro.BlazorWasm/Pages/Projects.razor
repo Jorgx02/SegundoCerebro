@@ -1,0 +1,220 @@
+@page "/projects"
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@using SegundoCerebro.BlazorWasm.Components.Dialogs
+@inject IProjectService ProjectService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Proyectos - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+            <MudText Typo="Typo.h4">Proyectos</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="Icons.Material.Filled.Add"
+                       OnClick="OpenCreateDialog">
+                Nuevo Proyecto
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Summary Cards -->
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="3" Class="rounded-lg">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Total Proyectos</MudText>
+                            <MudText Typo="Typo.h5">@allProjects.Count</MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.Folder" Size="Size.Large" Color="Color.Primary" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="3" Class="rounded-lg">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Activos</MudText>
+                            <MudText Typo="Typo.h5">@allProjects.Count(p => p.Status == ProjectStatus.Active)</MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.PlayArrow" Size="Size.Large" Color="Color.Info" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="3" Class="rounded-lg">
+                <MudCardContent>
+                    <div class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Completados</MudText>
+                            <MudText Typo="Typo.h5">@allProjects.Count(p => p.Status == ProjectStatus.Completed)</MudText>
+                        </div>
+                        <MudIcon Icon="Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Projects Table -->
+    <MudCard Elevation="4" Class="rounded-lg">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <div class="d-flex justify-space-between align-center">
+                    <MudText Typo="Typo.h6">Todos los Proyectos</MudText>
+                </div>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTable Items="@allProjects" Hover="true" Striped="true" Dense="true" Elevation="0"
+                      Loading="@loading" LoadingProgressColor="Color.Info">
+                <HeaderContent>
+                    <MudTh>Nombre</MudTh>
+                    <MudTh>Estado</MudTh>
+                    <MudTh>Fecha Inicio</MudTh>
+                    <MudTh>Fecha Fin</MudTh>
+                    <MudTh>Acciones</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Nombre">
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="Icons.Material.Filled.FolderOpen" Class="mr-3" Color="Color.Primary" />
+                            <div>
+                                <MudText Typo="Typo.body1" Class="font-weight-bold">@context.Name</MudText>
+                                @if (!string.IsNullOrEmpty(context.Description))
+                                {
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText>
+                                }
+                            </div>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Estado">
+                        <MudChip Size="Size.Small" Color="@GetStatusColor(context.Status)">
+                            @GetStatusName(context.Status)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Fecha Inicio">
+                        @(context.StartDate?.ToString("dd/MM/yyyy") ?? "-")
+                    </MudTd>
+                    <MudTd DataLabel="Fecha Fin">
+                        @(context.EndDate?.ToString("dd/MM/yyyy") ?? "-")
+                    </MudTd>
+                    <MudTd DataLabel="Acciones">
+                        @if (context.Status != ProjectStatus.Completed)
+                        {
+                            <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                           Variant="Variant.Filled" Class="mr-2" OnClick="() => OpenEditDialog(context)" />
+                            <MudIconButton Icon="Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                           Variant="Variant.Filled" OnClick="() => DeleteProject(context)" />
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private List<ProjectDto> allProjects = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjects();
+    }
+
+    private async Task LoadProjects()
+    {
+        loading = true;
+        try
+        {
+            var result = await ProjectService.GetAllAsync();
+            allProjects = result.OrderByDescending(p => p.CreatedAt).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar los proyectos: {ex.Message}", MudSeverity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private string GetStatusName(ProjectStatus status) => status switch
+    {
+        ProjectStatus.NotStarted => "No Iniciado",
+        ProjectStatus.Active => "Activo",
+        ProjectStatus.OnHold => "En Pausa",
+        ProjectStatus.Completed => "Completado",
+        ProjectStatus.Cancelled => "Cancelado",
+        _ => status.ToString()
+    };
+
+    private Color GetStatusColor(ProjectStatus status) => status switch
+    {
+        ProjectStatus.NotStarted => Color.Default,
+        ProjectStatus.Active => Color.Info,
+        ProjectStatus.OnHold => Color.Warning,
+        ProjectStatus.Completed => Color.Success,
+        ProjectStatus.Cancelled => Color.Error,
+        _ => Color.Default
+    };
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = DialogService.Show<CreateProjectDialog>("Crear Proyecto");
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadProjects();
+            Snackbar.Add("¡Proyecto creado correctamente!", MudSeverity.Success);
+        }
+    }
+
+    private async Task OpenEditDialog(ProjectDto project)
+    {
+        var parameters = new DialogParameters { ["Project"] = project };
+        var dialog = DialogService.Show<EditProjectDialog>("Editar Proyecto", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadProjects();
+            Snackbar.Add("¡Proyecto actualizado correctamente!", MudSeverity.Success);
+        }
+    }
+
+    private async Task DeleteProject(ProjectDto project)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Eliminar Proyecto",
+            $"¿Estás seguro de que deseas eliminar el proyecto '{project.Name}'? Las tareas asociadas pasarán a la bandeja de entrada.",
+            yesText: "Eliminar",
+            cancelText: "Cancelar");
+
+        if (result == true)
+        {
+            try
+            {
+                await ProjectService.DeleteAsync(project.Id);
+                await LoadProjects();
+                Snackbar.Add("Proyecto eliminado correctamente.", MudSeverity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error al eliminar el proyecto: {ex.Message}", MudSeverity.Error);
+            }
+        }
+    }
+}

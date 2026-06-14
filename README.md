@@ -282,10 +282,10 @@ dotnet run
 - [x] Base de datos PostgreSQL configurada ✅
 - [x] **Sistema completamente operativo** ✅
 
-### 🚧 **Fase 2: Productividad Personal** (Q1 2026) - **PRÓXIMO**
+### 🚧 **Fase 2: Productividad Personal** (Q1 2026) - **EN PROGRESO**
 
-- [ ] Gestión de tareas (GTD)
-- [ ] Proyectos y objetivos
+- [x] Gestión de tareas (GTD) ✅
+- [x] Proyectos y objetivos ✅
 - [ ] Time tracking
 - [ ] Calendario integrado
 - [ ] Recordatorios y notificaciones

@@ -1,0 +1,92 @@
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@inject ITodoItemService TodoItemService
+@inject IProjectService ProjectService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@model" @ref="@form">
+            <MudCardContent>
+                <MudTextField @bind-Value="model.Title" For="@(() => model.Title)" Immediately="true" Label="Título de la tarea"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+                <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
+                              Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
+
+                <MudSelect @bind-Value="model.Status" For="@(() => model.Status)" Label="Estado"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3">
+                    <MudSelectItem Value="@TodoItemStatus.Inbox">Inbox (Idea)</MudSelectItem>
+                    <MudSelectItem Value="@TodoItemStatus.NextAction">Próxima Acción</MudSelectItem>
+                    <MudSelectItem Value="@TodoItemStatus.WaitingFor">En Espera</MudSelectItem>
+                    <MudSelectItem Value="@TodoItemStatus.Scheduled">Programada</MudSelectItem>
+                    <MudSelectItem Value="@TodoItemStatus.Completed">Completada</MudSelectItem>
+                    <MudSelectItem Value="@TodoItemStatus.Someday">Algún Día/Tal vez</MudSelectItem>
+                </MudSelect>
+
+                <MudSelect @bind-Value="model.Priority" For="@(() => model.Priority)" Label="Prioridad"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3">
+                    <MudSelectItem Value="@PriorityLevel.Low">Baja</MudSelectItem>
+                    <MudSelectItem Value="@PriorityLevel.Medium">Media</MudSelectItem>
+                    <MudSelectItem Value="@PriorityLevel.High">Alta</MudSelectItem>
+                    <MudSelectItem Value="@PriorityLevel.Critical">Crítica</MudSelectItem>
+                </MudSelect>
+
+                <MudSelect T="Guid?" @bind-Value="model.ProjectId" Label="Proyecto Asociado" Clearable="true"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3">
+                    <MudSelectItem T="Guid?" Value="null">Sin proyecto (Bandeja de entrada)</MudSelectItem>
+                    @foreach (var project in activeProjects)
+                    {
+                        <MudSelectItem T="Guid?" Value="@project.Id">@project.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudDatePicker @bind-Date="model.DueDate" Label="Fecha de Vencimiento (Opcional)" 
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-3" />
+            </MudCardContent>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Guardar Cambios</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public TodoItemDto TodoItem { get; set; } = null!;
+
+    private UpdateTodoItemDto model = new();
+    private MudForm form = null!;
+    private List<ProjectDto> activeProjects = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var projects = await ProjectService.GetAllAsync();
+        activeProjects = projects.Where(p => p.Status == ProjectStatus.Active || p.Status == ProjectStatus.NotStarted || p.Id == TodoItem.ProjectId).ToList();
+        
+        model.Title = TodoItem.Title;
+        model.Description = TodoItem.Description;
+        model.Status = TodoItem.Status;
+        model.Priority = TodoItem.Priority;
+        model.DueDate = TodoItem.DueDate;
+        model.ProjectId = TodoItem.ProjectId;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                await TodoItemService.UpdateAsync(TodoItem.Id, model);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", MudSeverity.Error); }
+        }
+    }
+}
