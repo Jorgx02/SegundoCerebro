@@ -2,13 +2,19 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SegundoCerebro.Domain.Entities;
+using SegundoCerebro.Application.Interfaces;
 
 namespace SegundoCerebro.Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    private readonly ICurrentUserService _currentUserService;
+
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        ICurrentUserService currentUserService) : base(options)
     {
+        _currentUserService = currentUserService;
     }
 
     public DbSet<Account> Accounts => Set<Account>();
@@ -28,6 +34,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             entity.Property(a => a.UserId).IsRequired().HasMaxLength(450); // Mismo tamaño que IdentityUser.Id
             entity.Property(a => a.Currency).IsRequired().HasMaxLength(3);
             entity.Property(a => a.Balance).HasPrecision(18, 2);
+
+            // Filtro Global: Solo devuelve cuentas de este usuario
+            entity.HasQueryFilter(a => _currentUserService.UserId == null || a.UserId == _currentUserService.UserId);
         });
 
         // Transaction configuration
@@ -47,6 +56,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                 .WithMany(c => c.Transactions)
                 .HasForeignKey(t => t.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Filtro Global: Solo devuelve transacciones de este usuario
+            entity.HasQueryFilter(t => _currentUserService.UserId == null || t.UserId == _currentUserService.UserId);
         });
 
         // Category configuration
@@ -81,6 +93,33 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                 .WithMany(a => a.Budgets)
                 .HasForeignKey(b => b.AccountId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Filtro Global: Solo devuelve presupuestos de este usuario
+            entity.HasQueryFilter(b => _currentUserService.UserId == null || b.UserId == _currentUserService.UserId);
         });
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var userId = _currentUserService.UserId;
+
+        // Si hay un usuario logueado, le asignamos la propiedad a las entidades nuevas automáticamente
+        if (!string.IsNullOrEmpty(userId))
+        {
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    if (entry.Entity is Account account && string.IsNullOrEmpty(account.UserId))
+                        account.UserId = userId;
+                    else if (entry.Entity is Transaction transaction && string.IsNullOrEmpty(transaction.UserId))
+                        transaction.UserId = userId;
+                    else if (entry.Entity is Budget budget && string.IsNullOrEmpty(budget.UserId))
+                        budget.UserId = userId;
+                }
+            }
+        }
+
+        return base.SaveChangesAsync(cancellationToken);
     }
 }

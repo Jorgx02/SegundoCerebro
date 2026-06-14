@@ -5,10 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using SegundoCerebro.Application;
+using SegundoCerebro.Application.Interfaces;
 using SegundoCerebro.Infrastructure;
 using SegundoCerebro.Infrastructure.Data;
 using QuestPDF.Infrastructure;
 using SegundoCerebro.WebAPI.Middlewares;
+using SegundoCerebro.WebAPI.Services;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -25,6 +27,10 @@ builder.Services.AddSwaggerGen();
 // Add application and infrastructure services
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Configurar servicios de usuario actual para aislar los datos
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // Configurar Identity
 builder.Services.AddIdentityCore<IdentityUser>(options =>
