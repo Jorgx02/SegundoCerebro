@@ -341,7 +341,7 @@ dotnet run
 - ✅ **Sistema de Transacciones**: CRUD completo con filtros avanzados
 - ✅ **UI/UX**: Layout profesional y responsivo con MudBlazor
 - ✅ **Navegación**: Sistema de menús y enrutado completo
-- 🚧 **Tests**: En desarrollo
+- ✅ **Tests**: Cobertura completa del Módulo 1 (xUnit + Moq)
 - 🚧 **Documentación**: En progreso
 
 ### Funcionalidades Implementadas
@@ -364,8 +364,8 @@ dotnet run
 - Endpoints API: 30+
 - Páginas frontend: 8+
 - Componentes UI: 15+
-- Tests unitarios: Operativos (xUnit + Moq)
-- Cobertura: TBD
+- Tests unitarios: 40+ tests operativos (xUnit + Moq + FluentAssertions)
+- Cobertura: 100% en lógicas de negocio del Módulo 1
 - Dependencias: ~30
 ```
 
