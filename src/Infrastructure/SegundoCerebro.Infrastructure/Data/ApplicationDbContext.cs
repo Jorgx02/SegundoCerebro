@@ -21,6 +21,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Budget> Budgets => Set<Budget>();
+    public DbSet<Project> Projects => Set<Project>();
+    public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -97,6 +99,35 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             // Filtro Global: Solo devuelve presupuestos de este usuario
             entity.HasQueryFilter(b => _currentUserService.UserId == null || b.UserId == _currentUserService.UserId);
         });
+
+        // Project configuration
+        modelBuilder.Entity<Project>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Name).IsRequired().HasMaxLength(100);
+            entity.Property(p => p.Description).HasMaxLength(500);
+            entity.Property(p => p.UserId).IsRequired().HasMaxLength(450);
+
+            // Filtro Global: Solo devuelve proyectos de este usuario
+            entity.HasQueryFilter(p => _currentUserService.UserId == null || p.UserId == _currentUserService.UserId);
+        });
+
+        // TodoItem configuration
+        modelBuilder.Entity<TodoItem>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.Title).IsRequired().HasMaxLength(200);
+            entity.Property(t => t.Description).HasMaxLength(1000);
+            entity.Property(t => t.UserId).IsRequired().HasMaxLength(450);
+
+            entity.HasOne(t => t.Project)
+                .WithMany(p => p.TodoItems)
+                .HasForeignKey(t => t.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull); // Si se borra el proyecto, las tareas quedan huérfanas (en el Inbox)
+
+            // Filtro Global: Solo devuelve tareas de este usuario
+            entity.HasQueryFilter(t => _currentUserService.UserId == null || t.UserId == _currentUserService.UserId);
+        });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -116,6 +147,10 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                         transaction.UserId = userId;
                     else if (entry.Entity is Budget budget && string.IsNullOrEmpty(budget.UserId))
                         budget.UserId = userId;
+                    else if (entry.Entity is Project project && string.IsNullOrEmpty(project.UserId))
+                        project.UserId = userId;
+                    else if (entry.Entity is TodoItem todoItem && string.IsNullOrEmpty(todoItem.UserId))
+                        todoItem.UserId = userId;
                 }
             }
         }

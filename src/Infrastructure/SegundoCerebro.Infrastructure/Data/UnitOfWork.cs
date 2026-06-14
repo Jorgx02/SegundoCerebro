@@ -16,12 +16,16 @@ public class UnitOfWork : IUnitOfWork
         Transactions = new TransactionRepository(_context);
         Categories = new CategoryRepository(_context);
         Budgets = new BudgetRepository(_context);
+        Projects = new ProjectRepository(_context);
+        TodoItems = new TodoItemRepository(_context);
     }
 
     public IAccountRepository Accounts { get; }
     public ITransactionRepository Transactions { get; }
     public ICategoryRepository Categories { get; }
     public IBudgetRepository Budgets { get; }
+    public IProjectRepository Projects { get; }
+    public ITodoItemRepository TodoItems { get; }
 
     public async Task<int> SaveChangesAsync()
     {

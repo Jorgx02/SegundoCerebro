@@ -8,6 +8,8 @@ public interface IUnitOfWork : IDisposable
     ITransactionRepository Transactions { get; }
     ICategoryRepository Categories { get; }
     IBudgetRepository Budgets { get; }
+    IProjectRepository Projects { get; }
+    ITodoItemRepository TodoItems { get; }
 
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
