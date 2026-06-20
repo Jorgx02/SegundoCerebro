@@ -1,5 +1,8 @@
 namespace SegundoCerebro.Domain.Enums;
 
+/// <summary>
+/// Enumeración que representa los diferentes estados de un elemento de tarea.
+/// </summary>
 public enum TodoItemStatus
 {
     Inbox = 0,       // Idea recién capturada, sin procesar

@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de creación de una categoría (`CreateCategoryDto`).
+/// Define las reglas de negocio que debe cumplir una categoría para ser creada.
+/// </summary>
 public class CreateCategoryDtoValidator : AbstractValidator<CreateCategoryDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="CreateCategoryDtoValidator"/>.
+    /// </summary>
     public CreateCategoryDtoValidator()
     {
         RuleFor(x => x.Name)

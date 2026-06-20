@@ -5,6 +5,9 @@ using SegundoCerebro.Domain.Interfaces;
 
 namespace SegundoCerebro.Application.Features.Categories.Commands.UpdateCategory;
 
+/// <summary>
+/// Manejador para el comando de actualización de una categoría.
+/// </summary>
 public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, CategoryDto>
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -16,6 +19,12 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Procesa la actualización de una categoría.
+    /// </summary>
+    /// <param name="request">El comando con el ID y los nuevos datos de la categoría.</param>
+    /// <param name="cancellationToken">Token de cancelación.</param>
+    /// <returns>El DTO de la categoría actualizada.</returns>
     public async Task<CategoryDto> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         var existingCategory = await _unitOfWork.Categories.GetByIdAsync(request.Id);

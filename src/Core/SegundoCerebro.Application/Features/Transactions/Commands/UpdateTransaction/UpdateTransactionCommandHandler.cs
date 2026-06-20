@@ -6,6 +6,9 @@ using SegundoCerebro.Domain.Interfaces;
 
 namespace SegundoCerebro.Application.Features.Transactions.Commands.UpdateTransaction;
 
+/// <summary>
+/// Manejador para el comando de actualización de una transacción.
+/// </summary>
 public class UpdateTransactionCommandHandler : IRequestHandler<UpdateTransactionCommand, TransactionDto>
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -17,6 +20,15 @@ public class UpdateTransactionCommandHandler : IRequestHandler<UpdateTransaction
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Procesa la actualización de una transacción. Esta es una operación compleja que:
+    /// 1. Revierte el impacto de la transacción original en el saldo de la cuenta.
+    /// 2. Actualiza los datos de la transacción.
+    /// 3. Aplica el nuevo impacto en el saldo de la cuenta.
+    /// </summary>
+    /// <param name="request">El comando con el ID y los nuevos datos de la transacción.</param>
+    /// <param name="cancellationToken">Token de cancelación.</param>
+    /// <returns>El DTO de la transacción actualizada.</returns>
     public async Task<TransactionDto> Handle(UpdateTransactionCommand request, CancellationToken cancellationToken)
     {
         await _unitOfWork.BeginTransactionAsync();

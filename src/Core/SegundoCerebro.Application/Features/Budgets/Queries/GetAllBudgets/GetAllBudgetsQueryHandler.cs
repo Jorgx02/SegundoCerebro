@@ -5,6 +5,9 @@ using SegundoCerebro.Domain.Interfaces;
 
 namespace SegundoCerebro.Application.Features.Budgets.Queries.GetAllBudgets;
 
+/// <summary>
+/// Manejador para la consulta que obtiene todos los presupuestos activos.
+/// </summary>
 public class GetAllBudgetsQueryHandler : IRequestHandler<GetAllBudgetsQuery, IEnumerable<BudgetDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -16,6 +19,12 @@ public class GetAllBudgetsQueryHandler : IRequestHandler<GetAllBudgetsQuery, IEn
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Procesa la solicitud para obtener todos los presupuestos activos.
+    /// </summary>
+    /// <param name="request">La consulta.</param>
+    /// <param name="cancellationToken">Token de cancelación.</param>
+    /// <returns>Una colección de DTOs de los presupuestos activos.</returns>
     public async Task<IEnumerable<BudgetDto>> Handle(GetAllBudgetsQuery request, CancellationToken cancellationToken)
     {
         var budgets = await _unitOfWork.Budgets.GetActiveBudgetsAsync();

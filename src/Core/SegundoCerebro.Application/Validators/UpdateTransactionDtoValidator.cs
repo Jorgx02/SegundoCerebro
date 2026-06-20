@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de actualización de una transacción (`UpdateTransactionDto`).
+/// Define las reglas de negocio que debe cumplir una transacción para ser actualizada.
+/// </summary>
 public class UpdateTransactionDtoValidator : AbstractValidator<UpdateTransactionDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="UpdateTransactionDtoValidator"/>.
+    /// </summary>
     public UpdateTransactionDtoValidator()
     {
         RuleFor(x => x.Description)

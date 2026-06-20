@@ -342,6 +342,7 @@ dotnet run
 - ✅ **UI/UX**: Layout profesional y responsivo con MudBlazor
 - ✅ **Navegación**: Sistema de menús y enrutado completo
 - ✅ **Tests**: Cobertura completa del Módulo 1 (xUnit + Moq)
+- ✅ **Monitoring**: Telemetría y logging estructurado con Serilog y Seq
 - 🚧 **Documentación**: En progreso
 
 ### Funcionalidades Implementadas
@@ -354,6 +355,7 @@ dotnet run
 - **📊 Dashboard**: Vista general de finanzas
 - **🎨 UI Profesional**: Diseño moderno, responsivo y **Modo Oscuro Global**
 - **🔄 Navegación**: Menú lateral y enrutado funcional
+- **📈 Telemetría**: Pipeline de MediatR para auditoría automática de casos de uso y rendimiento
 
 ### Estadísticas de Código
 

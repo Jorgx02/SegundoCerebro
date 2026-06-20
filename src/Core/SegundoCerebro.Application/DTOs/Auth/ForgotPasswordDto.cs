@@ -1,4 +1,4 @@
-namespace SegundoCerebro.Application.DTOs.Auth; // O SegundoCerebro.BlazorWasm.Models.Auth para el frontend
+namespace SegundoCerebro.Application.DTOs.Auth;
 
 public class ForgotPasswordDto
 {

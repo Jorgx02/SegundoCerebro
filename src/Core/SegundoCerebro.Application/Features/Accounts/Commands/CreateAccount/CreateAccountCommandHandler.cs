@@ -6,6 +6,9 @@ using SegundoCerebro.Domain.Interfaces;
 
 namespace SegundoCerebro.Application.Features.Accounts.Commands.CreateAccount;
 
+/// <summary>
+/// Manejador para el comando de creación de una cuenta.
+/// </summary>
 public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand, AccountDto>
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -17,6 +20,12 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Procesa la solicitud de creación de cuenta.
+    /// </summary>
+    /// <param name="request">El comando con los datos de la cuenta a crear.</param>
+    /// <param name="cancellationToken">Token de cancelación.</param>
+    /// <returns>El DTO de la cuenta recién creada.</returns>
     public async Task<AccountDto> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
         var account = _mapper.Map<Account>(request.Account);

@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de actualización de un proyecto (`UpdateProjectDto`).
+/// Define las reglas de negocio que debe cumplir un proyecto para ser actualizado.
+/// </summary>
 public class UpdateProjectDtoValidator : AbstractValidator<UpdateProjectDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="UpdateProjectDtoValidator"/>.
+    /// </summary>
     public UpdateProjectDtoValidator()
     {
         RuleFor(x => x.Name)

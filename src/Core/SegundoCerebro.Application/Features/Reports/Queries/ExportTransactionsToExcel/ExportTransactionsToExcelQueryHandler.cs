@@ -69,20 +69,20 @@ public class ExportTransactionsToExcelQueryHandler : IRequestHandler<ExportTrans
         row += 2;
         worksheet.Cell(row, 1).Value = "SUMMARY";
         worksheet.Cell(row, 1).Style.Font.Bold = true;
-        
+
         row++;
         var totalIncome = transactions.Where(t => t.Type == Domain.Enums.TransactionType.Income).Sum(t => t.Amount);
         var totalExpenses = transactions.Where(t => t.Type == Domain.Enums.TransactionType.Expense).Sum(t => t.Amount);
-        
+
         worksheet.Cell(row, 1).Value = "Total Income:";
         worksheet.Cell(row, 2).Value = totalIncome;
         worksheet.Cell(row, 2).Style.Font.FontColor = XLColor.Green;
-        
+
         row++;
         worksheet.Cell(row, 1).Value = "Total Expenses:";
         worksheet.Cell(row, 2).Value = totalExpenses;
         worksheet.Cell(row, 2).Style.Font.FontColor = XLColor.Red;
-        
+
         row++;
         worksheet.Cell(row, 1).Value = "Net:";
         worksheet.Cell(row, 2).Value = totalIncome - totalExpenses;

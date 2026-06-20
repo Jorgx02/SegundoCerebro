@@ -1,5 +1,8 @@
 namespace SegundoCerebro.Domain.Enums;
 
+/// <summary>
+/// Enumeración que representa los diferentes tipos de cuentas financieras.
+/// </summary>
 public enum AccountType
 {
     Checking = 1,    // Cuenta corriente

@@ -1,7 +1,7 @@
 namespace SegundoCerebro.Application.DTOs.Auth;
 
 /// <summary>
-/// Objeto de transferencia de datos utilizado para registrar un nuevo usuario en el sistema.
+/// DTO de transferencia de datos utilizado para registrar un nuevo usuario en el sistema.
 /// </summary>
 public class RegisterDto
 {

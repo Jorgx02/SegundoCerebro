@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de creación de un proyecto (`CreateProjectDto`).
+/// Define las reglas de negocio que debe cumplir un proyecto para ser creado.
+/// </summary>
 public class CreateProjectDtoValidator : AbstractValidator<CreateProjectDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="CreateProjectDtoValidator"/>.
+    /// </summary>
     public CreateProjectDtoValidator()
     {
         RuleFor(x => x.Name)

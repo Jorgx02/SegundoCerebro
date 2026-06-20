@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de actualización de un presupuesto (`UpdateBudgetDto`).
+/// Define las reglas de negocio que debe cumplir un presupuesto para ser actualizado.
+/// </summary>
 public class UpdateBudgetDtoValidator : AbstractValidator<UpdateBudgetDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="UpdateBudgetDtoValidator"/>.
+    /// </summary>
     public UpdateBudgetDtoValidator()
     {
         RuleFor(x => x.Name)

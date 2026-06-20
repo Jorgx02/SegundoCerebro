@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de creación de un presupuesto (`CreateBudgetDto`).
+/// Define las reglas de negocio que debe cumplir un presupuesto para ser creado.
+/// </summary>
 public class CreateBudgetDtoValidator : AbstractValidator<CreateBudgetDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="CreateBudgetDtoValidator"/>.
+    /// </summary>
     public CreateBudgetDtoValidator()
     {
         RuleFor(x => x.Name)

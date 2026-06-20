@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de actualización de una tarea (`UpdateTodoItemDto`).
+/// Define las reglas de negocio que debe cumplir una tarea para ser actualizada.
+/// </summary>
 public class UpdateTodoItemDtoValidator : AbstractValidator<UpdateTodoItemDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="UpdateTodoItemDtoValidator"/>.
+    /// </summary>
     public UpdateTodoItemDtoValidator()
     {
         RuleFor(x => x.Title)

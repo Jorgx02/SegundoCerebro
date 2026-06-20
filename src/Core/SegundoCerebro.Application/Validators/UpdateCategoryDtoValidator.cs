@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de actualización de una categoría (`UpdateCategoryDto`).
+/// Define las reglas de negocio que debe cumplir una categoría para ser actualizada.
+/// </summary>
 public class UpdateCategoryDtoValidator : AbstractValidator<UpdateCategoryDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="UpdateCategoryDtoValidator"/>.
+    /// </summary>
     public UpdateCategoryDtoValidator()
     {
         RuleFor(x => x.Name)

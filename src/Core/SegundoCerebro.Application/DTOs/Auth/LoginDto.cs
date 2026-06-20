@@ -1,7 +1,7 @@
 namespace SegundoCerebro.Application.DTOs.Auth;
 
 /// <summary>
-/// Objeto de transferencia de datos utilizado para que un usuario inicie sesión.
+/// DTO utilizado para que un usuario inicie sesión.
 /// </summary>
 public class LoginDto
 {

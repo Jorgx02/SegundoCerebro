@@ -1,5 +1,8 @@
 namespace SegundoCerebro.Domain.Enums;
 
+/// <summary>
+/// Enumeración que representa los diferentes tipos de transacciones financieras.
+/// </summary>
 public enum TransactionType
 {
     Income = 1,  // Ingreso

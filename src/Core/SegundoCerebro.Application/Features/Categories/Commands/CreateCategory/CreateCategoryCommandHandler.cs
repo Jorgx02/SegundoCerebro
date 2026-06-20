@@ -6,6 +6,9 @@ using SegundoCerebro.Domain.Interfaces;
 
 namespace SegundoCerebro.Application.Features.Categories.Commands.CreateCategory;
 
+/// <summary>
+/// Manejador para el comando de creación de una categoría.
+/// </summary>
 public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, CategoryDto>
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -17,6 +20,12 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Procesa la solicitud de creación de una categoría.
+    /// </summary>
+    /// <param name="request">El comando con los datos de la categoría.</param>
+    /// <param name="cancellationToken">Token de cancelación.</param>
+    /// <returns>El DTO de la categoría recién creada.</returns>
     public async Task<CategoryDto> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = _mapper.Map<Category>(request.Category);

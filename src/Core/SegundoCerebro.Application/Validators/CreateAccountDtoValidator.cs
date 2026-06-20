@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de creación de una cuenta (`CreateAccountDto`).
+/// Define las reglas de negocio que debe cumplir una cuenta para ser creada.
+/// </summary>
 public class CreateAccountDtoValidator : AbstractValidator<CreateAccountDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="CreateAccountDtoValidator"/>.
+    /// </summary>
     public CreateAccountDtoValidator()
     {
         RuleFor(x => x.Name)

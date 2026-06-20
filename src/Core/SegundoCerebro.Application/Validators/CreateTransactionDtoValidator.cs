@@ -3,8 +3,15 @@ using SegundoCerebro.Application.DTOs;
 
 namespace SegundoCerebro.Application.Validators;
 
+/// <summary>
+/// Validador para el DTO de creación de una transacción (`CreateTransactionDto`).
+/// Define las reglas de negocio que debe cumplir una transacción para ser creada.
+/// </summary>
 public class CreateTransactionDtoValidator : AbstractValidator<CreateTransactionDto>
 {
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="CreateTransactionDtoValidator"/>.
+    /// </summary>
     public CreateTransactionDtoValidator()
     {
         RuleFor(x => x.Description)

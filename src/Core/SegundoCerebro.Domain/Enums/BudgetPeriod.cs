@@ -1,5 +1,8 @@
 namespace SegundoCerebro.Domain.Enums;
 
+/// <summary>
+/// Enumeración que representa los diferentes tipos de periodos de presupuesto.
+/// </summary>
 public enum BudgetPeriod
 {
     Weekly = 1,   // Semanal

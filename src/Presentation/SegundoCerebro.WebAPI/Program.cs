@@ -11,6 +11,7 @@ using SegundoCerebro.Infrastructure.Data;
 using QuestPDF.Infrastructure;
 using SegundoCerebro.WebAPI.Middlewares;
 using SegundoCerebro.WebAPI.Services;
+using Serilog;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -18,6 +19,13 @@ QuestPDF.Settings.License = LicenseType.Community;
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurar Serilog
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration)
+                 .Enrich.FromLogContext()
+                 .WriteTo.Console()
+                 .WriteTo.Seq("http://localhost:5341"));
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -73,6 +81,9 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors("AllowAll");
+
+// Añadir el middleware de logging de peticiones HTTP de Serilog
+app.UseSerilogRequestLogging();
 
 app.UseMiddleware<ExceptionMiddleware>();
 
