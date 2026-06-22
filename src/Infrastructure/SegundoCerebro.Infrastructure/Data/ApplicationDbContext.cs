@@ -6,10 +6,21 @@ using SegundoCerebro.Application.Interfaces;
 
 namespace SegundoCerebro.Infrastructure.Data;
 
+/// <summary>
+/// Contexto de la base de datos principal de la aplicación.
+/// Hereda de IdentityDbContext para integrar la gestión de usuarios de ASP.NET Core Identity.
+/// Es el punto de entrada para todas las operaciones de base de datos con Entity Framework Core.
+/// </summary>
 public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 {
     private readonly ICurrentUserService _currentUserService;
 
+    /// <summary>
+    /// Inicializa una nueva instancia de la clase <see cref="ApplicationDbContext"/>.
+    /// </summary>
+    /// <param name="options">Las opciones para configurar el contexto.</param>
+    /// <param name="currentUserService">Servicio para obtener el ID del usuario actualmente autenticado,
+    /// crucial para implementar la seguridad de datos (Multi-tenancy).</param>
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
         ICurrentUserService currentUserService) : base(options)
@@ -17,13 +28,31 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         _currentUserService = currentUserService;
     }
 
+    // DbSets para cada entidad del dominio.
+    // Representan las tablas en la base de datos.
+    /// <summary>Conjunto de entidades para las Cuentas (`Account`).</summary>
     public DbSet<Account> Accounts => Set<Account>();
+
+    /// <summary>Conjunto de entidades para las Transacciones (`Transaction`).</summary>
     public DbSet<Transaction> Transactions => Set<Transaction>();
+
+    /// <summary>Conjunto de entidades para las Categorías (`Category`).</summary>
     public DbSet<Category> Categories => Set<Category>();
+
+    /// <summary>Conjunto de entidades para los Presupuestos (`Budget`).</summary>
     public DbSet<Budget> Budgets => Set<Budget>();
+
+    /// <summary>Conjunto de entidades para los Proyectos (`Project`).</summary>
     public DbSet<Project> Projects => Set<Project>();
+
+    /// <summary>Conjunto de entidades para las Tareas (`TodoItem`).</summary>
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
+    /// <summary>
+    /// Configura el modelo de datos, las relaciones, las restricciones y los filtros globales
+    /// antes de que sea bloqueado y utilizado para inicializar el contexto.
+    /// </summary>
+    /// <param name="modelBuilder">El constructor que se utiliza para construir el modelo para este contexto.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -37,7 +66,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             entity.Property(a => a.Currency).IsRequired().HasMaxLength(3);
             entity.Property(a => a.Balance).HasPrecision(18, 2);
 
-            // Filtro Global: Solo devuelve cuentas de este usuario
+            // Filtro de Consulta Global (Global Query Filter) para Multi-tenancy:
+            // Asegura que cualquier consulta a la tabla 'Accounts' siempre se filtre
+            // por el ID del usuario actual, evitando fugas de datos entre usuarios.
             entity.HasQueryFilter(a => _currentUserService.UserId == null || a.UserId == _currentUserService.UserId);
         });
 
@@ -130,11 +161,18 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
         });
     }
 
+    /// <summary>
+    /// Sobrescribe el método SaveChangesAsync para interceptar las operaciones de guardado.
+    /// Asigna automáticamente el `UserId` del usuario actual a las nuevas entidades
+    /// que se están creando, garantizando la propiedad de los datos.
+    /// </summary>
+    /// <param name="cancellationToken">Token de cancelación.</param>
+    /// <returns>El número de entidades escritas en la base de datos.</returns>
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.UserId;
 
-        // Si hay un usuario logueado, le asignamos la propiedad a las entidades nuevas automáticamente
+        // Si hay un usuario autenticado, se asigna su ID a las nuevas entidades.
         if (!string.IsNullOrEmpty(userId))
         {
             foreach (var entry in ChangeTracker.Entries())

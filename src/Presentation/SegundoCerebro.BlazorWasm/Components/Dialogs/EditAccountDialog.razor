@@ -4,9 +4,11 @@
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
 
+@* Diálogo modal para la edición de los datos básicos de una cuenta existente. *@
 <MudDialog>
     <DialogContent>
         <MudForm Model="@model" @ref="@form">
+            @* Campos del formulario para editar el nombre y la descripción. *@
             <MudCardContent>
                 <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true" Label="Account Name"
                               Variant="Variant.Outlined" Margin="Margin.Dense" />
@@ -25,11 +27,26 @@
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    /// <summary>
+    /// La cuenta que se va a editar. Se recibe como parámetro del diálogo.
+    /// </summary>
     [Parameter] public AccountDto Account { get; set; } = null!;
 
+    /// <summary>
+    /// El modelo de datos (DTO) que se enlaza al formulario para actualizar la cuenta.
+    /// </summary>
     private UpdateAccountDto model = new();
+
+    /// <summary>
+    /// Referencia al componente MudForm para poder invocar su validación.
+    /// </summary>
     private MudForm form = null!;
 
+    /// <summary>
+    /// Se ejecuta al inicializar el componente.
+    /// Rellena el modelo del formulario con los datos de la cuenta que se está editando.
+    /// </summary>
     protected override void OnInitialized()
     {
         model.Name = Account.Name;
@@ -42,11 +59,18 @@
         model.Balance = Account.Balance;
     }
 
+    /// <summary>
+    /// Cierra el diálogo sin guardar cambios.
+    /// </summary>
     private void Cancel()
     {
         MudDialog.Cancel();
     }
 
+    /// <summary>
+    /// Valida el formulario y, si es válido, envía la solicitud de actualización al servicio.
+    /// Cierra el diálogo en caso de éxito o muestra un error en caso de fallo.
+    /// </summary>
     private async Task Submit()
     {
         await form.Validate();

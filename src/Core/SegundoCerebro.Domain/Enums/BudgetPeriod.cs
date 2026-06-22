@@ -1,13 +1,22 @@
 namespace SegundoCerebro.Domain.Enums;
 
 /// <summary>
-/// Enumeración que representa los diferentes tipos de periodos de presupuesto.
+/// Define la recurrencia o periodicidad de un presupuesto.
 /// </summary>
 public enum BudgetPeriod
 {
-    Weekly = 1,   // Semanal
-    Monthly = 2,  // Mensual
-    Quarterly = 3,// Trimestral
-    Yearly = 4,   // Anual
-    Custom = 99   // Personalizado
+    /// <summary>El presupuesto se reinicia cada semana.</summary>
+    Weekly = 1,
+
+    /// <summary>El presupuesto se reinicia cada mes (el más común).</summary>
+    Monthly = 2,
+
+    /// <summary>El presupuesto se reinicia cada trimestre.</summary>
+    Quarterly = 3,
+
+    /// <summary>El presupuesto se reinicia cada año.</summary>
+    Yearly = 4,
+
+    /// <summary>El presupuesto tiene un rango de fechas personalizado y no se reinicia automáticamente.</summary>
+    Custom = 99
 }

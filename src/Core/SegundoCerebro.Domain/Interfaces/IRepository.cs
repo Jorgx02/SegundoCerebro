@@ -1,47 +1,47 @@
 namespace SegundoCerebro.Domain.Interfaces;
 
 /// <summary>
-/// Define la interfaz para el repositorio genérico.
+/// Define un contrato genérico para los repositorios, encapsulando las operaciones CRUD estándar.
 /// </summary>
+/// <typeparam name="T">El tipo de la entidad que maneja el repositorio.</typeparam>
 public interface IRepository<T> where T : class
 {
     /// <summary>
-    /// Obtiene un elemento con sus detalles.
+    /// Obtiene una entidad por su identificador único.
     /// </summary>
-    /// <param name="id">El ID del elemento.</param>
-    /// <returns>El elemento encontrado o null si no se encuentra.</returns>
+    /// <param name="id">El ID de la entidad a buscar.</param>
+    /// <returns>La entidad encontrada, o null si no existe.</returns>
     Task<T?> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// Obtiene todos los elementos.
+    /// Obtiene todas las entidades del tipo <typeparamref name="T"/>.
     /// </summary>
-    /// <returns>Una colección de elementos.</returns>
+    /// <returns>Una colección enumerable de todas las entidades.</returns>
     Task<IEnumerable<T>> GetAllAsync();
 
     /// <summary>
-    /// Añade un nuevo elemento.
+    /// Añade una nueva entidad al conjunto de datos.
     /// </summary>
-    /// <param name="entity">El elemento a añadir.</param>
-    /// <returns>El elemento añadido.</returns>
+    /// <param name="entity">La entidad a añadir.</param>
+    /// <returns>La entidad añadida, después de ser procesada por el contexto.</returns>
     Task<T> AddAsync(T entity);
 
     /// <summary>
-    /// Actualiza un elemento existente.
+    /// Marca una entidad existente como modificada.
     /// </summary>
-    /// <param name="entity">El elemento a actualizar.</param>
-    /// <returns>El elemento actualizado.</returns>
+    /// <param name="entity">La entidad con los datos actualizados.</param>
     Task UpdateAsync(T entity);
 
     /// <summary>
-    /// Elimina un elemento.
+    /// Marca una entidad para ser eliminada.
     /// </summary>
-    /// <param name="entity">El elemento a eliminar.</param>
+    /// <param name="entity">La entidad a eliminar.</param>
     Task DeleteAsync(T entity);
 
     /// <summary>
-    /// Verifica si un elemento existe.
+    /// Comprueba de forma asíncrona si una entidad con el ID especificado existe.
     /// </summary>
-    /// <param name="id">El ID del elemento.</param>
-    /// <returns>True si el elemento existe, false en caso contrario.</returns>
+    /// <param name="id">El ID de la entidad a comprobar.</param>
+    /// <returns>Verdadero si la entidad existe, falso en caso contrario.</returns>
     Task<bool> ExistsAsync(Guid id);
 }

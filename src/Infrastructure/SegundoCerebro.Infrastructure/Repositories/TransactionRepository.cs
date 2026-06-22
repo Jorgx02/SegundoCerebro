@@ -63,8 +63,9 @@ public class TransactionRepository : Repository<Transaction>, ITransactionReposi
     }
 
     /// <summary>
-    /// Sobrescribe el método base para incluir siempre la Cuenta y la Categoría 
-    /// asociadas al consultar todas las transacciones, ordenándolas por la más reciente.
+    /// Sobrescribe el método base para incluir siempre la Cuenta y la Categoría (Eager Loading)
+    /// asociadas al consultar todas las transacciones. Las ordena por fecha descendente para mostrar
+    /// las más recientes primero.
     /// </summary>
     public override async Task<IEnumerable<Transaction>> GetAllAsync()
     {

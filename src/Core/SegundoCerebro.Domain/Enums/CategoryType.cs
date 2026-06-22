@@ -1,10 +1,13 @@
 namespace SegundoCerebro.Domain.Enums;
 
 /// <summary>
-/// Enumeración que representa los dos tipos de categorías de transacciones.
+/// Define la naturaleza fundamental de una categoría, determinando si agrupa ingresos o gastos.
 /// </summary>
 public enum CategoryType
 {
-    Income = 1,  // Ingresos
-    Expense = 2  // Gastos
+    /// <summary>Categoría para clasificar entradas de dinero.</summary>
+    Income = 1,
+
+    /// <summary>Categoría para clasificar salidas de dinero.</summary>
+    Expense = 2
 }

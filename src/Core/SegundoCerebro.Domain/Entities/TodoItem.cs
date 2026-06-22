@@ -3,43 +3,44 @@ using SegundoCerebro.Domain.Enums;
 namespace SegundoCerebro.Domain.Entities;
 
 /// <summary>
-/// Representa un elemento de tarea o recordatorio dentro del sistema de gestión de tareas.
+/// Representa una tarea individual o un elemento de acción, siguiendo principios de GTD (Getting Things Done).
 /// </summary>
 public class TodoItem
 {
-    /// <summary>Identificador del elemento de tarea.</summary>
+    /// <summary>Identificador único de la tarea.</summary>
     public Guid Id { get; set; }
 
-    /// <summary>Nombre o título del elemento de tarea.</summary>
+    /// <summary>Título conciso que describe la acción a realizar.</summary>
     public string Title { get; set; } = string.Empty;
 
-    /// <summary>Descripción asociada al elemento de tarea.</summary>
+    /// <summary>Descripción detallada opcional con más contexto sobre la tarea.</summary>
     public string? Description { get; set; }
 
-    /// <summary>Estado del elemento de tarea.</summary>
+    /// <summary>Estado de la tarea dentro del flujo GTD (ej. Inbox, NextAction, Completed).</summary>
     public TodoItemStatus Status { get; set; } = TodoItemStatus.Inbox;
 
-    /// <summary>Nivel de prioridad del elemento de tarea.</summary>
+    /// <summary>Nivel de urgencia o importancia de la tarea.</summary>
     public PriorityLevel Priority { get; set; } = PriorityLevel.Medium;
 
-    /// <summary>Fecha de vencimiento del elemento de tarea.</summary>
+    /// <summary>Fecha límite opcional para completar la tarea.</summary>
     public DateTime? DueDate { get; set; }
 
-    /// <summary>Fecha de finalización del elemento de tarea.</summary>
+    /// <summary>Fecha y hora en que la tarea fue marcada como completada.</summary>
     public DateTime? CompletedAt { get; set; }
 
-    /// <summary>Fecha de creación del elemento de tarea.</summary>
+    /// <summary>Fecha de creación del registro.</summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    /// <summary>Fecha de la última actualización del elemento de tarea.</summary>
+    /// <summary>Fecha de la última actualización del registro.</summary>
     public DateTime? UpdatedAt { get; set; }
 
-    /// <summary>Id del usuario propietario del elemento de tarea.</summary>
+    /// <summary>Identificador del usuario propietario de la tarea (Multi-tenancy).</summary>
     public string UserId { get; set; } = string.Empty;
 
-    /// <summary>Id del proyecto al que pertenece el elemento de tarea.</summary>
+    // Relaciones
+    /// <summary>Clave foránea opcional al proyecto al que pertenece. Si es nulo, la tarea está en el "Inbox".</summary>
     public Guid? ProjectId { get; set; }
 
-    /// <summary>Nombre identificativo del proyecto al que pertenece el elemento de tarea.</summary>
+    /// <summary>Propiedad de navegación al proyecto asociado.</summary>
     public Project? Project { get; set; }
 }

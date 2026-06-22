@@ -4,9 +4,11 @@
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
 
+@* Diálogo modal para la creación de una nueva cuenta financiera. *@
 <MudDialog>
     <DialogContent>
         <MudForm Model="@model" @ref="@form">
+            @* Campos del formulario para introducir los datos de la nueva cuenta. *@
             <MudCardContent>
                 <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true" Label="Account Name"
                               Variant="Variant.Outlined" Margin="Margin.Dense" />
@@ -22,7 +24,7 @@
                     }
                 </MudSelect>
 
-                <MudNumericField @bind-Value="model.InitialBalance" For="@(() => model.InitialBalance)"
+                <MudNumericField @bind-Value="model.InitialBalance" For="@(() => model.InitialBalance)" T="decimal"
                                  Label="Initial Balance" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N2" />
 
                 <!-- Funcionalidad de divisas oculta temporalmente
@@ -61,15 +63,29 @@
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
 
+    /// <summary>
+    /// El modelo de datos (DTO) que se enlaza al formulario para crear la cuenta.
+    /// </summary>
     private CreateAccountDto model = new();
+
+    /// <summary>
+    /// Referencia al componente MudForm para poder invocar su validación.
+    /// </summary>
     private MudForm form = null!;
 
+    /// <summary>
+    /// Se ejecuta al inicializar el componente. Establece valores por defecto para el formulario.
+    /// </summary>
     protected override void OnInitialized()
     {
         model.Currency = "EUR";
         model.Type = AccountType.Checking;
     }
 
+    /// <summary>
+    /// Devuelve un nombre legible para un tipo de cuenta.
+    /// </summary>
+    /// <param name="type">El tipo de cuenta enum.</param>
     private string GetAccountTypeName(AccountType type) => type switch
     {
         AccountType.Checking => "Normal",
@@ -80,12 +96,18 @@
         _ => type.ToString()
     };
 
+    /// <summary>
+    /// Clase interna para almacenar información de los bancos disponibles.
+    /// </summary>
     private class BankInfo
     {
         public string Name { get; set; } = string.Empty;
         public string Code { get; set; } = string.Empty;
     }
 
+    /// <summary>
+    /// Lista de bancos españoles predefinidos para facilitar la creación de cuentas.
+    /// </summary>
     private List<BankInfo> AvailableBanks = new()
     {
         new BankInfo { Name = "Santander", Code = "0049" },
@@ -103,6 +125,10 @@
         new BankInfo { Name = "Revolut", Code = "1580" }
     };
 
+    /// <summary>
+    /// Se ejecuta cuando el usuario selecciona un banco de la lista.
+    /// Genera un IBAN de ejemplo basado en el código del banco.
+    /// </summary>
     private void OnBankSelected(string bankName)
     {
         model.BankName = bankName;
@@ -113,6 +139,11 @@
         }
     }
 
+    /// <summary>
+    /// Genera un número de IBAN español válido (formato de ejemplo) a partir de un código de banco.
+    /// </summary>
+    /// <param name="bankCode">Código de 4 dígitos de la entidad bancaria.</param>
+    /// <returns>Un string con el IBAN generado.</returns>
     private string GenerateIBAN(string bankCode)
     {
         string branchCode = "0001"; // Oficina genérica por defecto
@@ -134,6 +165,10 @@
         return "ES" + checkDigit.ToString("D2") + ccc;
     }
 
+    /// <summary>
+    /// Calcula uno de los dígitos de control del antiguo formato CCC.
+    /// </summary>
+    /// <param name="input">Cadena de 10 dígitos para el cálculo.</param>
     private int CalculateDCDigit(string input)
     {
         int[] weights = { 1, 2, 4, 8, 5, 10, 9, 7, 3, 6 };
@@ -146,6 +181,9 @@
         return digit;
     }
 
+    /// <summary>
+    /// Calcula el módulo 97 de una cadena de números, usado para la validación del IBAN.
+    /// </summary>
     private int Mod97(string input)
     {
         int remainder = 0;
@@ -153,11 +191,18 @@
         return remainder;
     }
 
+    /// <summary>
+    /// Cierra el diálogo sin guardar cambios.
+    /// </summary>
     private void Cancel()
     {
         MudDialog.Cancel();
     }
 
+    /// <summary>
+    /// Valida el formulario y, si es válido, envía la solicitud de creación de cuenta al servicio.
+    /// Cierra el diálogo en caso de éxito o muestra un error en caso de fallo.
+    /// </summary>
     private async Task Submit()
     {
         await form.Validate();

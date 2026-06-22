@@ -6,6 +6,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
+@* Título de la página que se mostrará en la pestaña del navegador. *@
 <PageTitle>Accounts - SegundoCerebro</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
@@ -19,7 +20,7 @@
         </MudItem>
     </MudGrid>
 
-    <!-- Summary Cards -->
+    @* Tarjetas de resumen que muestran métricas clave sobre las cuentas. *@
     <MudGrid Class="mb-6">
         <MudItem xs="12" sm="6" md="3">
             <MudCard Elevation="3" Class="rounded-lg">
@@ -86,7 +87,7 @@
         </MudItem>
     </MudGrid>
 
-    <!-- Accounts Table -->
+    @* Tabla principal que muestra la lista de todas las cuentas. *@
     <MudCard Elevation="4" Class="rounded-lg">
         <MudCardHeader>
             <CardHeaderContent>
@@ -103,6 +104,7 @@
                 </div>
             </CardHeaderContent>
         </MudCardHeader>
+        @* Contenido de la tarjeta que alberga la tabla de cuentas. *@
         <MudCardContent>
             <MudTable Items="@FilteredAccounts" Hover="true" Striped="true" Dense="true" Elevation="0"
                       Loading="@loading" LoadingProgressColor="Color.Info">
@@ -110,13 +112,13 @@
                     <MudTh>Name</MudTh>
                     <MudTh>Type</MudTh>
                     <MudTh>Balance</MudTh>
-                    <!-- <MudTh>Currency</MudTh> -->
                     <MudTh>Bank</MudTh>
                     <MudTh>Status</MudTh>
                     <MudTh>Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Name">
+                        @* Celda que muestra el nombre, descripción e icono de la cuenta. *@
                         <div class="d-flex align-center">
                             <MudIcon Icon="@GetAccountIcon(context.Type)" Class="mr-3" />
                             <div>
@@ -129,6 +131,7 @@
                         </div>
                     </MudTd>
                     <MudTd DataLabel="Type">
+                        @* Chip de color para identificar visualmente el tipo de cuenta. *@
                         <MudChip Size="Size.Small" Color="@GetTypeColor(context.Type)">
                             @context.TypeName
                         </MudChip>
@@ -138,17 +141,15 @@
                             @context.Balance.ToString("N2")
                         </MudText>
                     </MudTd>
-                    <!-- <MudTd DataLabel="Currency">@context.Currency</MudTd> -->
                     <MudTd DataLabel="Bank">@(context.BankName ?? "-")</MudTd>
                     <MudTd DataLabel="Status">
+                        @* Chip de color para indicar si la cuenta está activa o inactiva. *@
                         <MudChip Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)">
                             @(context.IsActive ? "Active" : "Inactive")
                         </MudChip>
                     </MudTd>
                     <MudTd DataLabel="Actions">
-                        <!-- <MudIconButton Icon="Icons.Material.Filled.CurrencyExchange" Size="Size.Small"
-                                       Color="Color.Warning" Variant="Variant.Filled" Class="mr-2"
-                                       OnClick="() => OpenChangeCurrencyDialog(context)" Title="Cambiar Divisa" /> -->
+                        @* Botones de acción para editar y eliminar (desactivar) una cuenta. *@
                         <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
                                        Variant="Variant.Filled" Class="mr-2" OnClick="() => OpenEditDialog(context)" />
                         <MudIconButton Icon="Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
@@ -161,19 +162,43 @@
 </MudContainer>
 
 @code {
+    /// <summary>
+    /// Lista que almacena todas las cuentas obtenidas del servicio.
+    /// </summary>
     private List<AccountDto> allAccounts = new();
+
+    /// <summary>
+    /// Almacena el saldo total combinado de todas las cuentas activas.
+    /// </summary>
     private decimal totalBalance = 0;
+
+    /// <summary>
+    /// Indicador booleano para controlar el estado de carga de la tabla.
+    /// </summary>
     private bool loading = true;
+
+    /// <summary>
+    /// Almacena el valor actual del filtro de estado de la cuenta (Activas, Inactivas, Todas).
+    /// </summary>
     private AccountStatusFilter statusFilter = AccountStatusFilter.Active;
 
+    /// <summary>
+    /// Enumeración para definir los posibles estados de filtro de la tabla de cuentas.
+    /// </summary>
     private enum AccountStatusFilter { All, Active, Inactive }
 
+    /// <summary>
+    /// Se ejecuta cuando el usuario cambia el valor del filtro de estado.
+    /// </summary>
     private void OnStatusFilterChanged(AccountStatusFilter newValue)
     {
         statusFilter = newValue;
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Propiedad computada que devuelve la lista de cuentas filtrada según el valor de `statusFilter`.
+    /// </summary>
     private IEnumerable<AccountDto> FilteredAccounts =>
         statusFilter switch
         {
@@ -182,11 +207,19 @@
             _ => allAccounts
         };
 
+    /// <summary>
+    /// Método del ciclo de vida de Blazor que se ejecuta al inicializar la página.
+    /// Llama a `LoadAccounts` para cargar los datos iniciales.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         await LoadAccounts();
     }
 
+    /// <summary>
+    /// Carga todas las cuentas desde el servicio API, calcula el balance total
+    /// y gestiona el estado de carga de la UI.
+    /// </summary>
     private async Task LoadAccounts()
     {
         loading = true;
@@ -206,6 +239,10 @@
         }
     }
 
+    /// <summary>
+    /// Devuelve el icono correspondiente a un tipo de cuenta.
+    /// </summary>
+    /// <param name="type">El tipo de cuenta.</param>
     private String GetAccountIcon(AccountType type) => type switch
     {
         AccountType.Checking => Icons.Material.Filled.Payment,
@@ -216,6 +253,10 @@
         _ => Icons.Material.Filled.AccountBalance
     };
 
+    /// <summary>
+    /// Devuelve el color de MudBlazor correspondiente a un tipo de cuenta para usar en los chips.
+    /// </summary>
+    /// <param name="type">El tipo de cuenta.</param>
     private Color GetTypeColor(AccountType type) => type switch
     {
         AccountType.Checking => Color.Primary,
@@ -226,6 +267,10 @@
         _ => Color.Default
     };
 
+    /// <summary>
+    /// Abre el diálogo para crear una nueva cuenta.
+    /// Si la creación es exitosa, recarga la lista de cuentas.
+    /// </summary>
     private async Task OpenCreateDialog()
     {
         var dialog = DialogService.Show<CreateAccountDialog>("Create New Account");
@@ -238,6 +283,11 @@
         }
     }
 
+    /// <summary>
+    /// Abre el diálogo para editar una cuenta existente.
+    /// </summary>
+    /// <param name="account">La cuenta a editar.</param>
+    /// <remarks>Si la edición es exitosa, recarga la lista de cuentas.</remarks>
     private async Task OpenEditDialog(AccountDto account)
     {
         var parameters = new DialogParameters { ["Account"] = account };
@@ -251,6 +301,12 @@
         }
     }
 
+    /// <summary>
+    /// Gestiona la lógica para desactivar (soft delete) una cuenta.
+    /// - Si la cuenta tiene saldo positivo, abre un diálogo para transferir los fondos.
+    // - Si tiene saldo cero, pide confirmación para desactivarla.
+    /// </summary>
+    /// <param name="account">La cuenta a desactivar.</param>
     private async Task DeleteAccount(AccountDto account)
     {
         if (account.Balance < 0)

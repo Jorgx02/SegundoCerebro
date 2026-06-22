@@ -15,12 +15,13 @@ public class AccountRepository : Repository<Account>, IAccountRepository
     }
 
     /// <summary>
-    /// Obtiene todas las cuentas de la base de datos (tanto activas como inactivas),
-    /// para permitir al frontend realizar los filtros correspondientes.
+    /// Obtiene todas las cuentas que están marcadas como activas.
     /// </summary>
+    /// <returns>Una colección de las cuentas activas del usuario.</returns>
     public async Task<IEnumerable<Account>> GetActiveAccountsAsync()
     {
-        return await _dbSet.ToListAsync();
+        // El filtro global por UserId ya se aplica automáticamente por el DbContext.
+        return await _dbSet.Where(a => a.IsActive).ToListAsync();
     }
 
     /// <summary>
