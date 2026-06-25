@@ -248,6 +248,9 @@ namespace SegundoCerebro.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -327,6 +330,58 @@ namespace SegundoCerebro.Infrastructure.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Budgets");
+                });
+
+            modelBuilder.Entity("SegundoCerebro.Domain.Entities.Card", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Brand")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("ExpirationMonth")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ExpirationYear")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Last4Digits")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("StripePaymentMethodId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("Cards");
                 });
 
             modelBuilder.Entity("SegundoCerebro.Domain.Entities.Category", b =>
@@ -590,6 +645,17 @@ namespace SegundoCerebro.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("SegundoCerebro.Domain.Entities.Card", b =>
+                {
+                    b.HasOne("SegundoCerebro.Domain.Entities.Account", "Account")
+                        .WithMany("Cards")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("SegundoCerebro.Domain.Entities.Category", b =>
                 {
                     b.HasOne("SegundoCerebro.Domain.Entities.Category", null)
@@ -636,6 +702,8 @@ namespace SegundoCerebro.Infrastructure.Migrations
             modelBuilder.Entity("SegundoCerebro.Domain.Entities.Account", b =>
                 {
                     b.Navigation("Budgets");
+
+                    b.Navigation("Cards");
 
                     b.Navigation("Transactions");
                 });

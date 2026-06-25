@@ -46,7 +46,7 @@
                             <MudText Typo="Typo.body2" Color="Color.Secondary">Active Accounts</MudText>
                             <MudText Typo="Typo.h5">@allAccounts.Count(a => a.IsActive)</MudText>
                         </div>
-                        <MudIcon Icon="Icons.Material.Filled.CreditCard" Size="Size.Large" Color="Color.Secondary" />
+                        <MudIcon Icon="Icons.Material.Filled.AccountBalanceWallet" Size="Size.Large" Color="Color.Secondary" />
                     </div>
                 </MudCardContent>
             </MudCard>
@@ -120,9 +120,15 @@
                     <MudTd DataLabel="Name">
                         @* Celda que muestra el nombre, descripción e icono de la cuenta. *@
                         <div class="d-flex align-center">
+                            <MudIconButton
+                            Icon="@(context.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)"
+                            Color="Color.Warning" Size="Size.Small" OnClick="() => ToggleFavoriteStatus(context)"
+                            Class="mr-1" />
                             <MudIcon Icon="@GetAccountIcon(context.Type)" Class="mr-3" />
                             <div>
-                                <MudText Typo="Typo.body1">@context.Name</MudText>
+                                <MudLink Href="@($"/accounts/{context.Id}")" Typo="Typo.body1" Color="Color.Default" Underline="Underline.None">
+                                    @context.Name
+                                </MudLink>
                                 @if (!string.IsNullOrEmpty(context.Description))
                                 {
                                     <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText>
@@ -199,13 +205,19 @@
     /// <summary>
     /// Propiedad computada que devuelve la lista de cuentas filtrada según el valor de `statusFilter`.
     /// </summary>
-    private IEnumerable<AccountDto> FilteredAccounts =>
-        statusFilter switch
+    private IEnumerable<AccountDto> FilteredAccounts
+    {
+        get
         {
-            AccountStatusFilter.Active => allAccounts.Where(a => a.IsActive),
-            AccountStatusFilter.Inactive => allAccounts.Where(a => !a.IsActive),
-            _ => allAccounts
-        };
+            var accounts = statusFilter switch
+            {
+                AccountStatusFilter.Active => allAccounts.Where(a => a.IsActive),
+                AccountStatusFilter.Inactive => allAccounts.Where(a => !a.IsActive),
+                _ => allAccounts
+            };
+            return accounts.OrderByDescending(a => a.IsFavorite).ThenBy(a => a.Name);
+        }
+    }
 
     /// <summary>
     /// Método del ciclo de vida de Blazor que se ejecuta al inicializar la página.
@@ -226,7 +238,7 @@
         try
         {
             var result = await AccountService.GetAllAsync();
-            allAccounts = result.ToList();
+            allAccounts = result?.ToList() ?? new List<AccountDto>();
             totalBalance = await AccountService.GetTotalBalanceAsync();
         }
         catch (Exception ex)
@@ -240,6 +252,25 @@
     }
 
     /// <summary>
+    /// Llama al servicio para cambiar el estado de favorito de una cuenta y actualiza la UI.
+    /// </summary>
+    /// <param name="account">La cuenta a modificar.</param>
+    private async Task ToggleFavoriteStatus(AccountDto account)
+    {
+        try
+        {
+            await AccountService.ToggleFavoriteAsync(account.Id);
+            account.IsFavorite = !account.IsFavorite; // Actualiza el estado local para reflejo inmediato en la UI
+            Snackbar.Add("Favorite status updated.", MudSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating favorite status: {ex.Message}", MudSeverity.Error);
+        }
+        // StateHasChanged se invoca automáticamente por el evento OnClick
+    }
+
+    /// <summary>
     /// Devuelve el icono correspondiente a un tipo de cuenta.
     /// </summary>
     /// <param name="type">El tipo de cuenta.</param>
@@ -247,7 +278,6 @@
     {
         AccountType.Checking => Icons.Material.Filled.Payment,
         AccountType.Savings => Icons.Material.Filled.Savings,
-        AccountType.CreditCard => Icons.Material.Filled.CreditCard,
         AccountType.Investment => Icons.Material.Filled.TrendingUp,
         AccountType.Cash => Icons.Material.Filled.Money,
         _ => Icons.Material.Filled.AccountBalance
@@ -261,7 +291,6 @@
     {
         AccountType.Checking => Color.Primary,
         AccountType.Savings => Color.Info,
-        AccountType.CreditCard => Color.Warning,
         AccountType.Investment => Color.Secondary,
         AccountType.Cash => Color.Success,
         _ => Color.Default

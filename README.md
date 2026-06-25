@@ -64,6 +64,7 @@ Empoderar a las personas para que tomen el control total de su vida financiera, 
 - �📈 **Presupuestos Dinámicos**: Creación y seguimiento de presupuestos mensuales
 - 📊 **Reportes Avanzados**: Análisis de tendencias y proyecciones
 - 🏷️ **Categorías Personalizables**: Sistema flexible de clasificación inteligente por Ingresos/Gastos
+- 💳 **Integración de Tarjetas**: Gestión de tarjetas de crédito/débito (Sandbox de Stripe).
 - 🔍 **Filtros Inteligentes**: Por fecha, cuenta, categoría y tipo
 - 💱 **Gestión Multi-Cuenta**: Transferencias seguras y balances consolidados (EUR)
 
@@ -383,6 +384,7 @@ GET    /api/accounts/{id}         # Obtener cuenta por ID
 POST   /api/accounts              # Crear nueva cuenta
 PUT    /api/accounts/{id}         # Actualizar cuenta
 DELETE /api/accounts/{id}         # Eliminar cuenta
+PATCH  /api/accounts/{id}/toggle-favorite # Marcar/desmarcar como favorita
 GET    /api/accounts/{id}/balance # Obtener balance de cuenta
 ```
 

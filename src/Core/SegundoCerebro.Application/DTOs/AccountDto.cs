@@ -27,6 +27,8 @@ public class AccountDto
     public string? AccountNumber { get; set; }
     /// <summary>Indica si la cuenta está activa o archivada (Soft Delete).</summary>
     public bool IsActive { get; set; }
+    /// <summary>Indica si el usuario ha marcado esta cuenta como favorita.</summary>
+    public bool IsFavorite { get; set; }
     /// <summary>Fecha de creación de la entidad.</summary>
     public DateTime CreatedAt { get; set; }
     /// <summary>Fecha de la última actualización.</summary>

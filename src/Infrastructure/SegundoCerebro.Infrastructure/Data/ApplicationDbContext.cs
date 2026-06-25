@@ -48,6 +48,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     /// <summary>Conjunto de entidades para las Tareas (`TodoItem`).</summary>
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
+    /// <summary>Conjunto de entidades para las Tarjetas (`Card`).</summary>
+    public DbSet<Card> Cards => Set<Card>();
+
     /// <summary>
     /// Configura el modelo de datos, las relaciones, las restricciones y los filtros globales
     /// antes de que sea bloqueado y utilizado para inicializar el contexto.
@@ -159,6 +162,27 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             // Filtro Global: Solo devuelve tareas de este usuario
             entity.HasQueryFilter(t => _currentUserService.UserId == null || t.UserId == _currentUserService.UserId);
         });
+
+        // Card configuration
+        modelBuilder.Entity<Card>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Name).IsRequired().HasMaxLength(100);
+            entity.Property(c => c.Brand).IsRequired().HasMaxLength(50);
+            entity.Property(c => c.Last4Digits).IsRequired().HasMaxLength(4);
+            entity.Property(c => c.StripePaymentMethodId).IsRequired();
+            entity.Property(c => c.UserId).IsRequired().HasMaxLength(450);
+
+            // Relationship with Account
+            entity.HasOne(c => c.Account)
+                .WithMany(a => a.Cards)
+                .HasForeignKey(c => c.AccountId)
+                .OnDelete(DeleteBehavior.Cascade); // Si una cuenta se borra físicamente, sus tarjetas también.
+
+            // Global Query Filter for Multi-tenancy
+            entity.HasQueryFilter(c => _currentUserService.UserId == null || c.UserId == _currentUserService.UserId);
+        });
+
     }
 
     /// <summary>
@@ -189,6 +213,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                         project.UserId = userId;
                     else if (entry.Entity is TodoItem todoItem && string.IsNullOrEmpty(todoItem.UserId))
                         todoItem.UserId = userId;
+                    else if (entry.Entity is Card card && string.IsNullOrEmpty(card.UserId))
+                        card.UserId = userId;
                 }
             }
         }

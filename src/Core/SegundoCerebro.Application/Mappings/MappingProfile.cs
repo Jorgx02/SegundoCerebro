@@ -1,5 +1,7 @@
 using AutoMapper;
 using SegundoCerebro.Application.DTOs;
+using SegundoCerebro.Application.Features.Cards.Commands.UpdateCard;
+using SegundoCerebro.Application.Features.Cards.Commands.CreateCard;
 using SegundoCerebro.Domain.Entities;
 
 namespace SegundoCerebro.Application.Mappings;
@@ -149,5 +151,27 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Project, opt => opt.Ignore());
+
+        // Card mappings
+        // Mapeo de Entidad a DTO.
+        CreateMap<Card, CardDto>();
+
+        // Mapeo de Comando de creación a Entidad.
+        CreateMap<CreateCardCommand, Card>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Account, opt => opt.Ignore());
+
+        // Mapeo de Comando de actualización a Entidad.
+        CreateMap<UpdateCardCommand, Card>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Account, opt => opt.Ignore())
+            .ForMember(dest => dest.AccountId, opt => opt.Ignore())
+            .ForMember(dest => dest.StripePaymentMethodId, opt => opt.Ignore())
+            .ForMember(dest => dest.Brand, opt => opt.Ignore())
+            .ForMember(dest => dest.Last4Digits, opt => opt.Ignore());
     }
 }

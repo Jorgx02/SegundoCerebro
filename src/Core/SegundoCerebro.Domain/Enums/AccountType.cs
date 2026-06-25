@@ -11,9 +11,6 @@ public enum AccountType
     /// <summary>Cuenta de ahorro, generalmente con menos operativa.</summary>
     Savings = 2,
 
-    /// <summary>Representa el estado de una tarjeta de crédito.</summary>
-    CreditCard = 3,
-
     /// <summary>Cuenta destinada a la gestión de inversiones.</summary>
     Investment = 4,
 

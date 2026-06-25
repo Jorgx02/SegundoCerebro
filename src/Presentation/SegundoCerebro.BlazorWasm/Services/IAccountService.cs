@@ -6,4 +6,5 @@ public interface IAccountService : IApiService<AccountDto, CreateAccountDto, Upd
 {
     Task<decimal> GetTotalBalanceAsync();
     Task<IEnumerable<AccountDto>> GetActiveAccountsAsync();
+    Task ToggleFavoriteAsync(Guid accountId);
 }

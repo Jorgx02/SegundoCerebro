@@ -32,6 +32,9 @@ public class Account
     /// <summary>Indica si la cuenta está operativa. Utiliza Soft-Delete (falso = archivada/borrada lógicamente).</summary>
     public bool IsActive { get; set; } = true;
 
+    /// <summary>Indica si el usuario ha marcado esta cuenta como favorita para un acceso rápido.</summary>
+    public bool IsFavorite { get; set; } = false;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
@@ -45,4 +48,9 @@ public class Account
     // Propiedades de navegación (Entity Framework Core)
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     public ICollection<Budget> Budgets { get; set; } = new List<Budget>();
+
+    /// <summary>
+    /// Colección de tarjetas de crédito/débito asociadas a esta cuenta.
+    /// </summary>
+    public ICollection<Card> Cards { get; set; } = new List<Card>();
 }

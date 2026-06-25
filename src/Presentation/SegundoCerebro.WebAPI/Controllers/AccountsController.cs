@@ -1,8 +1,10 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SegundoCerebro.Application.DTOs;
 using SegundoCerebro.Application.Features.Accounts.Commands.CreateAccount;
 using SegundoCerebro.Application.Features.Accounts.Commands.DeleteAccount;
+using SegundoCerebro.Application.Features.Accounts.Commands.ToggleFavorite;
 using SegundoCerebro.Application.Features.Accounts.Commands.UpdateAccount;
 using SegundoCerebro.Application.Features.Accounts.Queries.GetAccountById;
 using SegundoCerebro.Application.Features.Accounts.Queries.GetAllAccounts;
@@ -14,6 +16,7 @@ namespace SegundoCerebro.WebAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AccountsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -105,6 +108,22 @@ public class AccountsController : ControllerBase
         if (!result)
             return NotFound();
 
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Cambia el estado de 'favorito' de una cuenta.
+    /// </summary>
+    /// <param name="id">El ID de la cuenta a modificar.</param>
+    /// <returns>No devuelve contenido.</returns>
+    /// <response code="204">Si el estado se cambió correctamente.</response>
+    /// <response code="404">Si no se encuentra una cuenta con el ID especificado.</response>
+    [HttpPatch("{id}/toggle-favorite")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ToggleFavorite(Guid id)
+    {
+        await _mediator.Send(new ToggleFavoriteAccountCommand(id));
         return NoContent();
     }
 }

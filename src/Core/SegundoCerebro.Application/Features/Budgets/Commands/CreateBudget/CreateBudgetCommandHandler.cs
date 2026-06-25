@@ -1,7 +1,10 @@
 using AutoMapper;
+using FluentValidation;
 using MediatR;
 using SegundoCerebro.Application.DTOs;
+using SegundoCerebro.Application.Exceptions;
 using SegundoCerebro.Domain.Entities;
+using SegundoCerebro.Domain.Enums;
 using SegundoCerebro.Domain.Interfaces;
 
 namespace SegundoCerebro.Application.Features.Budgets.Commands.CreateBudget;
@@ -28,6 +31,19 @@ public class CreateBudgetCommandHandler : IRequestHandler<CreateBudgetCommand, B
     /// <returns>El DTO del presupuesto recién creado.</returns>
     public async Task<BudgetDto> Handle(CreateBudgetCommand request, CancellationToken cancellationToken)
     {
+        // 1. Validar que la categoría existe y es de tipo 'Expense'
+        var category = await _unitOfWork.Categories.GetByIdAsync(request.Budget.CategoryId);
+        if (category is null)
+        {
+            throw new NotFoundException(nameof(Category), request.Budget.CategoryId);
+        }
+
+        if (category.Type != CategoryType.Expense)
+        {
+            throw new ValidationException("Los presupuestos solo pueden crearse para categorías de gastos (Expense).");
+        }
+
+        // 2. Mapear y crear el presupuesto
         var budget = _mapper.Map<Budget>(request.Budget);
         budget.Id = Guid.NewGuid();
         budget.CreatedAt = DateTime.UtcNow;
@@ -35,6 +51,7 @@ public class CreateBudgetCommandHandler : IRequestHandler<CreateBudgetCommand, B
         var createdBudget = await _unitOfWork.Budgets.AddAsync(budget);
         await _unitOfWork.SaveChangesAsync();
 
+        // 3. Mapear y devolver el resultado
         return _mapper.Map<BudgetDto>(createdBudget);
     }
 }

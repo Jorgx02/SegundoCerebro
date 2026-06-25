@@ -3,10 +3,11 @@ using System.Linq.Expressions;
 namespace SegundoCerebro.Domain.Interfaces;
 
 /// <summary>
-/// Define el repositorio genérico.
-/// Proporciona métodos de consulta específicos.
+/// Define las operaciones base para un repositorio genérico (patrón Repositorio).
+/// Proporciona una abstracción para el acceso a datos para una entidad <typeparamref name="T"/>.
 /// </summary>
-public interface IGenericRespository<T> where T : class
+/// <typeparam name="T">El tipo de la entidad para la que este repositorio opera.</typeparam>
+public interface IGenericRepository<T> where T : class
 {
     /// <summary>
     /// Obtiene todo.
@@ -26,13 +27,6 @@ public interface IGenericRespository<T> where T : class
     /// </summary>
     /// <param name="entity">El elemento a añadir.</param>
     Task<T> AddAsync(T entity);
-
-    /// <summary>
-    /// Obtiene todas las categorías de un tipo específico.
-    /// </summary>
-    /// <param name="type">El tipo de categoría a filtrar.</param>
-    /// <returns>Una colección de las categorías del tipo especificado.</returns>
-    Task<IEnumerable<T>> GetByTypeAsync(Domain.Enums.CategoryType type);
 
     /// <summary>
     /// Actualiza el elemento.

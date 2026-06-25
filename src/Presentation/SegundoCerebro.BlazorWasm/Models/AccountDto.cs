@@ -14,6 +14,7 @@ public class AccountDto
     public string? AccountNumber { get; set; }
     public string? BankName { get; set; }
     public bool IsActive { get; set; }
+    public bool IsFavorite { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

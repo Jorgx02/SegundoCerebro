@@ -20,4 +20,10 @@ public class AccountService : ApiService<AccountDto, CreateAccountDto, UpdateAcc
         var allAccounts = await GetAllAsync();
         return allAccounts.Where(a => a.IsActive);
     }
+
+    public async Task ToggleFavoriteAsync(Guid accountId)
+    {
+        var response = await _httpClient.PatchAsync($"api/accounts/{accountId}/toggle-favorite", null);
+        response.EnsureSuccessStatusCode();
+    }
 }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SegundoCerebro.Application.DTOs;
 using SegundoCerebro.Application.Features.Categories.Commands.CreateCategory;
 using SegundoCerebro.Application.Features.Categories.Commands.UpdateCategory;
+using SegundoCerebro.Application.Features.Categories.Queries.GetCategoriesByType;
+using SegundoCerebro.Domain.Enums;
 using SegundoCerebro.Application.Features.Categories.Queries.GetAllCategories;
 using SegundoCerebro.Application.Features.Categories.Queries.GetCategoryById;
 // Asumiendo que existe un comando para eliminar, similar a los otros controladores.
@@ -52,6 +54,21 @@ public class CategoriesController : ControllerBase
             return NotFound();
 
         return Ok(category);
+    }
+
+    /// <summary>
+    /// Obtiene todas las categorías activas de un tipo específico (Ingreso o Gasto).
+    /// </summary>
+    /// <param name="type">El tipo de categoría a obtener (1 para Ingreso, 2 para Gasto).</param>
+    /// <returns>Una colección de categorías del tipo especificado.</returns>
+    /// <response code="200">Devuelve la lista de categorías.</response>
+    [HttpGet("type/{type}")]
+    [ProducesResponseType(typeof(IEnumerable<CategoryDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategoriesByType(CategoryType type)
+    {
+        var query = new GetCategoriesByTypeQuery(type);
+        var categories = await _mediator.Send(query);
+        return Ok(categories);
     }
 
     /// <summary>

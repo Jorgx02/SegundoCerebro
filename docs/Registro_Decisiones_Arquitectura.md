@@ -4,9 +4,9 @@ Este documento registra las decisiones arquitectónicas importantes tomadas dura
 
 ---
 
-## ADR 001: Refactorización del Dominio - Separación de Cuentas y Tarjetas
+## ADR 001: Refactorización del Dominio - Separación de Cuentas y Tarjetas (En Implementación)
 
-**Fecha:** (Registro inicial - Preparación para Módulo 1 Avanzado)
+**Fecha:** (Registro inicial - Preparación para Módulo 1 Avanzado). **Inicio de implementación:** [Fecha actual]
 
 ### Contexto y Problema
 

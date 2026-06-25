@@ -35,6 +35,11 @@ public interface IUnitOfWork : IDisposable
     ITodoItemRepository TodoItems { get; }
 
     /// <summary>
+    /// Repositorio para las entidades de Tarjetas (Card).
+    /// </summary>
+    ICardRepository Cards { get; }
+
+    /// <summary>
     /// Guarda todos los cambios realizados en el contexto de la base de datos.
     /// </summary>
     /// <returns>El número de entidades afectadas.</returns>

@@ -1,0 +1,187 @@
+@page "/accounts/{AccountId}"
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Services
+@using SegundoCerebro.BlazorWasm.Components.Dialogs
+@inject IAccountService AccountService
+@inject ICardService CardService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Account Details - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @if (loading)
+    {
+        <div class="d-flex justify-center align-center" style="height: 50vh;">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else if (account != null)
+    {
+        <MudGrid>
+            <MudItem xs="12">
+                <MudBreadcrumbs Items="_breadcrumbs"></MudBreadcrumbs>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.h4">@account.Name</MudText>
+                <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@account.Description</MudText>
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-6" />
+
+        <MudGrid>
+            <MudItem xs="12">
+                <div class="d-flex justify-space-between align-center mb-4">
+                    <MudText Typo="Typo.h5">Tarjetas de crédito</MudText>
+                    @if (account.Type == Models.Enums.AccountType.Checking)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AddCard" OnClick="OpenAddCardDialog">Add Card</MudButton>
+                    }
+                    </div>
+
+                    @if (cards.Any())
+                    {
+                        <MudSimpleTable Hover="true" Dense="true" Class="rounded-lg" Elevation="4">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Brand</th>
+                                    <th>Number</th>
+                                    <th>Expires</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var card in cards)
+                                {
+                                    <tr>
+                                        <td>@card.Name</td>
+                                        <td>@card.Brand</td>
+                                        <td>**** **** **** @card.Last4Digits</td>
+                                        <td>@card.ExpirationMonth.ToString("D2")/@card.ExpirationYear</td>
+                                        <td class="d-flex justify-end">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                                           OnClick="() => DeleteCard(card)" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </MudSimpleTable>
+                    }
+                    else
+                    {
+                        <MudPaper Elevation="0" Class="pa-4 rounded-lg"
+                                  Style="background-color: var(--mud-palette-background-grey);">
+                            <MudText>No cards associated with this account.</MudText>
+                            @if (account.Type != Models.Enums.AccountType.Checking)
+                            {
+                                <MudAlert Severity="MudBlazor.Severity.Info" Class="mt-4" Elevation="0">
+                                    Las tarjetas de crédito solo están disponibles para las cuentas "Normales".
+                                </MudAlert>
+                            }
+                        </MudPaper>
+                    }
+                </MudItem>
+            </MudGrid>
+        }
+    else
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error">Account not found. It may have been deleted or you don't have
+                permission to view it.</MudAlert>
+            }
+        </MudContainer>
+
+@code {
+    [Parameter]
+    public string AccountId { get; set; } = string.Empty;
+
+    private AccountDto? account;
+    private List<CardDto> cards = new();
+    private bool loading = true;
+    private List<BreadcrumbItem> _breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Guid.TryParse(AccountId, out var accountId))
+        {
+            await LoadData(accountId);
+        }
+        else
+        {
+            Snackbar.Add("Invalid Account ID.", MudSeverity.Error);
+            loading = false;
+        }
+    }
+
+    private async Task LoadData(Guid accountId)
+    {
+        loading = true;
+        try
+        {
+            var accountTask = AccountService.GetByIdAsync(accountId);
+            var cardsTask = CardService.GetByAccountIdAsync(accountId);
+
+            await Task.WhenAll(accountTask, cardsTask);
+
+            account = await accountTask;
+            cards = (await cardsTask).ToList();
+
+            if (account != null)
+            {
+                _breadcrumbs = new List<BreadcrumbItem>
+                {
+                    new BreadcrumbItem("Accounts", href: "/accounts"),
+                    new BreadcrumbItem(account.Name, href: null, disabled: true)
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading details: {ex.Message}", MudSeverity.Error);
+            account = null;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task OpenAddCardDialog()
+    {
+        if (account is null) return;
+
+        var parameters = new DialogParameters { ["AccountId"] = account.Id };
+        var dialog = DialogService.Show<AddCardDialog>("Add New Card", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is CardDto newCard)
+        {
+            cards.Add(newCard);
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteCard(CardDto card)
+    {
+        var parameters = new DialogParameters { ["ContentText"] = $"Are you sure you want to delete the card '{card.Name}' ending in {card.Last4Digits}?" };
+        var dialog = DialogService.Show<ConfirmationDialog>("Delete Card", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                await CardService.DeleteAsync(card.Id);
+                cards.Remove(card);
+                Snackbar.Add("Card deleted successfully.", MudSeverity.Success);
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting card: {ex.Message}", MudSeverity.Error);
+            }
+        }
+    }
+}

@@ -26,6 +26,7 @@ public class UnitOfWork : IUnitOfWork
         Budgets = new BudgetRepository(_context);
         Projects = new ProjectRepository(_context);
         TodoItems = new TodoItemRepository(_context);
+        Cards = new CardRepository(_context);
     }
 
     /// <inheritdoc />
@@ -40,6 +41,8 @@ public class UnitOfWork : IUnitOfWork
     public IProjectRepository Projects { get; }
     /// <inheritdoc />
     public ITodoItemRepository TodoItems { get; }
+    /// <inheritdoc />
+    public ICardRepository Cards { get; }
 
     /// <summary>
     /// Guarda todos los cambios pendientes en el contexto de la base de datos.

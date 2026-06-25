@@ -8,4 +8,5 @@ public interface ICategoryService : IApiService<CategoryDto, CreateCategoryDto, 
 {
     Task<IEnumerable<CategoryDto>> GetByTypeAsync(CategoryType type);
     Task<IEnumerable<CategoryDto>> GetActiveAsync();
+    Task<IEnumerable<CategoryDto>> GetExpenseCategoriesAsync();
 }

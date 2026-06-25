@@ -21,4 +21,9 @@ public class CategoryService : ApiService<CategoryDto, CreateCategoryDto, Update
         var allCategories = await GetAllAsync();
         return allCategories.Where(c => c.IsActive);
     }
+
+    public async Task<IEnumerable<CategoryDto>> GetExpenseCategoriesAsync()
+    {
+        return await GetByTypeAsync(CategoryType.Expense);
+    }
 }

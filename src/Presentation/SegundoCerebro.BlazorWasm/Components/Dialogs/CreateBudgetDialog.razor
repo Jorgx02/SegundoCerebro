@@ -10,72 +10,40 @@
     <DialogContent>
         <MudForm Model="@model" @ref="@form">
             <MudCardContent>
-                <MudTextField @bind-Value="model.Name" 
-                              For="@(() => model.Name)" 
-                              Immediately="true" 
-                              Label="Budget Name"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense" />
+                <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true" Label="Budget Name"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-                <MudTextField @bind-Value="model.Description" 
-                              For="@(() => model.Description)" 
-                              Label="Description (Optional)"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              Lines="2" />
+                <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
+                              Label="Description (Optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
 
-                <MudNumericField @bind-Value="model.Amount" 
-                                 For="@(() => model.Amount)"
-                                 Label="Budget Amount"
-                                 Variant="Variant.Outlined"
-                                 Margin="Margin.Dense"
-                                 Format="C"
+                <MudNumericField @bind-Value="model.Amount" For="@(() => model.Amount)" Label="Budget Amount"
+                                 Variant="Variant.Outlined" Margin="Margin.Dense" Format="C"
                                  Culture="@System.Globalization.CultureInfo.CurrentCulture" />
 
-                <MudSelect @bind-Value="model.Period" 
-                           For="@(() => model.Period)"
-                           Label="Period" 
-                           Variant="Variant.Outlined"
-                           Margin="Margin.Dense"
-                           T="BudgetPeriod">
+                <MudSelect @bind-Value="model.Period" For="@(() => model.Period)" Label="Period"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" T="BudgetPeriod">
                     @foreach (BudgetPeriod period in Enum.GetValues<BudgetPeriod>())
                     {
                         <MudSelectItem Value="@period">@period.ToString()</MudSelectItem>
                     }
                 </MudSelect>
 
-                <MudDatePicker @bind-Date="startDate" 
-                              Label="Start Date"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              DateFormat="dd/MM/yyyy" />
+                <MudDatePicker @bind-Date="startDate" Label="Start Date" Variant="Variant.Outlined"
+                               Margin="Margin.Dense" DateFormat="dd/MM/yyyy" />
 
-                <MudDatePicker @bind-Date="endDate" 
-                              Label="End Date"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              DateFormat="dd/MM/yyyy"
-                              Disabled="@(model.Period != BudgetPeriod.Custom)" />
+                <MudDatePicker @bind-Date="endDate" Label="End Date" Variant="Variant.Outlined" Margin="Margin.Dense"
+                               DateFormat="dd/MM/yyyy" Disabled="@(model.Period != BudgetPeriod.Custom)" />
 
-                <MudSelect @bind-Value="model.CategoryId" 
-                           For="@(() => model.CategoryId)"
-                           Label="Category" 
-                           Variant="Variant.Outlined"
-                           Margin="Margin.Dense"
-                           T="Guid">
+                <MudSelect @bind-Value="model.CategoryId" For="@(() => model.CategoryId)" Label="Category"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" T="Guid">
                     @foreach (var category in categories)
                     {
                         <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
                     }
                 </MudSelect>
 
-                <MudSelect @bind-Value="model.AccountId" 
-                           For="@(() => model.AccountId)"
-                           Label="Account (Optional)" 
-                           Variant="Variant.Outlined"
-                           Margin="Margin.Dense"
-                           Clearable="true"
-                           T="Guid?">
+                <MudSelect @bind-Value="model.AccountId" For="@(() => model.AccountId)" Label="Account (Optional)"
+                           Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" T="Guid?">
                     @foreach (var account in accounts)
                     {
                         <MudSelectItem Value="@((Guid?)account.Id)">@account.Name</MudSelectItem>
@@ -97,7 +65,7 @@
     private MudForm form = null!;
     private List<CategoryDto> categories = new();
     private List<AccountDto> accounts = new();
-    
+
     private DateTime? startDate = DateTime.Today;
     private DateTime? endDate = DateTime.Today.AddMonths(1);
 
@@ -106,7 +74,7 @@
         model.StartDate = DateTime.Today;
         model.EndDate = DateTime.Today.AddMonths(1);
         model.Period = BudgetPeriod.Monthly;
-        
+
         await LoadData();
     }
 
@@ -114,11 +82,11 @@
     {
         try
         {
-            var categoriesTask = CategoryService.GetAllAsync();
-            var accountsTask = AccountService.GetAllAsync();
-            
+            var categoriesTask = CategoryService.GetExpenseCategoriesAsync();
+            var accountsTask = AccountService.GetActiveAccountsAsync();
+
             await Task.WhenAll(categoriesTask, accountsTask);
-            
+
             categories = (await categoriesTask).ToList();
             accounts = (await accountsTask).ToList();
         }
@@ -147,7 +115,7 @@
         {
             model.StartDate = startDate ?? DateTime.Today;
             model.EndDate = endDate ?? DateTime.Today.AddMonths(1);
-            
+
             await BudgetService.CreateAsync(model);
             Snackbar.Add("Budget created successfully", MudSeverity.Success);
             MudDialog.Close(DialogResult.Ok(true));
