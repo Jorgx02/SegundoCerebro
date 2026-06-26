@@ -37,61 +37,64 @@
                     <MudText Typo="Typo.h5">Tarjetas de crédito</MudText>
                     @if (account.Type == Models.Enums.AccountType.Checking)
                     {
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AddCard" OnClick="OpenAddCardDialog">Add Card</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AddCard"
+                                   OnClick="OpenAddCardDialog">Add Card</MudButton>
                     }
-                    </div>
+                </div>
 
-                    @if (cards.Any())
-                    {
-                        <MudSimpleTable Hover="true" Dense="true" Class="rounded-lg" Elevation="4">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Brand</th>
-                                    <th>Number</th>
-                                    <th>Expires</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var card in cards)
-                                {
-                                    <tr>
-                                        <td>@card.Name</td>
-                                        <td>@card.Brand</td>
-                                        <td>**** **** **** @card.Last4Digits</td>
-                                        <td>@card.ExpirationMonth.ToString("D2")/@card.ExpirationYear</td>
-                                        <td class="d-flex justify-end">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
-                                                           OnClick="() => DeleteCard(card)" />
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </MudSimpleTable>
-                    }
-                    else
-                    {
-                        <MudPaper Elevation="0" Class="pa-4 rounded-lg"
-                                  Style="background-color: var(--mud-palette-background-grey);">
-                            <MudText>No cards associated with this account.</MudText>
-                            @if (account.Type != Models.Enums.AccountType.Checking)
+                @if (cards.Any())
+                {
+                    <MudSimpleTable Hover="true" Dense="true" Class="rounded-lg" Elevation="4">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Number</th>
+                                <th>Expires</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var card in cards)
                             {
-                                <MudAlert Severity="MudBlazor.Severity.Info" Class="mt-4" Elevation="0">
-                                    Las tarjetas de crédito solo están disponibles para las cuentas "Normales".
-                                </MudAlert>
+                                <tr>
+                                    <td>@card.Name</td>
+                                    <td>@card.Brand</td>
+                                    <td>**** **** **** @card.Last4Digits</td>
+                                    <td>@card.ExpirationMonth.ToString("D2")/@card.ExpirationYear</td>
+                                    <td class="d-flex justify-end">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small"
+                                                       OnClick="() => OpenEditCardDialog(card)" Class="mr-2" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                                       OnClick="() => DeleteCard(card)" />
+                                    </td>
+                                </tr>
                             }
-                        </MudPaper>
-                    }
-                </MudItem>
-            </MudGrid>
-        }
+                        </tbody>
+                    </MudSimpleTable>
+                }
+                else
+                {
+                    <MudPaper Elevation="0" Class="pa-4 rounded-lg"
+                              Style="background-color: var(--mud-palette-background-grey);">
+                        <MudText>No cards associated with this account.</MudText>
+                        @if (account.Type != Models.Enums.AccountType.Checking)
+                        {
+                            <MudAlert Severity="MudBlazor.Severity.Info" Class="mt-4" Elevation="0">
+                                Las tarjetas de crédito solo están disponibles para las cuentas "Normales".
+                            </MudAlert>
+                        }
+                    </MudPaper>
+                }
+            </MudItem>
+        </MudGrid>
+    }
     else
-        {
-            <MudAlert Severity="MudBlazor.Severity.Error">Account not found. It may have been deleted or you don't have
-                permission to view it.</MudAlert>
-            }
-        </MudContainer>
+    {
+        <MudAlert Severity="MudBlazor.Severity.Error">Account not found. It may have been deleted or you don't have
+            permission to view it.</MudAlert>
+        }
+    </MudContainer>
 
 @code {
     [Parameter]
@@ -160,6 +163,24 @@
         {
             cards.Add(newCard);
             StateHasChanged();
+        }
+    }
+
+    private async Task OpenEditCardDialog(CardDto cardToEdit)
+    {
+        var parameters = new DialogParameters { ["CardToEdit"] = cardToEdit };
+        var dialog = DialogService.Show<EditCardDialog>("Edit Card", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is CardDto updatedCard)
+        {
+            var index = cards.FindIndex(c => c.Id == updatedCard.Id);
+            if (index != -1)
+            {
+                cards[index] = updatedCard;
+                Snackbar.Add("Card updated successfully!", MudSeverity.Success);
+                StateHasChanged();
+            }
         }
     }
 

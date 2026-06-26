@@ -1,0 +1,17 @@
+.stripe-card-element {
+    border: 1px solid var(--mud-palette-lines-inputs);
+    padding: 18.5px 14px;
+    border-radius: 4px;
+    background-color: transparent;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.stripe-card-element:hover {
+    border-color: var(--mud-palette-text-primary);
+}
+
+.stripe-card-errors {
+    color: var(--mud-palette-error);
+    font-size: 0.75rem;
+    margin-top: 4px;
+}

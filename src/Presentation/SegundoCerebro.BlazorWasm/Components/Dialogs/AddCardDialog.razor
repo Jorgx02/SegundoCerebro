@@ -2,6 +2,9 @@
 @using SegundoCerebro.BlazorWasm.Services
 @inject ICardService CardService
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
+@implements IAsyncDisposable
 
 <MudDialog>
     <TitleContent>
@@ -14,36 +17,34 @@
                     <MudTextField @bind-Value="model.Name" For="@(() => model.Name)"
                                   Label="Card Name (e.g., 'Personal Visa')" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="model.Brand" For="@(() => model.Brand)" Label="Brand (e.g., 'Visa')"
-                                  Variant="Variant.Outlined" Margin="Margin.Dense" HelperText="For demo purposes." />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="model.Last4Digits" For="@(() => model.Last4Digits)" Label="Last 4 Digits"
-                                  Variant="Variant.Outlined" Margin="Margin.Dense" Counter="4" MaxLength="4"
-                                  HelperText="For demo purposes." />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudNumericField @bind-Value="model.ExpirationMonth" For="@(() => model.ExpirationMonth)"
-                                     Label="Exp. Month (MM)" Variant="Variant.Outlined" Margin="Margin.Dense" Min="1" Max="12" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudNumericField @bind-Value="model.ExpirationYear" For="@(() => model.ExpirationYear)"
-                                     Label="Exp. Year (YYYY)" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                     Min="@DateTime.Now.Year" />
-                </MudItem>
                 <MudItem xs="12">
-                    <MudAlert Severity="MudBlazor.Severity.Info" Elevation="0">
-                        <strong>Note:</strong> In a real application, card details would be securely collected via
-                        Stripe Elements, not manual fields. We are mocking this process.
-                    </MudAlert>
+                    <MudTextField @bind-Value="model.CardholderName" For="@(() => model.CardholderName)"
+                                  Label="Cardholder Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Class="mb-1">Card Details</MudText>
+                    <div id="card-element" class="stripe-card-element">
+                        <!-- Stripe Card Element will be mounted here -->
+                    </div>
+                    <div id="card-errors" role="alert" class="stripe-card-errors"></div>
                 </MudItem>
             </MudGrid>
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Add Card</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled" Disabled="processing">
+            @if (processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Processing...</MudText>
+            }
+            else
+            {
+                <MudText>Add Card</MudText>
+            }
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -53,11 +54,28 @@
 
     private CreateCardCommand model = new();
     private MudForm form = null!;
+    private bool processing = false;
+    private DotNetObjectReference<AddCardDialog> objRef = null!;
+    private IJSObjectReference? stripeModule;
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        model.AccountId = AccountId;
-        model.ExpirationYear = DateTime.Now.Year + 3; // Default expiration
+        if (firstRender)
+        {
+            // 1. Importa el módulo JS y espera a que esté listo.
+            stripeModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/stripe.js");
+
+            objRef = DotNetObjectReference.Create(this);
+            var publishableKey = Configuration["Stripe:PublishableKey"];
+            if (string.IsNullOrEmpty(publishableKey))
+            {
+                Snackbar.Add("Stripe Publishable Key is not configured.", MudSeverity.Error);
+                return;
+            }
+            // 2. Llama a las funciones a través de la referencia al módulo.
+            await stripeModule.InvokeVoidAsync("initStripe", publishableKey);
+            await stripeModule.InvokeVoidAsync("mountCardElement", "card-element");
+        }
     }
 
     private async Task Submit()
@@ -65,9 +83,18 @@
         await form.Validate();
         if (!form.IsValid) return;
 
-        // Mocking the Stripe Payment Method ID for the demo
-        model.StripePaymentMethodId = $"pm_{Guid.NewGuid().ToString().Replace("-", "")}";
+        processing = true;
+        model.AccountId = AccountId;
+        if (stripeModule is not null)
+        {
+            await stripeModule.InvokeVoidAsync("createPaymentMethod", objRef, model.CardholderName);
+        }
+    }
 
+    [JSInvokable]
+    public async Task OnStripeSuccess(string paymentMethodId)
+    {
+        model.StripePaymentMethodId = paymentMethodId;
         try
         {
             var newCard = await CardService.CreateAsync(model);
@@ -76,9 +103,33 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error adding card: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error saving card: {ex.Message}", MudSeverity.Error);
+        }
+        finally
+        {
+            processing = false;
+            StateHasChanged();
         }
     }
 
+    [JSInvokable]
+    public Task OnStripeError(string errorMessage)
+    {
+        Snackbar.Add(errorMessage, MudSeverity.Error);
+        processing = false;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
     void Cancel() => MudDialog.Cancel();
+
+    public async ValueTask DisposeAsync()
+    {
+        if (stripeModule is not null)
+        {
+            await stripeModule.InvokeVoidAsync("unmountCardElement");
+            await stripeModule.DisposeAsync();
+        }
+        objRef?.Dispose();
+    }
 }

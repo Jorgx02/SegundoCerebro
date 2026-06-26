@@ -1,18 +1,12 @@
 using FluentValidation;
-using SegundoCerebro.Application.Features.Cards.Commands.UpdateCard;
+using SegundoCerebro.BlazorWasm.Models.Commands;
 
-namespace SegundoCerebro.Application.Validators;
+namespace SegundoCerebro.BlazorWasm.Validators;
 
-/// <summary>
-/// Validador para el comando de actualización de tarjetas.
-/// </summary>
 public class UpdateCardCommandValidator : AbstractValidator<UpdateCardCommand>
 {
     public UpdateCardCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("El ID de la tarjeta es requerido.");
-
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("El nombre de la tarjeta es requerido.")
             .MaximumLength(100).WithMessage("El nombre no puede exceder los 100 caracteres.");

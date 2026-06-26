@@ -1,0 +1,49 @@
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Commands
+@using SegundoCerebro.BlazorWasm.Services
+@inject ICardService CardService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Edit Card Name</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@model" @ref="@form" ValidationDelay="0">
+            <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Label="Card Name"
+                          Variant="Variant.Outlined" Margin="Margin.Dense" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Update</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public CardDto CardToEdit { get; set; } = null!;
+
+    private UpdateCardCommand model = new();
+    private MudForm form = null!;
+
+    protected override void OnInitialized()
+    {
+        if (CardToEdit is not null)
+        {
+            model.Name = CardToEdit.Name;
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (!form.IsValid) return;
+
+        var updatedCard = await CardService.UpdateAsync(CardToEdit.Id, model);
+        Snackbar.Add("Card updated successfully!", MudSeverity.Success);
+        MudDialog.Close(DialogResult.Ok(updatedCard));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

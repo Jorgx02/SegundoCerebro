@@ -5,13 +5,18 @@ using System.Text.Json.Serialization;
 namespace SegundoCerebro.Application.Features.Cards.Commands.UpdateCard;
 
 /// <summary>
-/// Comando para actualizar los detalles de una tarjeta existente.
+/// Comando para actualizar el nombre de una tarjeta existente.
 /// </summary>
-public record UpdateCardCommand : IRequest<CardDto>
+public class UpdateCardCommand : IRequest<CardDto>
 {
+    /// <summary>
+    /// ID de la tarjeta a actualizar. Se obtiene de la ruta de la API, no del cuerpo.
+    /// </summary>
     [JsonIgnore]
     public Guid Id { get; set; }
-    public string Name { get; init; } = string.Empty;
-    public int ExpirationMonth { get; init; }
-    public int ExpirationYear { get; init; }
+
+    /// <summary>
+    /// Nuevo nombre para la tarjeta.
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
 }

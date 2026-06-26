@@ -159,6 +159,10 @@ public class MappingProfile : Profile
         // Mapeo de Comando de creación a Entidad.
         CreateMap<CreateCardCommand, Card>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.Brand, opt => opt.Ignore()) // Se obtendrá de Stripe
+            .ForMember(dest => dest.Last4Digits, opt => opt.Ignore()) // Se obtendrá de Stripe
+            .ForMember(dest => dest.ExpirationMonth, opt => opt.Ignore()) // Se obtendrá de Stripe
+            .ForMember(dest => dest.ExpirationYear, opt => opt.Ignore()) // Se obtendrá de Stripe
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Account, opt => opt.Ignore());

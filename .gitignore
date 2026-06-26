@@ -74,3 +74,8 @@ logs/
 # Environment variables
 .env
 .env.local
+
+# App settings files that might contain secrets
+# These should not be in source control. Use user-secrets or environment variables.
+appsettings.Development.json
+appsettings.json

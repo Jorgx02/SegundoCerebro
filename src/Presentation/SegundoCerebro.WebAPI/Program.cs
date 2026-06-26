@@ -78,6 +78,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Builder de Stripe
+builder.Services.Configure<SegundoCerebro.Infrastructure.Settings.StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.AddScoped<SegundoCerebro.Application.Interfaces.IStripeService, SegundoCerebro.Infrastructure.Services.StripeService>();
+
+
 var app = builder.Build();
 
 app.UseCors("AllowAll");

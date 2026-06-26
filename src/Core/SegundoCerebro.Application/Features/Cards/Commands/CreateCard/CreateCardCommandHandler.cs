@@ -4,6 +4,7 @@ using MediatR;
 using SegundoCerebro.Application.DTOs;
 using SegundoCerebro.Application.Exceptions;
 using SegundoCerebro.Domain.Entities;
+using SegundoCerebro.Application.Interfaces;
 using SegundoCerebro.Domain.Enums;
 using SegundoCerebro.Domain.Interfaces;
 
@@ -16,16 +17,19 @@ public class CreateCardCommandHandler : IRequestHandler<CreateCardCommand, CardD
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IStripeService _stripeService;
 
     /// <summary>
     /// Inicializa una nueva instancia de la clase <see cref="CreateCardCommandHandler"/>.
     /// </summary>
     /// <param name="unitOfWork">La unidad de trabajo para acceder a los repositorios.</param>
     /// <param name="mapper">El mapeador de objetos.</param>
-    public CreateCardCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    /// <param name="stripeService">Servicio para interactuar con la API de Stripe.</param>
+    public CreateCardCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IStripeService stripeService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _stripeService = stripeService;
     }
 
     /// <summary>
@@ -51,12 +55,20 @@ public class CreateCardCommandHandler : IRequestHandler<CreateCardCommand, CardD
             throw new ValidationException("Las tarjetas solo pueden ser asociadas a cuentas de tipo 'Checking'.");
         }
 
-        // 3. Mapear, añadir y guardar
+        // 3. Obtener detalles de la tarjeta desde Stripe usando el PaymentMethodId
+        var cardDetails = await _stripeService.GetCardDetailsFromPaymentMethodAsync(request.StripePaymentMethodId);
+
+        // 4. Mapear el comando a la entidad y enriquecer con los datos de Stripe
         var cardEntity = _mapper.Map<Card>(request);
+        cardEntity.Brand = cardDetails.Brand;
+        cardEntity.Last4Digits = cardDetails.Last4Digits;
+        cardEntity.ExpirationMonth = cardDetails.ExpirationMonth;
+        cardEntity.ExpirationYear = cardDetails.ExpirationYear;
+
         await _unitOfWork.Cards.AddAsync(cardEntity);
         await _unitOfWork.SaveChangesAsync();
 
-        // 4. Mapear y devolver el resultado
+        // 5. Mapear y devolver el resultado
         return _mapper.Map<CardDto>(cardEntity);
     }
 }
