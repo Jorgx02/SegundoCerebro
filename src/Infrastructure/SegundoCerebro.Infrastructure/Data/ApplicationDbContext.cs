@@ -157,7 +157,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             entity.HasOne(t => t.Project)
                 .WithMany(p => p.TodoItems)
                 .HasForeignKey(t => t.ProjectId)
-                .OnDelete(DeleteBehavior.SetNull); // Si se borra el proyecto, las tareas quedan huérfanas (en el Inbox)
+                .OnDelete(DeleteBehavior.Cascade); // Si se borra el proyecto, sus tareas también se borran.
 
             // Filtro Global: Solo devuelve tareas de este usuario
             entity.HasQueryFilter(t => _currentUserService.UserId == null || t.UserId == _currentUserService.UserId);

@@ -19,14 +19,10 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
 
     public async Task<ProjectDto> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
     {
-        var project = _mapper.Map<Project>(request.Project);
-        project.Id = Guid.NewGuid();
-        project.CreatedAt = DateTime.UtcNow;
-        project.Status = Domain.Enums.ProjectStatus.NotStarted; // Por defecto al crear
-
-        var createdProject = await _unitOfWork.Projects.AddAsync(project);
+        var project = _mapper.Map<Project>(request.ProjectDto);
+        await _unitOfWork.Projects.AddAsync(project);
         await _unitOfWork.SaveChangesAsync();
 
-        return _mapper.Map<ProjectDto>(createdProject);
+        return _mapper.Map<ProjectDto>(project);
     }
 }

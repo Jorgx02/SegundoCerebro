@@ -1,8 +1,9 @@
 using SegundoCerebro.BlazorWasm.Models;
+using SegundoCerebro.BlazorWasm.Models.Enums;
 
 namespace SegundoCerebro.BlazorWasm.Services;
 
 public interface IProjectService : IApiService<ProjectDto, CreateProjectDto, UpdateProjectDto>
 {
-    // Aquí podemos añadir en el futuro métodos específicos como GetProjectsWithTodoItemsAsync()
+    Task<IEnumerable<ProjectDto>> GetAllAsync(ProjectStatus? status = null);
 }

@@ -7,125 +7,81 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-<PageTitle>Proyectos - SegundoCerebro</PageTitle>
+<PageTitle>Projects - SegundoCerebro</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudGrid>
         <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
-            <MudText Typo="Typo.h4">Proyectos</MudText>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="Icons.Material.Filled.Add"
+            <MudText Typo="Typo.h4">Projects</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
                        OnClick="OpenCreateDialog">
-                Nuevo Proyecto
+                New Project
             </MudButton>
         </MudItem>
     </MudGrid>
 
-    <!-- Summary Cards -->
-    <MudGrid Class="mb-6">
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="3" Class="rounded-lg">
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Total Proyectos</MudText>
-                            <MudText Typo="Typo.h5">@allProjects.Count</MudText>
-                        </div>
-                        <MudIcon Icon="Icons.Material.Filled.Folder" Size="Size.Large" Color="Color.Primary" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="3" Class="rounded-lg">
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Activos</MudText>
-                            <MudText Typo="Typo.h5">@allProjects.Count(p => p.Status == ProjectStatus.Active)</MudText>
-                        </div>
-                        <MudIcon Icon="Icons.Material.Filled.PlayArrow" Size="Size.Large" Color="Color.Info" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="3" Class="rounded-lg">
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Completados</MudText>
-                            <MudText Typo="Typo.h5">@allProjects.Count(p => p.Status == ProjectStatus.Completed)</MudText>
-                        </div>
-                        <MudIcon Icon="Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-    </MudGrid>
-
-    <!-- Projects Table -->
     <MudCard Elevation="4" Class="rounded-lg">
         <MudCardHeader>
             <CardHeaderContent>
                 <div class="d-flex justify-space-between align-center">
-                    <MudText Typo="Typo.h6">Todos los Proyectos</MudText>
+                    <MudText Typo="Typo.h6">All Projects</MudText>
+                    <MudSelect T="ProjectStatus?" Value="statusFilter" ValueChanged="OnStatusFilterChanged"
+                               Label="Filter by Status" Variant="Variant.Text" Margin="Margin.Dense" Dense="true"
+                               Style="max-width: 150px;" Class="ml-auto" AnchorOrigin="Origin.BottomRight"
+                               TransformOrigin="Origin.TopRight" Clearable="true">
+                        @foreach (ProjectStatus status in Enum.GetValues<ProjectStatus>())
+                        {
+                            <MudSelectItem Value="@((ProjectStatus?)status)">@status.ToString()</MudSelectItem>
+                        }
+                    </MudSelect>
                 </div>
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
-            <MudTable Items="@allProjects" Hover="true" Striped="true" Dense="true" Elevation="0"
-                      Loading="@loading" LoadingProgressColor="Color.Info">
+            <MudTable Items="@projects" Hover="true" Striped="true" Dense="true" Elevation="0" Loading="@loading"
+                      LoadingProgressColor="Color.Info">
                 <HeaderContent>
-                    <MudTh>Nombre</MudTh>
-                    <MudTh>Estado</MudTh>
-                    <MudTh>Fecha Inicio</MudTh>
-                    <MudTh>Fecha Fin</MudTh>
-                    <MudTh>Acciones</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Due Date</MudTh>
+                    <MudTh>Created</MudTh>
+                    <MudTh>Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Nombre">
-                        <div class="d-flex align-center">
-                            <MudIcon Icon="Icons.Material.Filled.FolderOpen" Class="mr-3" Color="Color.Primary" />
-                            <div>
-                                <MudText Typo="Typo.body1" Class="font-weight-bold">@context.Name</MudText>
-                                @if (!string.IsNullOrEmpty(context.Description))
-                                {
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText>
-                                }
-                            </div>
-                        </div>
-                    </MudTd>
-                    <MudTd DataLabel="Estado">
-                        <MudChip Size="Size.Small" Color="@GetStatusColor(context.Status)">
-                            @GetStatusName(context.Status)
-                        </MudChip>
-                    </MudTd>
-                    <MudTd DataLabel="Fecha Inicio">
-                        @(context.StartDate?.ToString("dd/MM/yyyy") ?? "-")
-                    </MudTd>
-                    <MudTd DataLabel="Fecha Fin">
-                        @(context.EndDate?.ToString("dd/MM/yyyy") ?? "-")
-                    </MudTd>
-                    <MudTd DataLabel="Acciones">
-                        @if (context.Status != ProjectStatus.Completed)
+                    <MudTd DataLabel="Name">
+                        <MudText Typo="Typo.body1">@context.Name</MudText>
+                        @if (!string.IsNullOrEmpty(context.Description))
                         {
-                            <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
-                                           Variant="Variant.Filled" Class="mr-2" OnClick="() => OpenEditDialog(context)" />
-                            <MudIconButton Icon="Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                           Variant="Variant.Filled" OnClick="() => DeleteProject(context)" />
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText>
                         }
                     </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip Size="Size.Small" Color="@GetStatusColor(context.Status)">
+                            @context.StatusName
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Due Date">@(context.DueDate?.ToString("d") ?? "-")</MudTd>
+                    <MudTd DataLabel="Created">@context.CreatedAt.ToString("d")</MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                       OnClick="() => OpenEditDialog(context)" Class="mr-2" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                       OnClick="() => DeleteProject(context)"
+                                       Disabled="@(context.Status == ProjectStatus.Completed)" />
+                    </MudTd>
                 </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No projects found matching the current filter.</MudText>
+                </NoRecordsContent>
             </MudTable>
         </MudCardContent>
     </MudCard>
 </MudContainer>
 
 @code {
-    private List<ProjectDto> allProjects = new();
+    private List<ProjectDto> projects = new();
     private bool loading = true;
+    private ProjectStatus? statusFilter = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -137,12 +93,12 @@
         loading = true;
         try
         {
-            var result = await ProjectService.GetAllAsync();
-            allProjects = result.OrderByDescending(p => p.CreatedAt).ToList();
+            var result = await ProjectService.GetAllAsync(statusFilter);
+            projects = result?.ToList() ?? new List<ProjectDto>();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar los proyectos: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error loading projects: {ex.Message}", MudSeverity.Error);
         }
         finally
         {
@@ -150,71 +106,74 @@
         }
     }
 
-    private string GetStatusName(ProjectStatus status) => status switch
+    private async Task OnStatusFilterChanged(ProjectStatus? newStatus)
     {
-        ProjectStatus.NotStarted => "No Iniciado",
-        ProjectStatus.Active => "Activo",
-        ProjectStatus.OnHold => "En Pausa",
-        ProjectStatus.Completed => "Completado",
-        ProjectStatus.Cancelled => "Cancelado",
-        _ => status.ToString()
-    };
-
-    private Color GetStatusColor(ProjectStatus status) => status switch
-    {
-        ProjectStatus.NotStarted => Color.Default,
-        ProjectStatus.Active => Color.Info,
-        ProjectStatus.OnHold => Color.Warning,
-        ProjectStatus.Completed => Color.Success,
-        ProjectStatus.Cancelled => Color.Error,
-        _ => Color.Default
-    };
+        statusFilter = newStatus;
+        await LoadProjects();
+    }
 
     private async Task OpenCreateDialog()
     {
-        var dialog = DialogService.Show<CreateProjectDialog>("Crear Proyecto");
+        var dialog = DialogService.Show<CreateProjectDialog>("Create New Project");
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (!result.Canceled && result.Data is ProjectDto newProject)
         {
-            await LoadProjects();
-            Snackbar.Add("¡Proyecto creado correctamente!", MudSeverity.Success);
+            projects.Insert(0, newProject);
+            StateHasChanged();
         }
     }
 
-    private async Task OpenEditDialog(ProjectDto project)
+    private async Task OpenEditDialog(ProjectDto projectToEdit)
     {
-        var parameters = new DialogParameters { ["Project"] = project };
-        var dialog = DialogService.Show<EditProjectDialog>("Editar Proyecto", parameters);
+        var parameters = new DialogParameters { ["ProjectToEdit"] = projectToEdit };
+        var dialog = DialogService.Show<EditProjectDialog>("Edit Project", parameters);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (!result.Canceled && result.Data is ProjectDto updatedProject)
         {
-            await LoadProjects();
-            Snackbar.Add("¡Proyecto actualizado correctamente!", MudSeverity.Success);
+            var index = projects.FindIndex(p => p.Id == updatedProject.Id);
+            if (index != -1)
+            {
+                projects[index] = updatedProject;
+                Snackbar.Add("Project updated successfully!", MudSeverity.Success);
+                StateHasChanged();
+            }
         }
     }
 
-    private async Task DeleteProject(ProjectDto project)
+    private async Task DeleteProject(ProjectDto projectToDelete)
     {
-        bool? result = await DialogService.ShowMessageBox(
-            "Eliminar Proyecto",
-            $"¿Estás seguro de que deseas eliminar el proyecto '{project.Name}'? Las tareas asociadas pasarán a la bandeja de entrada.",
-            yesText: "Eliminar",
-            cancelText: "Cancelar");
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"¿Estas seguro de querer eliminar el proyecto '{projectToDelete.Name}'? Este proyecto tiene tareas asociadas a el.",
+            ["ButtonText"] = "Delete",
+            ["ButtonColor"] = Color.Error
+        };
+        var dialog = DialogService.Show<ConfirmationDialog>("Delete Project", parameters);
+        var result = await dialog.Result;
 
-        if (result == true)
+        if (!result.Canceled)
         {
             try
             {
-                await ProjectService.DeleteAsync(project.Id);
-                await LoadProjects();
-                Snackbar.Add("Proyecto eliminado correctamente.", MudSeverity.Success);
+                await ProjectService.DeleteAsync(projectToDelete.Id);
+                projects.Remove(projectToDelete);
+                Snackbar.Add("Project deleted successfully.", MudSeverity.Success);
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error al eliminar el proyecto: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error deleting project: {ex.Message}", MudSeverity.Error);
             }
         }
     }
+
+    private Color GetStatusColor(ProjectStatus status) => status switch
+    {
+        ProjectStatus.Completed => Color.Success,
+        ProjectStatus.InProgress => Color.Info,
+        ProjectStatus.OnHold => Color.Warning,
+        ProjectStatus.Cancelled => Color.Error,
+        _ => Color.Default
+    };
 }

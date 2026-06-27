@@ -117,14 +117,14 @@ public class MappingProfile : Profile
 
         // Mapeo de DTO de creación a Entidad.
         CreateMap<CreateProjectDto, Project>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Status, opt => opt.Ignore())
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Domain.Enums.ProjectStatus.NotStarted))
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.TodoItems, opt => opt.Ignore());
 
         // Mapeo de DTO de actualización a Entidad.
         CreateMap<UpdateProjectDto, Project>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
@@ -138,7 +138,7 @@ public class MappingProfile : Profile
         // Mapeo de DTO de creación a Entidad.
         CreateMap<CreateTodoItemDto, TodoItem>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Status, opt => opt.Ignore())
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Domain.Enums.TodoItemStatus.Inbox))
             .ForMember(dest => dest.CompletedAt, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())

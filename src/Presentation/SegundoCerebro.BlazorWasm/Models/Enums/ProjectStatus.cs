@@ -2,9 +2,9 @@ namespace SegundoCerebro.BlazorWasm.Models.Enums;
 
 public enum ProjectStatus
 {
-    NotStarted = 0,
-    Active = 1,
-    OnHold = 2,
+    NotStarted = 1,
+    InProgress = 2,
     Completed = 3,
-    Cancelled = 4
+    OnHold = 4,
+    Cancelled = 5
 }

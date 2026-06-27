@@ -7,20 +7,32 @@ namespace SegundoCerebro.Application.DTOs;
 /// </summary>
 public class ProjectDto
 {
-    /// <summary>Identificador único del proyecto.</summary>
     public Guid Id { get; set; }
-    /// <summary>Nombre del proyecto.</summary>
     public string Name { get; set; } = string.Empty;
-    /// <summary>Descripción detallada del proyecto.</summary>
     public string? Description { get; set; }
-    /// <summary>Estado actual del proyecto (ej. Activo, Completado).</summary>
     public ProjectStatus Status { get; set; }
-    /// <summary>Fecha de inicio del proyecto.</summary>
-    public DateTime? StartDate { get; set; }
-    /// <summary>Fecha de finalización del proyecto.</summary>
-    public DateTime? EndDate { get; set; }
-    /// <summary>Fecha de creación del registro.</summary>
+    public string StatusName => Status.ToString();
+    public DateTime? DueDate { get; set; }
     public DateTime CreatedAt { get; set; }
-    /// <summary>Fecha de la última actualización.</summary>
-    public DateTime? UpdatedAt { get; set; }
+}
+
+/// <summary>
+/// DTO utilizado para crear un nuevo proyecto.
+/// </summary>
+public class CreateProjectDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime? DueDate { get; set; }
+}
+
+/// <summary>
+/// DTO utilizado para actualizar un proyecto existente.
+/// </summary>
+public class UpdateProjectDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public ProjectStatus Status { get; set; }
+    public DateTime? DueDate { get; set; }
 }

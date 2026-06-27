@@ -13,6 +13,15 @@ public class UnitOfWork : IUnitOfWork
     private readonly ApplicationDbContext _context;
     private IDbContextTransaction? _transaction;
 
+    // Private fields for lazy initialization of repositories
+    private IAccountRepository? _accountRepository;
+    private ITransactionRepository? _transactionRepository;
+    private ICategoryRepository? _categoryRepository;
+    private IBudgetRepository? _budgetRepository;
+    private IProjectRepository? _projectRepository;
+    private ITodoItemRepository? _todoItemRepository;
+    private ICardRepository? _cardRepository;
+
     /// <summary>
     /// Inicializa una nueva instancia de la clase <see cref="UnitOfWork"/>.
     /// </summary>
@@ -20,29 +29,22 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(ApplicationDbContext context)
     {
         _context = context;
-        Accounts = new AccountRepository(_context);
-        Transactions = new TransactionRepository(_context);
-        Categories = new CategoryRepository(_context);
-        Budgets = new BudgetRepository(_context);
-        Projects = new ProjectRepository(_context);
-        TodoItems = new TodoItemRepository(_context);
-        Cards = new CardRepository(_context);
     }
 
     /// <inheritdoc />
-    public IAccountRepository Accounts { get; }
+    public IAccountRepository Accounts => _accountRepository ??= new AccountRepository(_context);
     /// <inheritdoc />
-    public ITransactionRepository Transactions { get; }
+    public ITransactionRepository Transactions => _transactionRepository ??= new TransactionRepository(_context);
     /// <inheritdoc />
-    public ICategoryRepository Categories { get; }
+    public ICategoryRepository Categories => _categoryRepository ??= new CategoryRepository(_context);
     /// <inheritdoc />
-    public IBudgetRepository Budgets { get; }
+    public IBudgetRepository Budgets => _budgetRepository ??= new BudgetRepository(_context);
     /// <inheritdoc />
-    public IProjectRepository Projects { get; }
+    public IProjectRepository Projects => _projectRepository ??= new ProjectRepository(_context);
     /// <inheritdoc />
-    public ITodoItemRepository TodoItems { get; }
+    public ITodoItemRepository TodoItems => _todoItemRepository ??= new TodoItemRepository(_context);
     /// <inheritdoc />
-    public ICardRepository Cards { get; }
+    public ICardRepository Cards => _cardRepository ??= new CardRepository(_context);
 
     /// <summary>
     /// Guarda todos los cambios pendientes en el contexto de la base de datos.

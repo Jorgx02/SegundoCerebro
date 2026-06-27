@@ -120,12 +120,32 @@ Cuando un usuario decide eliminar una estructura contenedora (como una Cuenta Ba
 Se establecieron dos políticas claras a nivel de base de datos (`OnModelCreating`):
 
 1. **Cuentas y Finanzas:** Uso de _Soft Delete_ (Desactivación Lógica). Las cuentas no se borran, se marcan como inhabilitadas (`IsActive = false`). Las relaciones con `Transaction` se configuran con `DeleteBehavior.Restrict`.
-2. **Productividad:** Las Tareas (`TodoItems`) vinculadas a un `Project` se configuran con `DeleteBehavior.SetNull`. Si el proyecto se elimina de la base de datos, la tarea no se pierde, sino que pasa automáticamente al estado "Huérfana" (Inbox) al perder su `ProjectId`.
+2. **Productividad:** Las Tareas (`TodoItems`) vinculadas a un `Project` se configuran con `DeleteBehavior.Cascade`. Si un proyecto se elimina, todas sus tareas asociadas se eliminan con él. Esto mantiene la integridad contextual de las tareas; una tarea sin su proyecto pierde su propósito original.
 
 ### Consecuencias
 
-- **Positivas:** Mantiene intacto el historial financiero inmutable y evita la pérdida de ideas capturadas en GTD.
+- **Positivas:** Mantiene intacto el historial financiero inmutable y asegura que no queden tareas "huérfanas" sin contexto en el sistema.
 - **Negativas:** La interfaz de usuario tiene que saber diferenciar visualmente y gestionar qué elementos están "Inactivos" para no saturar las vistas.
+
+---
+
+## ADR 008: Inmutabilidad de Proyectos Completados y Lógica de Finalización
+
+**Fecha:** Fase 2 - Implementación del Módulo de Productividad
+
+### Contexto y Problema
+
+Un proyecto completado es un registro histórico del trabajo realizado. Permitir su modificación o eliminación posterior podría corromper las métricas de productividad y el historial de logros. Además, el estado "Completado" debe ser un reflejo fiel de que todo el trabajo asociado ha concluido.
+
+### Decisión
+
+1.  **Inmutabilidad al Borrar:** Un `Project` con estado `Completed` no puede ser eliminado. La lógica de negocio en el `DeleteProjectCommandHandler` debe impedirlo explícitamente.
+2.  **Condición de Finalización:** Un `Project` no puede ser marcado como `Completed` si alguna de sus `TodoItems` asociadas no está también en estado `Completed`. Esta validación se implementará en el `UpdateProjectCommandHandler`.
+
+### Consecuencias
+
+- **Positivas:** Se garantiza la integridad y el valor histórico de los datos de productividad. El estado del sistema es más coherente y fiable.
+- **Negativas:** Añade complejidad a la lógica de negocio en los manejadores de comandos, que ahora deben consultar el estado de las entidades relacionadas antes de realizar una operación.
 
 ---
 

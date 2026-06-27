@@ -1,6 +1,10 @@
 using MediatR;
 using SegundoCerebro.Application.DTOs;
+using SegundoCerebro.Domain.Enums;
 
 namespace SegundoCerebro.Application.Features.Projects.Queries.GetAllProjects;
 
-public record GetAllProjectsQuery : IRequest<IEnumerable<ProjectDto>>;
+public class GetAllProjectsQuery : IRequest<IEnumerable<ProjectDto>>
+{
+    public ProjectStatus? Status { get; set; }
+}
