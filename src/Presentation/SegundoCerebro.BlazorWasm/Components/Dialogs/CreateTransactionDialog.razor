@@ -18,25 +18,25 @@
         <MudForm Model="@model" @ref="@form">
             <MudCardContent>
                 <MudTextField @bind-Value="model.Description" For="@(() => model.Description)" Immediately="true"
-                              Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                              Label="Descripción" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-                <MudNumericField @bind-Value="model.Amount" For="@(() => model.Amount)" Label="Amount"
+                <MudNumericField @bind-Value="model.Amount" For="@(() => model.Amount)" Label="Monto"
                                  Variant="Variant.Outlined" Margin="Margin.Dense" Format="N2"
                                  Culture="@System.Globalization.CultureInfo.CurrentCulture" />
 
                 <MudSelect T="TransactionType?" Value="selectedType" ValueChanged="OnTransactionTypeChanged"
-                           Label="Transaction Type" Placeholder="Selecciona un tipo..." Variant="Variant.Outlined"
+                           Label="Tipo de transacción" Placeholder="Selecciona un tipo..." Variant="Variant.Outlined"
                            Margin="Margin.Dense">
-                    <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Income)">Income
+                    <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Income)">Ingreso
                     </MudSelectItem>
-                    <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Expense)">Expense
+                    <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Expense)">Gasto
                     </MudSelectItem>
                 </MudSelect>
 
-                <MudDatePicker @bind-Date="transactionDate" Label="Date" Variant="Variant.Outlined"
+                <MudDatePicker @bind-Date="transactionDate" Label="Fecha" Variant="Variant.Outlined"
                                Margin="Margin.Dense" />
 
-                <MudSelect T="Guid" @bind-Value="model.AccountId" For="@(() => model.AccountId)" Label="Account"
+                <MudSelect T="Guid" @bind-Value="model.AccountId" For="@(() => model.AccountId)" Label="Cuenta"
                            Variant="Variant.Outlined" Margin="Margin.Dense">
                     @foreach (var account in accounts.Where(a => a.IsActive))
                     {
@@ -44,7 +44,7 @@
                     }
                 </MudSelect>
 
-                <MudSelect T="Guid" @bind-Value="model.CategoryId" For="@(() => model.CategoryId)" Label="Category"
+                <MudSelect T="Guid" @bind-Value="model.CategoryId" For="@(() => model.CategoryId)" Label="Categoría"
                            Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(selectedType == null)"
                            Placeholder="Selecciona primero un tipo">
                     @foreach (var category in filteredCategories)
@@ -53,10 +53,10 @@
                     }
                 </MudSelect>
 
-                <MudTextField @bind-Value="model.Reference" For="@(() => model.Reference)" Label="Reference (Optional)"
+                <MudTextField @bind-Value="model.Reference" For="@(() => model.Reference)" Label="Referencia (Opcional)"
                               Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-                <MudTextField @bind-Value="model.Notes" For="@(() => model.Notes)" Label="Notes (Optional)"
+                <MudTextField @bind-Value="model.Notes" For="@(() => model.Notes)" Label="Notas (Opcional)"
                               Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
             </MudCardContent>
         </MudForm>
@@ -112,9 +112,9 @@
     {
         selectedType = newType;
         model.CategoryId = Guid.Empty; // Reset category selection
-        if (selectedType.HasValue)
+        if (newType.HasValue)
         {
-            var categoryType = (CategoryType)newType.Value;
+            var categoryType = (CategoryType)newType.Value; // El cast es seguro gracias a la comprobación
             filteredCategories = allCategories.Where(c => c.Type == categoryType);
         }
         else

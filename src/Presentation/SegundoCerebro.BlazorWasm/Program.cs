@@ -42,7 +42,8 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<IProjectService, ProjectService>(); // Asegúrate de que esta línea esté presente y descomentada
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ITodoItemService, TodoItemService>();
 builder.Services.AddScoped<ICardService, CardService>();
 
 await builder.Build().RunAsync();

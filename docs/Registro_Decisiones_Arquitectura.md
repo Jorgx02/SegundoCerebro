@@ -189,4 +189,39 @@ A medida que el código base crece, la lógica de negocio y las responsabilidade
 
 ---
 
+## ADR 009: Diseño e Implementación del Módulo de Productividad (GTD)
+
+**Fecha:** Fase 2 - Implementación del Módulo de Productividad
+
+### Contexto y Problema
+
+La aplicación necesita un módulo robusto para la gestión de tareas y proyectos, siguiendo principios de metodologías como GTD (Getting Things Done). Esto requiere no solo un CRUD básico, sino también la gestión de estados, relaciones entre proyectos y tareas, y reglas de negocio específicas para mantener la coherencia de los datos de productividad.
+
+### Decisión
+
+Se decide implementar un módulo completo de `Projects` y `TodoItems` siguiendo la arquitectura Clean/CQRS existente:
+
+1.  **Entidades del Dominio:** Se crean las entidades `Project` y `TodoItem` con sus respectivos `Enums` para los estados (`ProjectStatus`, `TodoItemStatus`).
+2.  **Relación y Cascada:** Se establece una relación de uno a muchos entre `Project` y `TodoItem`. Se configura `DeleteBehavior.Cascade` (ver ADR 005) para que al eliminar un proyecto, todas sus tareas asociadas se eliminen, ya que una tarea sin su proyecto pierde su contexto.
+3.  **CQRS Completo:** Se implementan todos los `Commands` (Create, Update, Delete) y `Queries` (GetAll, GetById, GetByProject) necesarios para ambas entidades en la capa de `Application`.
+4.  **Reglas de Negocio (ADR 008):** Se implementa la lógica en los `CommandHandlers` para:
+    - Impedir la eliminación de un proyecto con estado `Completed`.
+    - Impedir marcar un proyecto como `Completed` si tiene tareas pendientes.
+5.  **Frontend en Blazor:** Se crean tres páginas principales para la interacción del usuario:
+    - `Projects.razor`: Una tabla para listar, filtrar, crear, editar y eliminar proyectos.
+    - `ProjectDetails.razor`: Una vista detallada de un proyecto que lista todas sus tareas asociadas y permite el CRUD completo sobre ellas.
+    - `TodoItems.razor`: Una vista global que muestra todas las tareas de todos los proyectos, agrupadas por el nombre del proyecto para una visión general.
+6.  **Actualización Optimista:** En la página de detalles del proyecto, el `CheckBox` para completar tareas implementa una actualización optimista de la UI. El estado visual cambia instantáneamente, y la llamada a la API se realiza en segundo plano, mejorando la percepción de velocidad para el usuario.
+
+### Consecuencias
+
+- **Positivas:** El módulo de productividad está completamente integrado en la arquitectura existente, es robusto y ofrece una experiencia de usuario fluida. Las reglas de negocio garantizan la integridad de los datos. La vista global de tareas es una potente herramienta de productividad.
+- **Negativas:** Aumenta la complejidad del dominio y el número de endpoints y componentes de la UI a mantener.
+
+### Relación con el TFG
+
+Esta implementación constituye el segundo gran módulo funcional de la aplicación, demostrando la escalabilidad de la arquitectura elegida y la capacidad de construir funcionalidades complejas sobre ella.
+
+---
+
 _(Nuevas decisiones se añadirán a continuación...)_

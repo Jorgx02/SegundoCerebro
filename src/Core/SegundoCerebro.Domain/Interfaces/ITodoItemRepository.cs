@@ -7,4 +7,5 @@ namespace SegundoCerebro.Domain.Interfaces;
 /// </summary>
 public interface ITodoItemRepository : IRepository<TodoItem>
 {
+    Task<IEnumerable<TodoItem>> GetByProjectIdAsync(Guid projectId);
 }

@@ -7,15 +7,15 @@
 @inject IDialogService DialogService
 
 @* Título de la página que se mostrará en la pestaña del navegador. *@
-<PageTitle>Accounts - SegundoCerebro</PageTitle>
+<PageTitle>Cuentas - SegundoCerebro</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudGrid>
         <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
-            <MudText Typo="Typo.h4">Accounts</MudText>
+            <MudText Typo="Typo.h4">Cuentas</MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="Icons.Material.Filled.Add"
                        OnClick="OpenCreateDialog">
-                New Account
+                Nueva Cuenta
             </MudButton>
         </MudItem>
     </MudGrid>
@@ -27,7 +27,7 @@
                 <MudCardContent>
                     <div class="d-flex justify-space-between">
                         <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Total Balance</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Saldo total</MudText>
                             <MudText Typo="Typo.h5" Color="@(totalBalance >= 0 ? Color.Success : Color.Error)">
                                 @totalBalance.ToString("N2")
                             </MudText>
@@ -43,10 +43,11 @@
                 <MudCardContent>
                     <div class="d-flex justify-space-between">
                         <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Active Accounts</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Cuentas activas</MudText>
                             <MudText Typo="Typo.h5">@allAccounts.Count(a => a.IsActive)</MudText>
                         </div>
-                        <MudIcon Icon="Icons.Material.Filled.AccountBalanceWallet" Size="Size.Large" Color="Color.Secondary" />
+                        <MudIcon Icon="Icons.Material.Filled.AccountBalanceWallet" Size="Size.Large"
+                                 Color="Color.Secondary" />
                     </div>
                 </MudCardContent>
             </MudCard>
@@ -57,7 +58,7 @@
                 <MudCardContent>
                     <div class="d-flex justify-space-between">
                         <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Checking</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Normal</MudText>
                             <MudText Typo="Typo.h6">
                                 @allAccounts.Where(a => a.IsActive && a.Type == AccountType.Checking).Sum(a =>
                                 a.Balance).ToString("N2")
@@ -74,7 +75,7 @@
                 <MudCardContent>
                     <div class="d-flex justify-space-between">
                         <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Savings</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Ahorros</MudText>
                             <MudText Typo="Typo.h6">
                                 @allAccounts.Where(a => a.IsActive && a.Type == AccountType.Savings).Sum(a =>
                                 a.Balance).ToString("N2")
@@ -92,7 +93,7 @@
         <MudCardHeader>
             <CardHeaderContent>
                 <div class="d-flex justify-space-between align-center">
-                    <MudText Typo="Typo.h6">All Accounts</MudText>
+                    <MudText Typo="Typo.h6">Todas las cuentas</MudText>
                     <MudSelect T="AccountStatusFilter" Value="statusFilter" ValueChanged="OnStatusFilterChanged"
                                Label="Tipo de cuenta" Variant="Variant.Text" Margin="Margin.Dense" Dense="true"
                                Style="max-width: 110px;" Class="ml-auto" AnchorOrigin="Origin.BottomRight"
@@ -109,12 +110,12 @@
             <MudTable Items="@FilteredAccounts" Hover="true" Striped="true" Dense="true" Elevation="0"
                       Loading="@loading" LoadingProgressColor="Color.Info">
                 <HeaderContent>
-                    <MudTh>Name</MudTh>
-                    <MudTh>Type</MudTh>
+                    <MudTh>Nombre</MudTh>
+                    <MudTh>Tipo</MudTh>
                     <MudTh>Balance</MudTh>
-                    <MudTh>Bank</MudTh>
-                    <MudTh>Status</MudTh>
-                    <MudTh>Actions</MudTh>
+                    <MudTh>Banco</MudTh>
+                    <MudTh>Estado</MudTh>
+                    <MudTh>Acciones</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Name">
@@ -126,7 +127,8 @@
                             Class="mr-1" />
                             <MudIcon Icon="@GetAccountIcon(context.Type)" Class="mr-3" />
                             <div>
-                                <MudLink Href="@($"/accounts/{context.Id}")" Typo="Typo.body1" Color="Color.Default" Underline="Underline.None">
+                                <MudLink Href="@($"/accounts/{context.Id}")" Typo="Typo.body1" Color="Color.Default"
+                                         Underline="Underline.None">
                                     @context.Name
                                 </MudLink>
                                 @if (!string.IsNullOrEmpty(context.Description))
@@ -136,7 +138,7 @@
                             </div>
                         </div>
                     </MudTd>
-                    <MudTd DataLabel="Type">
+                    <MudTd DataLabel="Tipo">
                         @* Chip de color para identificar visualmente el tipo de cuenta. *@
                         <MudChip Size="Size.Small" Color="@GetTypeColor(context.Type)">
                             @context.TypeName
@@ -147,11 +149,11 @@
                             @context.Balance.ToString("N2")
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Bank">@(context.BankName ?? "-")</MudTd>
-                    <MudTd DataLabel="Status">
+                    <MudTd DataLabel="Banco">@(context.BankName ?? "-")</MudTd>
+                    <MudTd DataLabel="Estado">
                         @* Chip de color para indicar si la cuenta está activa o inactiva. *@
                         <MudChip Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)">
-                            @(context.IsActive ? "Active" : "Inactive")
+                            @(context.IsActive ? "Activa" : "Inactiva")
                         </MudChip>
                     </MudTd>
                     <MudTd DataLabel="Actions">
@@ -243,7 +245,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading accounts: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error cargando cuentas: {ex.Message}", MudSeverity.Error);
         }
         finally
         {
@@ -261,11 +263,11 @@
         {
             await AccountService.ToggleFavoriteAsync(account.Id);
             account.IsFavorite = !account.IsFavorite; // Actualiza el estado local para reflejo inmediato en la UI
-            Snackbar.Add("Favorite status updated.", MudSeverity.Success);
+            Snackbar.Add("Estado de favorito actualizado.", MudSeverity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error updating favorite status: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error actualizando el estado de favorito: {ex.Message}", MudSeverity.Error);
         }
         // StateHasChanged se invoca automáticamente por el evento OnClick
     }
@@ -302,13 +304,13 @@
     /// </summary>
     private async Task OpenCreateDialog()
     {
-        var dialog = DialogService.Show<CreateAccountDialog>("Create New Account");
+        var dialog = DialogService.Show<CreateAccountDialog>("Crear nueva cuenta");
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
             await LoadAccounts();
-            Snackbar.Add("Account created successfully!", MudSeverity.Success);
+            Snackbar.Add("Cuenta creada con éxito", MudSeverity.Success);
         }
     }
 
@@ -320,13 +322,13 @@
     private async Task OpenEditDialog(AccountDto account)
     {
         var parameters = new DialogParameters { ["Account"] = account };
-        var dialog = DialogService.Show<EditAccountDialog>("Edit Account", parameters);
+        var dialog = DialogService.Show<EditAccountDialog>("Editar cuenta", parameters);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
             await LoadAccounts();
-            Snackbar.Add("Account updated successfully!", MudSeverity.Success);
+            Snackbar.Add("Cuenta actualizada con éxito", MudSeverity.Success);
         }
     }
 
@@ -357,14 +359,14 @@
                 ["AccountToDelete"] = account,
                 ["AvailableAccounts"] = allAccounts.Where(a => a.Id != account.Id && a.IsActive).ToList()
             };
-            var dialog = DialogService.Show<TransferAndDeleteDialog>("Transferir Fondos y Desactivar", parameters);
+            var dialog = DialogService.Show<TransferAndDeleteDialog>("Transferir fondos y desactivar", parameters);
             var dialogResult = await dialog.Result;
             if (!dialogResult.Canceled) await LoadAccounts();
             return;
         }
 
         bool? result = await DialogService.ShowMessageBox(
-            "Desactivar Cuenta",
+            "Desactivar cuenta",
             $"¿Estás seguro de que deseas desactivar la cuenta '{account.Name}'?",
             yesText: "Desactivar",
             cancelText: "Cancelar");

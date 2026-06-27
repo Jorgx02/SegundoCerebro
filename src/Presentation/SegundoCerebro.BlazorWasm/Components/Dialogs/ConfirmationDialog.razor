@@ -19,10 +19,10 @@
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
 
-    [Parameter] public string Title { get; set; } = "Confirmation";
+    [Parameter] public string Title { get; set; } = "Confirmación";
     [Parameter] public string ContentText { get; set; } = string.Empty;
-    [Parameter] public string ButtonText { get; set; } = "Confirm";
-    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public string ButtonText { get; set; } = "Confirmar";
+    [Parameter] public string CancelText { get; set; } = "Cancelar";
     [Parameter] public Color ButtonColor { get; set; } = Color.Error;
 
     void Submit() => MudDialog.Close(DialogResult.Ok(true));

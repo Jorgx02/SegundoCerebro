@@ -15,7 +15,7 @@
                 Balance actual: <strong>@Account.Balance.ToString("N2") @Account.Currency</strong>
             </MudText>
 
-            <MudSelect T="string" Label="Convertir a Divisa" Value="@targetCurrency" ValueChanged="OnTargetCurrencyChanged"
+            <MudSelect T="string" Label="Convertir a divisa" Value="@targetCurrency" ValueChanged="OnTargetCurrencyChanged"
                        Variant="Variant.Outlined" Margin="Margin.Dense">
                 @foreach (var curr in availableCurrencies.Where(c => c != Account.Currency))
                 {
@@ -45,7 +45,7 @@
     <DialogActions>
         <MudButton OnClick="Cancel">Cancelar</MudButton>
         <MudButton Color="Color.Secondary" OnClick="Submit" Variant="Variant.Filled" Disabled="@(exchangeRate <= 0)">
-            Convertir y Guardar</MudButton>
+            Convertir y guardar</MudButton>
         </DialogActions>
     </MudDialog>
 
@@ -81,7 +81,7 @@ Http.GetFromJsonAsync<ExchangeRateResponse>($"https://open.er-api.com/v6/latest/
         }
         catch (Exception)
         {
-            errorMessage = "Error al conectar con el servicio de tasas de cambio.";
+            errorMessage = "Error al conectar con el servicio de tasas de cambio";
         }
         finally
         {

@@ -11,14 +11,14 @@
 <MudCard Elevation="4" Class="pa-6 rounded-lg">
     <MudCardHeader>
         <CardHeaderContent>
-            <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: bold;">Iniciar Sesión</MudText>
+            <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: bold;">Iniciar sesión</MudText>
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
         @if (!show2FA)
         {
             <MudForm @ref="form">
-                <MudTextField @bind-Value="model.Email" Label="Correo Electrónico" Variant="Variant.Outlined"
+                <MudTextField @bind-Value="model.Email" Label="Correo electrónico" Variant="Variant.Outlined"
                               Margin="Margin.Dense" Class="mb-4" Required="true" />
                 <MudTextField @bind-Value="model.Password" Label="Contraseña" InputType="InputType.Password"
                               Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Required="true" />
@@ -58,12 +58,12 @@
                     else
                     {
 
-                        <span>Verificar y Entrar</span>
+                        <span>Verificar y entrar</span>
                     }
                 </MudButton>
             </MudForm>
             <MudButton Variant="Variant.Text" Color="Color.Default" FullWidth="true" OnClick="() => show2FA = false"
-                       Class="mt-2">Volver al Login</MudButton>
+                       Class="mt-2">Volver al login</MudButton>
         }
     </MudCardContent>
 </MudCard>

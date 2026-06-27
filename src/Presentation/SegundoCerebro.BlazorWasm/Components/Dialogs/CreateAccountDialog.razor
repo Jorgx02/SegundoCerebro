@@ -10,13 +10,13 @@
         <MudForm Model="@model" @ref="@form">
             @* Campos del formulario para introducir los datos de la nueva cuenta. *@
             <MudCardContent>
-                <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true" Label="Account Name"
-                              Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true"
+                              Label="Nombre de cuenta" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
                 <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
-                              Label="Description (Optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
+                              Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
 
-                <MudSelect @bind-Value="model.Type" For="@(() => model.Type)" Label="Account Type"
+                <MudSelect @bind-Value="model.Type" For="@(() => model.Type)" Label="Tipo de cuenta"
                            Variant="Variant.Outlined" Margin="Margin.Dense">
                     @foreach (AccountType type in Enum.GetValues<AccountType>())
                     {
@@ -25,7 +25,7 @@
                 </MudSelect>
 
                 <MudNumericField @bind-Value="model.InitialBalance" For="@(() => model.InitialBalance)" T="decimal"
-                                 Label="Initial Balance" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N2" />
+                                 Label="Balance inicial" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N2" />
 
                 <!-- Funcionalidad de divisas oculta temporalmente
                 <MudSelect @bind-Value="model.Currency" For="@(() => model.Currency)" Label="Currency"
@@ -50,13 +50,13 @@
                 </MudSelect>
 
                 <MudTextField @bind-Value="model.AccountNumber" For="@(() => model.AccountNumber)"
-                              Label="Número de Cuenta IBAN" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" />
+                              Label="Número de cuenta IBAN" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" />
             </MudCardContent>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Create Account</MudButton>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Crear Cuenta</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -215,7 +215,7 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error creating account: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error al crear cuenta: {ex.Message}", MudSeverity.Error);
             }
         }
     }

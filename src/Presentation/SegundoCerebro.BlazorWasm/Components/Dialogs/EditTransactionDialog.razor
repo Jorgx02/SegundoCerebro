@@ -20,7 +20,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancelar</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar Notas</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar notas</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -58,7 +58,7 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error updating transaction: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error al actualizar la transacción: {ex.Message}", MudSeverity.Error);
             }
         }
     }

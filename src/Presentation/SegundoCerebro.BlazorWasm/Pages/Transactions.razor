@@ -7,15 +7,15 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-<PageTitle>Transactions - SegundoCerebro</PageTitle>
+<PageTitle>Transacciones - SegundoCerebro</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudGrid>
         <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
-            <MudText Typo="Typo.h4">Transactions</MudText>
+            <MudText Typo="Typo.h4">Transacciones</MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="Icons.Material.Filled.Add"
                        OnClick="OpenCreateDialog">
-                New Transaction
+                Nueva transacción
             </MudButton>
         </MudItem>
     </MudGrid>
@@ -25,14 +25,14 @@
         <MudCardContent>
             <MudGrid>
                 <MudItem xs="12" sm="6" md="3">
-                    <MudDatePicker Label="Start Date" @bind-Date="startDate" />
+                    <MudDatePicker Label="Fecha de inicio" @bind-Date="startDate" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
-                    <MudDatePicker Label="End Date" @bind-Date="endDate" />
+                    <MudDatePicker Label="Fecha de fin" @bind-Date="endDate" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
-                    <MudSelect T="Guid?" Label="Account" @bind-Value="selectedAccountId">
-                        <MudSelectItem T="Guid?" Value="@((Guid?)null)">All Accounts</MudSelectItem>
+                    <MudSelect T="Guid?" Label="Cuenta" @bind-Value="selectedAccountId">
+                        <MudSelectItem T="Guid?" Value="@((Guid?)null)">Todas las cuentas</MudSelectItem>
                         @foreach (var account in accounts)
                         {
                             <MudSelectItem T="Guid?" Value="@((Guid?)account.Id)">@account.Name</MudSelectItem>
@@ -40,11 +40,11 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
-                    <MudSelect T="TransactionType?" Label="Type" @bind-Value="selectedType">
+                    <MudSelect T="TransactionType?" Label="Tipo" @bind-Value="selectedType">
                         <MudSelectItem T="TransactionType?" Value="@((TransactionType?)null)">All Types</MudSelectItem>
-                        <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Income)">Income
+                        <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Income)">Ingreso
                         </MudSelectItem>
-                        <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Expense)">Expense
+                        <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Expense)">Gasto
                         </MudSelectItem>
                     </MudSelect>
                 </MudItem>
@@ -56,26 +56,26 @@
     <MudCard Elevation="4" Class="rounded-lg">
         <MudCardHeader>
             <CardHeaderContent>
-                <MudText Typo="Typo.h6">All Transactions (@filteredTransactions.Count())</MudText>
+                <MudText Typo="Typo.h6">Todas las transacciones (@filteredTransactions.Count())</MudText>
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
             <MudTable Items="@filteredTransactions" Hover="true" Striped="true" Dense="true" Elevation="0"
                       Loading="@loading" LoadingProgressColor="Color.Info">
                 <HeaderContent>
-                    <MudTh>Date</MudTh>
-                    <MudTh>Description</MudTh>
-                    <MudTh>Category</MudTh>
-                    <MudTh>Account</MudTh>
-                    <MudTh>Amount</MudTh>
-                    <MudTh>Type</MudTh>
-                    <MudTh>Edit transaction</MudTh>
+                    <MudTh>Fecha</MudTh>
+                    <MudTh>Descripción</MudTh>
+                    <MudTh>Categoría</MudTh>
+                    <MudTh>Cuenta</MudTh>
+                    <MudTh>Monto</MudTh>
+                    <MudTh>Tipo</MudTh>
+                    <MudTh>Editar transacción</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Date">
+                    <MudTd DataLabel="Fecha">
                         <MudText Typo="Typo.body2">@context.Date.ToString("dd/MM/yyyy")</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Description">
+                    <MudTd DataLabel="Descripción">
                         <div>
                             <MudText Typo="Typo.body2">@context.Description</MudText>
                             @if (!string.IsNullOrEmpty(context.Reference))
@@ -84,7 +84,7 @@
                             }
                         </div>
                     </MudTd>
-                    <MudTd DataLabel="Category">
+                    <MudTd DataLabel="Categoría">
                         <div class="d-flex align-center">
                             @if (!string.IsNullOrEmpty(context.CategoryIcon))
                             {
@@ -93,28 +93,28 @@
                             <MudText Typo="Typo.body2">@context.CategoryName</MudText>
                         </div>
                     </MudTd>
-                    <MudTd DataLabel="Account">
+                    <MudTd DataLabel="Cuenta">
                         <MudText Typo="Typo.body2">@context.AccountName</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Amount">
+                    <MudTd DataLabel="Monto">
                         <MudText Typo="Typo.body2"
                                  Color="@(context.Type == TransactionType.Income ? Color.Success : Color.Error)">
                             @context.FormattedAmount
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Type">
+                    <MudTd DataLabel="Tipo">
                         <MudChip Size="Size.Small"
                                  Color="@(context.Type == TransactionType.Income ? Color.Success : Color.Error)">
                             @context.TypeName
                         </MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Actions">
+                    <MudTd DataLabel="Acciones">
                         <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
                                        Variant="Variant.Filled" OnClick="() => OpenEditDialog(context)" />
                     </MudTd>
                 </RowTemplate>
                 <NoRecordsContent>
-                    <MudText>No transactions found</MudText>
+                    <MudText>Ninguna transacción encontrada</MudText>
                 </NoRecordsContent>
             </MudTable>
         </MudCardContent>
@@ -158,7 +158,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading data: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error cargando los datos: {ex.Message}", MudSeverity.Error);
         }
         finally
         {
@@ -168,26 +168,26 @@
 
     private async Task OpenCreateDialog()
     {
-        var dialog = DialogService.Show<CreateTransactionDialog>("Create New Transaction");
+        var dialog = DialogService.Show<CreateTransactionDialog>("Crear nueva transacción");
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
             await LoadData();
-            Snackbar.Add("Transaction created successfully!", MudSeverity.Success);
+            Snackbar.Add("Transacción creada con éxito", MudSeverity.Success);
         }
     }
 
     private async Task OpenEditDialog(TransactionDto transaction)
     {
         var parameters = new DialogParameters { ["Transaction"] = transaction };
-        var dialog = DialogService.Show<EditTransactionDialog>("Edit Transaction", parameters);
+        var dialog = DialogService.Show<EditTransactionDialog>("Editar transacción", parameters);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
             await LoadData();
-            Snackbar.Add("Transaction updated successfully!", MudSeverity.Success);
+            Snackbar.Add("Transacción actualizada con éxito", MudSeverity.Success);
         }
     }
 }

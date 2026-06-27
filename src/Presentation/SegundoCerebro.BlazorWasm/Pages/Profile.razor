@@ -9,10 +9,10 @@
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
-<PageTitle>Mi Perfil - SegundoCerebro</PageTitle>
+<PageTitle>Perfil - SegundoCerebro</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-6">Mi Perfil</MudText>
+    <MudText Typo="Typo.h4" Class="mb-6">Mi perfil</MudText>
 
     <MudGrid>
         <!-- Información del Usuario -->
@@ -20,16 +20,16 @@
             <MudCard Elevation="3" Class="rounded-lg h-100">
                 <MudCardHeader>
                     <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Información Personal</MudText>
+                        <MudText Typo="Typo.h6">Información personal</MudText>
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudTextField @bind-Value="userEmail" Label="Correo Electrónico" Variant="Variant.Outlined"
+                    <MudTextField @bind-Value="userEmail" Label="Correo electrónico" Variant="Variant.Outlined"
                                   Margin="Margin.Dense" Class="mb-4" />
-                    <MudTextField @bind-Value="userName" Label="Nombre de Usuario" Variant="Variant.Outlined"
+                    <MudTextField @bind-Value="userName" Label="Nombre de usuario" Variant="Variant.Outlined"
                                   Margin="Margin.Dense" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="SaveProfile">Guardar
-                        Cambios</MudButton>
+                        cambios</MudButton>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -43,14 +43,14 @@
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudTextField @bind-Value="currentPassword" Label="Contraseña Actual" InputType="InputType.Password"
+                        <MudTextField @bind-Value="currentPassword" Label="Contraseña actual" InputType="InputType.Password"
                                       Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
-                        <MudTextField @bind-Value="newPassword" Label="Nueva Contraseña" InputType="InputType.Password"
+                        <MudTextField @bind-Value="newPassword" Label="Nueva contraseña" InputType="InputType.Password"
                                       Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
-                        <MudTextField @bind-Value="confirmPassword" Label="Confirmar Nueva Contraseña"
+                        <MudTextField @bind-Value="confirmPassword" Label="Confirmar nueva contraseña"
                                       InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="mt-4" OnClick="ChangePassword">
-                            Actualizar Contraseña</MudButton>
+                            Actualizar contraseña</MudButton>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
@@ -60,11 +60,11 @@
                     <MudCard Elevation="3" Class="rounded-lg mt-2">
                         <MudCardHeader>
                             <CardHeaderContent>
-                                <MudText Typo="Typo.h6">Preferencias de la Aplicación</MudText>
+                                <MudText Typo="Typo.h6">Preferencias de la aplicación</MudText>
                             </CardHeaderContent>
                         </MudCardHeader>
                         <MudCardContent>
-                            <MudSelect T="string" @bind-Value="selectedLanguage" Label="Idioma de la Interfaz"
+                            <MudSelect T="string" @bind-Value="selectedLanguage" Label="Idioma de la interfaz"
                                        Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Style="max-width: 300px;">
                                 <MudSelectItem Value="@("es")">Español</MudSelectItem>
                                 <MudSelectItem Value="@("en")">English</MudSelectItem>
@@ -125,7 +125,7 @@
                                 <MudCard Elevation="3" Class="rounded-lg mt-2 border-solid border-2 mud-border-error">
                                     <MudCardHeader>
                                         <CardHeaderContent>
-                                            <MudText Typo="Typo.h6" Color="Color.Error">Zona de Peligro</MudText>
+                                            <MudText Typo="Typo.h6" Color="Color.Error">Zona de peligro</MudText>
                                         </CardHeaderContent>
                                     </MudCardHeader>
                                     <MudCardContent>
@@ -136,7 +136,7 @@
                                         <MudTextField @bind-Value="deletePassword" Label="Contraseña para confirmar"
                                                       InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
                                         <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteUserAccount">Eliminar mi
-                                            Cuenta</MudButton>
+                                            cuenta</MudButton>
                                         </MudCardContent>
                                     </MudCard>
                                 </MudItem>
@@ -293,7 +293,7 @@ MudSeverity.Error);
             return;
         }
 
-        bool? result = await DialogService.ShowMessageBox("Eliminar Cuenta Definitivamente", "¿Estás seguro? Esta acción borrará todos tus datos, cuentas y transacciones para siempre.", yesText: "Eliminar Todo", cancelText: "Cancelar");
+        bool? result = await DialogService.ShowMessageBox("Eliminar cuenta definitivamente", "¿Estás seguro? Esta acción borrará todos tus datos, cuentas y transacciones para siempre.", yesText: "Eliminar todo", cancelText: "Cancelar");
 
         if (result == true)
         {

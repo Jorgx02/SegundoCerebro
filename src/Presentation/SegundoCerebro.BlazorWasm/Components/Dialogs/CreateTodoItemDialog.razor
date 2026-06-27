@@ -1,42 +1,56 @@
-@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Commands
 @using SegundoCerebro.BlazorWasm.Services
-@inject IProjectService ProjectService
+@inject ITodoItemService TodoItemService
 @inject ISnackbar Snackbar
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Crear nuevo proyecto</MudText>
+        <MudText Typo="Typo.h6">Create nueva tarea</MudText>
     </TitleContent>
     <DialogContent>
         <MudForm Model="@model" @ref="@form" ValidationDelay="0">
-            <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Label="Nombre del proyecto"
+            <MudTextField @bind-Value="model.Title" For="@(() => model.Title)" Label="Título de la tarea"
                           Variant="Variant.Outlined" Margin="Margin.Dense" />
             <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
                           Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
             <MudDatePicker @bind-Date="model.DueDate" Label="Fecha de vencimiento (Opcional)" Variant="Variant.Outlined"
                            Margin="Margin.Dense" />
+            <MudRating @bind-SelectedValue="model.Priority" MaxValue="3" FullIcon="@Icons.Material.Filled.Flag"
+                       EmptyIcon="@Icons.Material.Outlined.Flag" Label="Prioridad" />
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancelar</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Crear</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Crear tarea</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public Guid? ProjectId { get; set; }
 
-    private CreateProjectDto model = new();
+    private CreateTodoItemDto model = new();
     private MudForm form = null!;
+
+    protected override void OnInitialized()
+    {
+        model.ProjectId = ProjectId;
+    }
 
     private async Task Submit()
     {
         await form.Validate();
         if (!form.IsValid) return;
 
-        var newProject = await ProjectService.CreateAsync(model);
-        Snackbar.Add("Proyecto creado con éxito", MudSeverity.Success);
-        MudDialog.Close(DialogResult.Ok(newProject));
+        try
+        {
+            var newTask = await TodoItemService.CreateAsync(model);
+            MudDialog.Close(DialogResult.Ok(newTask));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al crear la tarea: {ex.Message}", MudSeverity.Error);
+        }
     }
 
     void Cancel() => MudDialog.Cancel();

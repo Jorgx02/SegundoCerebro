@@ -10,18 +10,18 @@
         <MudForm Model="@model" @ref="@form">
             @* Campos del formulario para editar el nombre y la descripción. *@
             <MudCardContent>
-                <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true" Label="Account Name"
-                              Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true"
+                              Label="Nombre de la cuenta" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
                 <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
-                              Label="Description (Optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
+                              Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
 
             </MudCardContent>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Update Account</MudButton>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar Cuenta</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -84,7 +84,7 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error updating account: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error al actualizar la cuenta: {ex.Message}", MudSeverity.Error);
             }
         }
     }

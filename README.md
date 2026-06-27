@@ -68,12 +68,14 @@ Empoderar a las personas para que tomen el control total de su vida financiera, 
 - 🔍 **Filtros Inteligentes**: Por fecha, cuenta, categoría y tipo
 - 💱 **Gestión Multi-Cuenta**: Transferencias seguras y balances consolidados (EUR)
 
-### 🎯 **Módulo de Productividad** (v2.0 - Planificado)
+### 🎯 **Módulo de Productividad** (v2.0 - Completado ✅)
 
-- ✅ **Gestión de Tareas**: Sistema GTD completo
-- 📅 **Planificación de Proyectos**: Metodologías ágiles integradas
-- ⏰ **Time Tracking**: Seguimiento detallado del tiempo
-- 🎯 **Objetivos SMART**: Definición y seguimiento de metas
+- ️ **Gestión de Proyectos**: Creación, edición y eliminación de proyectos con estados (GTD).
+- ✅ **Gestión de Tareas**: CRUD completo de tareas asociadas a proyectos.
+- 🗂️ **Estados GTD**: Flujo de estados para tareas (`Inbox`, `NextAction`, `Completed`, etc.).
+- 🚀 **Actualización Rápida**: Checkbox para completar tareas con actualización optimista de UI.
+- 👁️ **Vista Centralizada**: Página "Todas las Tareas" agrupadas por proyecto.
+- 🛡️ **Reglas de Negocio**: Lógica para prevenir borrado de proyectos completados o finalización con tareas pendientes.
 
 ### 🔄 **Módulo de Hábitos** (v3.0 - Planificado)
 
@@ -283,16 +285,18 @@ dotnet run
 - [x] Base de datos PostgreSQL configurada ✅
 - [x] **Sistema completamente operativo** ✅
 
-### 🚧 **Fase 2: Productividad Personal** (Q1 2026) - **EN PROGRESO**
+### ✅ **Fase 2: Productividad Personal** (Q3 2026) - **COMPLETADA**
 
-- [x] Gestión de tareas (GTD) ✅
-- [x] Proyectos y objetivos ✅
-- [ ] Time tracking
-- [ ] Calendario integrado
-- [ ] Recordatorios y notificaciones
-- [ ] Sincronización multi-dispositivo
+- [x] Arquitectura CQRS para Proyectos y Tareas ✅
+- [x] Gestión de Proyectos (CRUD) ✅
+- [x] Gestión de Tareas (CRUD) ✅
+- [x] Página de detalles de Proyecto con lista de tareas ✅
+- [x] Página global de Tareas agrupadas por Proyecto ✅
+- [x] Lógica de negocio GTD (estados, finalización) ✅
+- [ ] Time tracking (Planificado)
+- [ ] Calendario integrado (Planificado)
 
-### 🎯 **Fase 3: Hábitos y Bienestar** (Q2 2026)
+### 🎯 **Fase 3: Hábitos y Bienestar** (Q3 2026)
 
 - [ ] Habit tracker diario
 - [ ] Métricas de bienestar
@@ -301,7 +305,7 @@ dotnet run
 - [ ] Integración con dispositivos wearables
 - [ ] Reportes de progreso
 
-### 🤖 **Fase 4: Inteligencia Artificial** (Q3 2026)
+### 🤖 **Fase 4: Inteligencia Artificial** (Q4 2026)
 
 - [ ] Chatbot asistente personal
 - [ ] Análisis predictivo financiero
@@ -310,7 +314,7 @@ dotnet run
 - [ ] Categorización automática inteligente
 - [ ] Alertas proactivas
 
-### 📱 **Fase 5: Ecosistema Móvil** (Q3 2026)
+### 📱 **Fase 5: Ecosistema Móvil** (Q4 2026)
 
 - [ ] App nativa con .NET MAUI
 - [ ] Sincronización offline-first

@@ -6,17 +6,17 @@
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Edit Project</MudText>
+        <MudText Typo="Typo.h6">Editar proyecto</MudText>
     </TitleContent>
     <DialogContent>
         <MudForm Model="@model" @ref="@form" ValidationDelay="0">
-            <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Label="Project Name"
+            <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Label="Nombre del proyecto"
                           Variant="Variant.Outlined" Margin="Margin.Dense" />
             <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
-                          Label="Description (Optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
-            <MudDatePicker @bind-Date="model.DueDate" Label="Due Date (Optional)" Variant="Variant.Outlined"
+                          Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
+            <MudDatePicker @bind-Date="model.DueDate" Label="Fecha de vencimiento (Opcional)" Variant="Variant.Outlined"
                            Margin="Margin.Dense" />
-            <MudSelect T="ProjectStatus" @bind-Value="model.Status" For="@(() => model.Status)" Label="Status"
+            <MudSelect T="ProjectStatus" @bind-Value="model.Status" For="@(() => model.Status)" Label="Estatus"
                        Variant="Variant.Outlined" Margin="Margin.Dense">
                 @foreach (ProjectStatus status in Enum.GetValues<ProjectStatus>())
                 {
@@ -26,8 +26,8 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Update</MudButton>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -62,7 +62,7 @@
         catch (Exception ex)
         {
             // Mostramos el error de la API (ej. "No se puede completar si hay tareas pendientes")
-            Snackbar.Add($"Error updating project: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al actualizar el proyecto: {ex.Message}", MudSeverity.Error);
         }
     }
 

@@ -8,22 +8,23 @@
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Add New Card</MudText>
+        <MudText Typo="Typo.h6">Añadir nueva tarjeta</MudText>
     </TitleContent>
     <DialogContent>
         <MudForm Model="@model" @ref="@form" ValidationDelay="0">
             <MudGrid>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="model.Name" For="@(() => model.Name)"
-                                  Label="Card Name (e.g., 'Personal Visa')" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                  Label="Nombre de la tarjeta (e.g., 'Visa personal')" Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="model.CardholderName" For="@(() => model.CardholderName)"
-                                  Label="Cardholder Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                  Label="Nombre del titular" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 </MudItem>
 
                 <MudItem xs="12">
-                    <MudText Typo="Typo.caption" Class="mb-1">Card Details</MudText>
+                    <MudText Typo="Typo.caption" Class="mb-1">Detalles de tarjeta</MudText>
                     <div id="card-element" class="stripe-card-element">
                         <!-- Stripe Card Element will be mounted here -->
                     </div>
@@ -33,16 +34,16 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
         <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled" Disabled="processing">
             @if (processing)
             {
                 <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                <MudText Class="ms-2">Processing...</MudText>
+                <MudText Class="ms-2">Procesando...</MudText>
             }
             else
             {
-                <MudText>Add Card</MudText>
+                <MudText>Añadir tarjeta</MudText>
             }
         </MudButton>
     </DialogActions>
@@ -69,7 +70,7 @@
             var publishableKey = Configuration["Stripe:PublishableKey"];
             if (string.IsNullOrEmpty(publishableKey))
             {
-                Snackbar.Add("Stripe Publishable Key is not configured.", MudSeverity.Error);
+                Snackbar.Add("La Publishable Key de Stripe no está configurada.", MudSeverity.Error);
                 return;
             }
             // 2. Llama a las funciones a través de la referencia al módulo.
@@ -98,12 +99,12 @@
         try
         {
             var newCard = await CardService.CreateAsync(model);
-            Snackbar.Add("Card added successfully!", MudSeverity.Success);
+            Snackbar.Add("Tarjeta añadida con éxito", MudSeverity.Success);
             MudDialog.Close(DialogResult.Ok(newCard));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error saving card: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al guardar la tarjeta: {ex.Message}", MudSeverity.Error);
         }
         finally
         {

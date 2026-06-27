@@ -1,0 +1,271 @@
+@page "/projects/{ProjectId}"
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@using SegundoCerebro.BlazorWasm.Models.Commands
+@using SegundoCerebro.BlazorWasm.Components.Dialogs
+@inject IProjectService ProjectService
+@inject ITodoItemService TodoItemService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Detalles del proyecto - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @if (loading)
+    {
+        <div class="d-flex justify-center align-center" style="height: 50vh;">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else if (project != null)
+    {
+        <MudGrid>
+            <MudItem xs="12">
+                <MudBreadcrumbs Items="_breadcrumbs"></MudBreadcrumbs>
+            </MudItem>
+            <MudItem xs="12" Class="d-flex align-center">
+                <MudChip Size="Size.Small" Color="@GetStatusColor(project.Status)" Class="mr-4">@project.StatusName
+                </MudChip>
+                <MudText Typo="Typo.h4">@project.Name</MudText>
+            </MudItem>
+            @if (!string.IsNullOrEmpty(project.Description))
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@project.Description</MudText>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <MudDivider Class="my-6" />
+
+        <MudGrid>
+            <MudItem xs="12">
+                <div class="d-flex justify-space-between align-center mb-4">
+                    <MudText Typo="Typo.h5">Tareas</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="OpenCreateTaskDialog">
+                        Nueva tarea
+                    </MudButton>
+                </div>
+
+                @if (tasks.Any())
+                {
+                    <MudList Clickable="true">
+                        @foreach (var task in tasks.OrderBy(t => t.Status == TodoItemStatus.Completed).ThenByDescending(t =>
+                t.Priority))
+                        {
+                            <MudListItem>
+                                <div class="d-flex align-center" style="width: 100%;">
+                                    <MudCheckBox T="bool" Value="@(task.Status == TodoItemStatus.Completed)"
+                                                 ValueChanged="@((bool isChecked) => ToggleTaskCompletion(task, isChecked))" />
+                                    <div class="ml-4">
+                                        <div class="d-flex align-center">
+                                            <MudText Typo="Typo.body1">@task.Title</MudText>
+                                            <MudChip Size="Size.Small" Color="@GetTaskStatusColor(task.Status)" Class="ml-2">
+                                                @task.StatusName</MudChip>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(task.Description))
+                                            {
+                                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">@task.Description</MudText>
+                                            }
+                                        </div>
+                                        <MudSpacer />
+                                        @if (task.DueDate.HasValue)
+                                        {
+                                            <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Event"
+                                                     Color="@(task.DueDate.Value.Date < DateTime.Today ? Color.Error : Color.Default)">
+                                                @task.DueDate.Value.ToString("MMM dd")
+                                            </MudChip>
+                                        }
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                       OnClick="() => OpenEditTaskDialog(task)" Class="ml-2" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                       OnClick="() => DeleteTask(task)" Class="ml-1" />
+                                    </div>
+                                </MudListItem>
+                                <MudDivider />
+                            }
+                        </MudList>
+                    }
+                else
+                    {
+                        <MudPaper Elevation="0" Class="pa-4 rounded-lg"
+                                  Style="background-color: var(--mud-palette-background-grey);">
+                            <MudText>Este proyecto no tiene tareas aún. Añade una para empezar</MudText>
+                        </MudPaper>
+                    }
+                </MudItem>
+            </MudGrid>
+        }
+    else
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error">Proyecto no encontrado.</MudAlert>
+        }
+    </MudContainer>
+
+@code {
+    [Parameter]
+    public string ProjectId { get; set; } = string.Empty;
+
+    private ProjectDto? project;
+    private List<TodoItemDto> tasks = new();
+    private bool loading = true;
+    private List<BreadcrumbItem> _breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Guid.TryParse(ProjectId, out var projectId))
+        {
+            await LoadData(projectId);
+        }
+        else
+        {
+            Snackbar.Add("ID de proyecto no válido.", MudSeverity.Error);
+            loading = false;
+        }
+    }
+
+    private async Task LoadData(Guid projectId)
+    {
+        loading = true;
+        try
+        {
+            var projectTask = ProjectService.GetByIdAsync(projectId);
+            var tasksTask = TodoItemService.GetByProjectIdAsync(projectId);
+
+            await Task.WhenAll(projectTask, tasksTask);
+
+            project = await projectTask;
+            tasks = (await tasksTask).ToList();
+
+            if (project != null)
+            {
+                _breadcrumbs = new List<BreadcrumbItem>
+                {
+                    new BreadcrumbItem("Projects", href: "/projects"),
+                    new BreadcrumbItem(project.Name, href: null, disabled: true)
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar los detalles del proyecto: {ex.Message}", MudSeverity.Error);
+            project = null;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task OpenCreateTaskDialog()
+    {
+        if (project is null) return;
+
+        var parameters = new DialogParameters { ["ProjectId"] = project.Id };
+        var dialog = DialogService.Show<CreateTodoItemDialog>("Crear nueva tarea", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is TodoItemDto newTask)
+        {
+            tasks.Add(newTask);
+            Snackbar.Add("Tarea creada con éxito", MudSeverity.Success);
+        }
+    }
+
+    private async Task OpenEditTaskDialog(TodoItemDto taskToEdit)
+    {
+        var parameters = new DialogParameters { ["TaskToEdit"] = taskToEdit };
+        var dialog = DialogService.Show<EditTodoItemDialog>("Editar tarea", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is TodoItemDto updatedTask)
+        {
+            var index = tasks.FindIndex(t => t.Id == updatedTask.Id);
+            if (index != -1)
+            {
+                tasks[index] = updatedTask;
+                Snackbar.Add("Tarea actualizada con éxito", MudSeverity.Success);
+            }
+        }
+    }
+
+    private async Task DeleteTask(TodoItemDto taskToDelete)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"¿Estas seguro que quieres eliminar la tarea '{taskToDelete.Title}'? Esta acción no se puede deshacer.",
+            ["ButtonText"] = "Eliminar",
+            ["ButtonColor"] = Color.Error
+        };
+
+        var dialog = DialogService.Show<ConfirmationDialog>("Eliminar tarea", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                await TodoItemService.DeleteAsync(taskToDelete.Id);
+                tasks.Remove(taskToDelete);
+                Snackbar.Add("Tarea eliminada con éxito", MudSeverity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error eliminando tarea: {ex.Message}", MudSeverity.Error);
+            }
+        }
+    }
+
+    private async Task ToggleTaskCompletion(TodoItemDto task, bool isChecked)
+    {
+        var originalStatus = task.Status;
+        // Actualización optimista de la UI para una respuesta instantánea
+        task.Status = isChecked ? TodoItemStatus.Completed : TodoItemStatus.NextAction;
+
+        var model = new UpdateTodoItemDto
+        {
+            Title = task.Title,
+            Description = task.Description,
+            Status = task.Status,
+            Priority = task.Priority,
+            DueDate = task.DueDate,
+            ProjectId = task.ProjectId
+        };
+
+        try
+        {
+            var updatedTask = await TodoItemService.UpdateAsync(task.Id, model);
+            var index = tasks.FindIndex(t => t.Id == task.Id);
+            if (index != -1) tasks[index] = updatedTask; // Refresca con datos del servidor (ej. CompletedAt)
+            Snackbar.Add($"Tarea '{@task.Title}' marcada como {(isChecked ? "completada" : "pendiente")}.", MudSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            // Si falla la API, revertimos el cambio en la UI
+            task.Status = originalStatus;
+            Snackbar.Add($"Error actualizando tarea: {ex.Message}", MudSeverity.Error);
+        }
+        StateHasChanged(); // Nos aseguramos de que la UI se repinte
+    }
+
+    private Color GetStatusColor(ProjectStatus status) => status switch
+    {
+        ProjectStatus.Completed => Color.Success,
+        ProjectStatus.InProgress => Color.Info,
+        ProjectStatus.OnHold => Color.Warning,
+        ProjectStatus.Cancelled => Color.Error,
+        _ => Color.Default
+    };
+
+    private Color GetTaskStatusColor(TodoItemStatus status) => status switch
+    {
+        TodoItemStatus.Completed => Color.Success,
+        TodoItemStatus.InProgress => Color.Info,
+        TodoItemStatus.WaitingFor => Color.Warning,
+        TodoItemStatus.NextAction => Color.Primary,
+        _ => Color.Default // Inbox
+    };
+}

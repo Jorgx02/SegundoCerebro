@@ -79,3 +79,6 @@ logs/
 # These should not be in source control. Use user-secrets or environment variables.
 appsettings.Development.json
 appsettings.json
+
+# Others
+.qodo

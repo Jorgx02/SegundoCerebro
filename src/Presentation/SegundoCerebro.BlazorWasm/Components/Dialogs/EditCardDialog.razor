@@ -6,17 +6,17 @@
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Edit Card Name</MudText>
+        <MudText Typo="Typo.h6">Editar nombre de la tarjeta</MudText>
     </TitleContent>
     <DialogContent>
         <MudForm Model="@model" @ref="@form" ValidationDelay="0">
-            <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Label="Card Name"
+            <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Label="Nombre de la tarjeta"
                           Variant="Variant.Outlined" Margin="Margin.Dense" />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Update</MudButton>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -41,7 +41,7 @@
         if (!form.IsValid) return;
 
         var updatedCard = await CardService.UpdateAsync(CardToEdit.Id, model);
-        Snackbar.Add("Card updated successfully!", MudSeverity.Success);
+        Snackbar.Add("Card actualizada con éxito", MudSeverity.Success);
         MudDialog.Close(DialogResult.Ok(updatedCard));
     }
 
