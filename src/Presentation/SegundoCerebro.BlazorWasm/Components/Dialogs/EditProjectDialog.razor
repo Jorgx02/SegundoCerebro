@@ -16,7 +16,7 @@
                           Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
             <MudDatePicker @bind-Date="model.DueDate" Label="Fecha de vencimiento (Opcional)" Variant="Variant.Outlined"
                            Margin="Margin.Dense" />
-            <MudSelect T="ProjectStatus" @bind-Value="model.Status" For="@(() => model.Status)" Label="Estatus"
+            <MudSelect T="ProjectStatus" @bind-Value="model.Status" For="@(() => model.Status)" Label="Estado"
                        Variant="Variant.Outlined" Margin="Margin.Dense">
                 @foreach (ProjectStatus status in Enum.GetValues<ProjectStatus>())
                 {

@@ -40,6 +40,11 @@ public interface IUnitOfWork : IDisposable
     ICardRepository Cards { get; }
 
     /// <summary>
+    /// Repositorio para las entidades de Hábitos (Habit).
+    /// </summary>
+    IHabitRepository Habits { get; }
+
+    /// <summary>
     /// Guarda todos los cambios realizados en el contexto de la base de datos.
     /// </summary>
     /// <returns>El número de entidades afectadas.</returns>

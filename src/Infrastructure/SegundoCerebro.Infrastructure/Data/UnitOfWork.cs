@@ -21,6 +21,7 @@ public class UnitOfWork : IUnitOfWork
     private IProjectRepository? _projectRepository;
     private ITodoItemRepository? _todoItemRepository;
     private ICardRepository? _cardRepository;
+    private IHabitRepository? _habitRepository;
 
     /// <summary>
     /// Inicializa una nueva instancia de la clase <see cref="UnitOfWork"/>.
@@ -45,6 +46,8 @@ public class UnitOfWork : IUnitOfWork
     public ITodoItemRepository TodoItems => _todoItemRepository ??= new TodoItemRepository(_context);
     /// <inheritdoc />
     public ICardRepository Cards => _cardRepository ??= new CardRepository(_context);
+    /// <inheritdoc />
+    public IHabitRepository Habits => _habitRepository ??= new HabitRepository(_context);
 
     /// <summary>
     /// Guarda todos los cambios pendientes en el contexto de la base de datos.

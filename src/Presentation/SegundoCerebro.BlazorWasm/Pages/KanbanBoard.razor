@@ -1,0 +1,237 @@
+@page "/kanban"
+@using System.Linq
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Models.Commands
+@using SegundoCerebro.BlazorWasm.Services
+@using MudBlazor
+@inject ITodoItemService TodoItemService
+@inject IProjectService ProjectService
+@inject ISnackbar Snackbar
+
+<PageTitle>Kanban - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h4">Tablero Kanban</MudText>
+            </div>
+        </MudItem>
+    </MudGrid>
+
+    <MudPaper Class="pa-4 rounded-lg mb-4" Elevation="2">
+        <MudGrid Spacing="3" AlignItems="AlignItems.End">
+            <MudItem xs="12" sm="12" md="6">
+                <MudSelect T="Guid?"
+                           Label="Filtrar por proyecto"
+                           @bind-Value="selectedProjectId"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           Clearable="true">
+                    @foreach (var project in projects)
+                    {
+                        <MudSelectItem Value="@((Guid?)project.Id)">@project.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudDatePicker Label="Fecha de inicio" @bind-Date="startDate" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudDatePicker Label="Fecha de finalización" @bind-Date="endDate" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (loading)
+            {
+                <div class="d-flex justify-center align-center" style="height: 50vh;">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else
+            {
+        <MudDropContainer T="TodoItemDto" Items="FilteredTasks" ItemsSelector="@((item, zoneIdentifier) => item.Status.ToString() == (string)zoneIdentifier)"
+                                  ItemDropped="ItemDropped" Class="d-flex flex-grow-1">
+                    <ChildContent>
+                        <MudGrid Spacing="3" Class="flex-grow-1">
+                            @foreach (var status in columnOrder)
+                            {
+                                <MudItem xs="12" sm="6" Class="mud-grid-item-md-true">
+                                    <MudPaper Elevation="2" Class="d-flex flex-column rounded-lg" Style="height: 100%;">
+                                        <div class="@($"pa-4 {GetColumnHeaderClass(status)}")">
+                                            <MudText Typo="Typo.h6">@status.ToString() (@FilteredTasks.Count(t => t.Status == status))</MudText>
+                                        </div>
+                                        <MudDropZone T="TodoItemDto" Identifier="@status.ToString()"
+                                                     Class="d-flex flex-column flex-grow-1 pa-4 gap-4"
+                                                     Style="background-color: var(--mud-palette-background-grey);"
+                                                     NoItemsContent="noItemsContentFragment">
+                                            <ItemRenderer>
+                                                <MudCard Elevation="4"
+                                                         Style="@($"border-left: 4px solid {GetPriorityColor(context.Priority)};")">
+                                                    <MudCardHeader>
+                                                        <CardHeaderContent>
+                                                            <MudText Typo="Typo.body1">@context.Title</MudText>
+                                                        </CardHeaderContent>
+                                                        <CardHeaderActions>
+                                                            <MudRating SelectedValue="context.Priority" ReadOnly="true" MaxValue="3"
+                                                                       FullIcon="@Icons.Material.Filled.Flag"
+                                                                       EmptyIcon="@Icons.Material.Outlined.Flag" Size="Size.Small" />
+                                                        </CardHeaderActions>
+                                                    </MudCardHeader>
+                                                    @if (!string.IsNullOrEmpty(context.Description))
+                                                    {
+                                                        <MudCardContent>
+                                                            <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description
+                                                            </MudText>
+                                                        </MudCardContent>
+                                                    }
+                                                    <MudCardActions Class="d-flex justify-space-between">
+                                                        <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Assignment"
+                                                                 Color="Color.Primary">
+                                                            @context.ProjectName
+                                                        </MudChip>
+                                                        @if (context.DueDate.HasValue)
+                                                        {
+                                                            <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Event"
+                                                                     Color="@(context.DueDate.Value.Date < DateTime.Today ? Color.Error : Color.Default)">
+                                                                @context.DueDate.Value.ToString("MMM dd")
+                                                            </MudChip>
+                                                        }
+                                                    </MudCardActions>
+                                                </MudCard>
+                                            </ItemRenderer>
+                                        </MudDropZone>
+                                    </MudPaper>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </ChildContent>
+                </MudDropContainer>
+    }
+</MudContainer>
+
+@code {
+    private List<TodoItemDto> tasks = new();
+    private bool loading = true;
+    private List<ProjectDto> projects = new();
+    private Guid? selectedProjectId;
+
+    private DateTime? startDate = DateTime.Today.AddYears(-10);
+    private DateTime? endDate = DateTime.Today.AddYears(10);
+
+    private readonly TodoItemStatus[] columnOrder =
+    {
+        TodoItemStatus.Inbox,
+        TodoItemStatus.NextAction,
+        TodoItemStatus.InProgress,
+        TodoItemStatus.WaitingFor,
+        TodoItemStatus.Completed
+    };
+
+    private RenderFragment noItemsContentFragment = @<div class="d-flex flex-column justify-center align-center pa-4"
+                                                           style="height: 100%; min-height: 150px;">
+                                                          <MudIcon Icon="@Icons.Material.Filled.Inbox" Size="Size.Large"
+                                                                   Class="mud-text-secondary" />
+                                                          <MudText Typo="Typo.caption" Class="mud-text-secondary">Arrastra tareas
+                                                              aquí</MudText>
+                                                      </div>;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        try
+        {
+            var tasksTask = TodoItemService.GetAllAsync();
+            var projectsTask = ProjectService.GetAllAsync();
+
+            await Task.WhenAll(tasksTask, projectsTask);
+
+            tasks = (await tasksTask)?.ToList() ?? new List<TodoItemDto>();
+            projects = (await projectsTask)?.ToList() ?? new List<ProjectDto>();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar las tareas: {ex.Message}", MudSeverity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private List<TodoItemDto> FilteredTasks
+    {
+        get
+        {
+            IEnumerable<TodoItemDto> filtered = tasks;
+
+            if (selectedProjectId.HasValue)
+            {
+                filtered = filtered.Where(t => t.ProjectId == selectedProjectId.Value);
+            }
+
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                filtered = filtered.Where(t => !t.DueDate.HasValue || (t.DueDate.Value.Date >= startDate.Value.Date && t.DueDate.Value.Date <= endDate.Value.Date));
+            }
+
+            return filtered.ToList();
+        }
+    }
+
+    private void ItemDropped(MudItemDropInfo<TodoItemDto> dropInfo)
+    {
+        var item = dropInfo.Item;
+        if (item is null || dropInfo.DropzoneIdentifier is null) return;
+
+        var newStatus = Enum.Parse<TodoItemStatus>((string)dropInfo.DropzoneIdentifier);
+        item.Status = newStatus; // Optimistic update
+        _ = UpdateTaskStatusInBackend(item, newStatus);
+    }
+
+    private async Task UpdateTaskStatusInBackend(TodoItemDto task, TodoItemStatus newStatus)
+    {
+        var updateDto = new UpdateTodoItemDto
+        {
+            Title = task.Title,
+            Description = task.Description,
+            Status = newStatus,
+            Priority = task.Priority,
+            DueDate = task.DueDate,
+            ProjectId = task.ProjectId
+        };
+
+        try
+        {
+            await TodoItemService.UpdateAsync(task.Id, updateDto);
+            Snackbar.Add($"Tarea '{task.Title}' movida a '{newStatus}'.", MudSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            // En caso de error, la UI ya se ha actualizado. Para revertir, necesitaríamos
+            // una lógica más compleja, pero por ahora, solo notificamos el error.
+            // La UI quedará desincronizada hasta la próxima recarga.
+            Snackbar.Add($"Error al mover la tarea: {ex.Message}", MudSeverity.Error);
+        }
+    }
+
+    private string GetColumnHeaderClass(TodoItemStatus status) => status switch
+    {
+        TodoItemStatus.Inbox => "mud-theme-primary-lighten-2",
+        TodoItemStatus.NextAction => "mud-theme-info-lighten-2",
+        TodoItemStatus.InProgress => "mud-theme-warning-lighten-2",
+        TodoItemStatus.WaitingFor => "mud-theme-secondary-lighten-2",
+        TodoItemStatus.Completed => "mud-theme-success-lighten-2",
+        _ => ""
+    };
+
+    private string GetPriorityColor(int priority) => priority switch
+    {
+        3 => "var(--mud-palette-error)", // High
+        2 => "var(--mud-palette-warning)", // Medium
+        1 => "var(--mud-palette-info)", // Low
+        _ => "var(--mud-palette-table-lines)"
+    };
+}

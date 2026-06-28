@@ -51,6 +51,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     /// <summary>Conjunto de entidades para las Tarjetas (`Card`).</summary>
     public DbSet<Card> Cards => Set<Card>();
 
+    /// <summary>Conjunto de entidades para los Hábitos (`Habit`).</summary>
+    public DbSet<Habit> Habits => Set<Habit>();
+
     /// <summary>
     /// Configura el modelo de datos, las relaciones, las restricciones y los filtros globales
     /// antes de que sea bloqueado y utilizado para inicializar el contexto.
@@ -183,6 +186,18 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             entity.HasQueryFilter(c => _currentUserService.UserId == null || c.UserId == _currentUserService.UserId);
         });
 
+        // Habit configuration
+        modelBuilder.Entity<Habit>(entity =>
+        {
+            entity.HasKey(h => h.Id);
+            entity.Property(h => h.Name).IsRequired().HasMaxLength(100);
+            entity.Property(h => h.Description).HasMaxLength(500);
+            entity.Property(h => h.UserId).IsRequired().HasMaxLength(450);
+
+            // Global Query Filter for Multi-tenancy
+            entity.HasQueryFilter(h => _currentUserService.UserId == null || h.UserId == _currentUserService.UserId);
+        });
+
     }
 
     /// <summary>
@@ -215,6 +230,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                         todoItem.UserId = userId;
                     else if (entry.Entity is Card card && string.IsNullOrEmpty(card.UserId))
                         card.UserId = userId;
+                    else if (entry.Entity is Habit habit && string.IsNullOrEmpty(habit.UserId))
+                        habit.UserId = userId;
                 }
             }
         }

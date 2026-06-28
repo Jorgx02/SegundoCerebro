@@ -1,24 +1,25 @@
 @using SegundoCerebro.BlazorWasm.Models
 @using SegundoCerebro.BlazorWasm.Models.Commands
-@using SegundoCerebro.BlazorWasm.Services
-@inject ICardService CardService
 @inject ISnackbar Snackbar
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Editar nombre de la tarjeta</MudText>
+        <MudText Typo="Typo.h6">Editar tarjeta</MudText>
     </TitleContent>
     <DialogContent>
         <MudForm Model="@model" @ref="@form" ValidationDelay="0">
             <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Label="Nombre de la tarjeta"
                           Variant="Variant.Outlined" Margin="Margin.Dense" />
         </MudForm>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">Cancelar</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar</MudButton>
-    </DialogActions>
-</MudDialog>
+        <MudAlert Severity="MudSeverity.Info" Class="mt-4">La edición de los detalles de la tarjeta (número, expiración)
+            no
+            está permitida por seguridad. Solo puedes cambiar el nombre.</MudAlert>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Cancelar</MudButton>
+            <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar</MudButton>
+        </DialogActions>
+    </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
@@ -40,9 +41,9 @@
         await form.Validate();
         if (!form.IsValid) return;
 
-        var updatedCard = await CardService.UpdateAsync(CardToEdit.Id, model);
-        Snackbar.Add("Card actualizada con éxito", MudSeverity.Success);
-        MudDialog.Close(DialogResult.Ok(updatedCard));
+        CardToEdit.Name = model.Name;
+        Snackbar.Add("Funcionalidad de editar tarjeta pendiente de implementar en el backend.", MudSeverity.Info);
+        MudDialog.Close(DialogResult.Ok(CardToEdit));
     }
 
     void Cancel() => MudDialog.Cancel();

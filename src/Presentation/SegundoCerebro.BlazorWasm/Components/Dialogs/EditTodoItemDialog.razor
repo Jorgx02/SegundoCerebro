@@ -7,17 +7,17 @@
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Edit Task</MudText>
+        <MudText Typo="Typo.h6">Editar tarea</MudText>
     </TitleContent>
     <DialogContent>
         <MudForm Model="@model" @ref="@form" ValidationDelay="0">
-            <MudTextField @bind-Value="model.Title" For="@(() => model.Title)" Label="Task Title"
+            <MudTextField @bind-Value="model.Title" For="@(() => model.Title)" Label="Título de la tarea"
                           Variant="Variant.Outlined" Margin="Margin.Dense" />
             <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
-                          Label="Description (Optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
-            <MudDatePicker @bind-Date="model.DueDate" Label="Due Date (Optional)" Variant="Variant.Outlined"
+                          Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="3" />
+            <MudDatePicker @bind-Date="model.DueDate" Label="Fecha de vencimiento (Opcional)" Variant="Variant.Outlined"
                            Margin="Margin.Dense" />
-            <MudSelect T="TodoItemStatus" @bind-Value="model.Status" For="@(() => model.Status)" Label="Status"
+            <MudSelect T="TodoItemStatus" @bind-Value="model.Status" For="@(() => model.Status)" Label="Estado"
                        Variant="Variant.Outlined" Margin="Margin.Dense">
                 @foreach (TodoItemStatus status in Enum.GetValues<TodoItemStatus>())
                 {
@@ -25,12 +25,12 @@
                 }
             </MudSelect>
             <MudRating @bind-SelectedValue="model.Priority" MaxValue="3" FullIcon="@Icons.Material.Filled.Flag"
-                       EmptyIcon="@Icons.Material.Outlined.Flag" Label="Priority" />
+                       EmptyIcon="@Icons.Material.Outlined.Flag" Label="Prioridad" />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Update Task</MudButton>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar tarea</MudButton>
     </DialogActions>
 </MudDialog>
 

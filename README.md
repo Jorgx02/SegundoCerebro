@@ -76,6 +76,7 @@ Empoderar a las personas para que tomen el control total de su vida financiera, 
 - 🚀 **Actualización Rápida**: Checkbox para completar tareas con actualización optimista de UI.
 - 👁️ **Vista Centralizada**: Página "Todas las Tareas" agrupadas por proyecto.
 - 🛡️ **Reglas de Negocio**: Lógica para prevenir borrado de proyectos completados o finalización con tareas pendientes.
+- Kanban Interactivo: Tablero visual para gestionar tareas con drag-and-drop y filtros por proyecto y fecha.
 
 ### 🔄 **Módulo de Hábitos** (v3.0 - Planificado)
 
@@ -292,6 +293,7 @@ dotnet run
 - [x] Gestión de Tareas (CRUD) ✅
 - [x] Página de detalles de Proyecto con lista de tareas ✅
 - [x] Página global de Tareas agrupadas por Proyecto ✅
+- [x] Tablero Kanban interactivo con filtros ✅
 - [x] Lógica de negocio GTD (estados, finalización) ✅
 - [ ] Time tracking (Planificado)
 - [ ] Calendario integrado (Planificado)
@@ -379,6 +381,26 @@ dotnet run
 ---
 
 ## 🔌 API Reference
+
+### Projects
+
+```http
+GET    /api/projects              # Obtener todos los proyectos (con filtro opcional por estado)
+GET    /api/projects/{id}         # Obtener proyecto por ID
+POST   /api/projects              # Crear nuevo proyecto
+PUT    /api/projects/{id}         # Actualizar proyecto
+DELETE /api/projects/{id}         # Eliminar proyecto
+```
+
+### TodoItems
+
+```http
+GET    /api/todoitems             # Obtener todas las tareas de todos los proyectos
+GET    /api/todoitems/project/{projectId} # Obtener tareas de un proyecto específico
+POST   /api/todoitems             # Crear nueva tarea
+PUT    /api/todoitems/{id}        # Actualizar tarea
+DELETE /api/todoitems/{id}        # Eliminar tarea
+```
 
 ### Accounts
 

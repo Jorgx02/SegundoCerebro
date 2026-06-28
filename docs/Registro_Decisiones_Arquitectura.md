@@ -211,11 +211,12 @@ Se decide implementar un módulo completo de `Projects` y `TodoItems` siguiendo 
     - `Projects.razor`: Una tabla para listar, filtrar, crear, editar y eliminar proyectos.
     - `ProjectDetails.razor`: Una vista detallada de un proyecto que lista todas sus tareas asociadas y permite el CRUD completo sobre ellas.
     - `TodoItems.razor`: Una vista global que muestra todas las tareas de todos los proyectos, agrupadas por el nombre del proyecto para una visión general.
+    - `KanbanBoard.razor`: Un tablero Kanban interactivo que permite visualizar y cambiar el estado de las tareas mediante drag-and-drop. Se utiliza el componente `MudDropContainer` para una gestión robusta del estado.
 6.  **Actualización Optimista:** En la página de detalles del proyecto, el `CheckBox` para completar tareas implementa una actualización optimista de la UI. El estado visual cambia instantáneamente, y la llamada a la API se realiza en segundo plano, mejorando la percepción de velocidad para el usuario.
 
 ### Consecuencias
 
-- **Positivas:** El módulo de productividad está completamente integrado en la arquitectura existente, es robusto y ofrece una experiencia de usuario fluida. Las reglas de negocio garantizan la integridad de los datos. La vista global de tareas es una potente herramienta de productividad.
+- **Positivas:** El módulo de productividad está completamente integrado en la arquitectura existente, es robusto y ofrece una experiencia de usuario fluida y visualmente rica gracias al tablero Kanban. Las reglas de negocio garantizan la integridad de los datos.
 - **Negativas:** Aumenta la complejidad del dominio y el número de endpoints y componentes de la UI a mantener.
 
 ### Relación con el TFG
