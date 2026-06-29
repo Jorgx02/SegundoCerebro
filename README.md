@@ -101,6 +101,7 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 ├── 📂 src/
 │   ├── 📂 Core/
 │   │   ├── 📂 SegundoCerebro.Domain/          # Entidades de negocio
+│   │   │   └── 📂 tests/                      # Tests automatizados
 │   │   └── 📂 SegundoCerebro.Application/     # Lógica de aplicación (CQRS)
 │   ├── 📂 Infrastructure/
 │   │   └── 📂 SegundoCerebro.Infrastructure/  # Acceso a datos y servicios externos
@@ -108,7 +109,6 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 │       ├── 📂 SegundoCerebro.WebAPI/          # API REST
 │       ├── 📂 SegundoCerebro.BlazorWasm/      # Frontend Web
 │       └── 📂 SegundoCerebro.Maui/            # App Móvil (Futuro)
-└── 📂 tests/                                  # Tests automatizados
 ```
 
 ### 🔧 Patrones Implementados
