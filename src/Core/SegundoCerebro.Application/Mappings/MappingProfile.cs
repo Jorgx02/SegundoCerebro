@@ -133,7 +133,9 @@ public class MappingProfile : Profile
         // TodoItem mappings
         // Mapeo de Entidad a DTO, incluyendo el nombre del proyecto asociado.
         CreateMap<TodoItem, TodoItemDto>()
-            .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project != null ? src.Project.Name : null));
+            .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project != null ? src.Project.Name : null))
+            .ForMember(dest => dest.TotalTimeTracked, opt => opt.MapFrom(src => src.TimeLogs != null ? src.TimeLogs.Where(tl => tl.EndTime.HasValue).Aggregate(TimeSpan.Zero, (total, log) => total + (log.EndTime.Value - log.StartTime)) : TimeSpan.Zero))
+            .ForMember(dest => dest.IsCurrentlyTracking, opt => opt.MapFrom(src => src.TimeLogs != null && src.TimeLogs.Any(tl => !tl.EndTime.HasValue)));
 
         // Mapeo de DTO de creación a Entidad.
         CreateMap<CreateTodoItemDto, TodoItem>()
@@ -177,5 +179,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.StripePaymentMethodId, opt => opt.Ignore())
             .ForMember(dest => dest.Brand, opt => opt.Ignore())
             .ForMember(dest => dest.Last4Digits, opt => opt.Ignore());
+
+        // TimeLog mappings
+        // Mapeo de Entidad a DTO.
+        CreateMap<TimeLog, TimeLogDto>();
     }
 }

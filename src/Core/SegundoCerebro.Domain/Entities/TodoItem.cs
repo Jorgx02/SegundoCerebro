@@ -1,4 +1,5 @@
 using SegundoCerebro.Domain.Enums;
+using System.Collections.Generic;
 
 namespace SegundoCerebro.Domain.Entities;
 
@@ -22,4 +23,6 @@ public class TodoItem
     public Guid? ProjectId { get; set; }
     // Navigation Property
     public Project? Project { get; set; }
+
+    public ICollection<TimeLog> TimeLogs { get; set; } = new List<TimeLog>();
 }

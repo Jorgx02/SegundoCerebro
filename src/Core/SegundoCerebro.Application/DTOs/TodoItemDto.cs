@@ -18,6 +18,8 @@ public class TodoItemDto
     public DateTime CreatedAt { get; set; }
     public Guid? ProjectId { get; set; }
     public string? ProjectName { get; set; }
+    public TimeSpan TotalTimeTracked { get; set; }
+    public bool IsCurrentlyTracking { get; set; }
 }
 
 /// <summary>

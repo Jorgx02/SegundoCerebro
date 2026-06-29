@@ -7,6 +7,7 @@
 @inject IProjectService ProjectService
 @inject ITodoItemService TodoItemService
 @inject ISnackbar Snackbar
+@inject ITimeLogService TimeLogService
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 
@@ -71,20 +72,33 @@
                                                 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">@task.Description</MudText>
                                             }
                                         </div>
-                                        <MudSpacer />
-                                        @if (task.DueDate.HasValue)
-                                        {
-                                            <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Event"
-                                                     Color="@(task.DueDate.Value.Date < DateTime.Today ? Color.Error : Color.Default)">
-                                                @task.DueDate.Value.ToString("MMM dd")
-                                            </MudChip>
-                                        }
-                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
-                                                       OnClick="() => OpenEditTaskDialog(task)" Class="ml-2" />
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                                       OnClick="() => DeleteTask(task)" Class="ml-1" />
+                                    <MudSpacer />
+                                    @if (task.DueDate.HasValue)
+                                    {
+                                        <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Event"
+                                                 Color="@(task.DueDate.Value.Date < DateTime.Today ? Color.Error : Color.Default)">
+                                            @task.DueDate.Value.ToString("MMM dd")
+                                        </MudChip>
+                                    }
+                                    <div class="d-flex align-center ml-2">
+                                        <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" Class="mr-1" />
+                                        <MudText Typo="Typo.caption">@FormatTimeSpan(task.TotalTimeTracked)</MudText>
                                     </div>
-                                </MudListItem>
+                                    <MudIconButton
+                                        Icon="@(task.IsCurrentlyTracking ? Icons.Material.Filled.StopCircle : Icons.Material.Filled.PlayCircle)"
+                                        Color="@(task.IsCurrentlyTracking ? Color.Error : Color.Success)"
+                                        Size="Size.Small"
+                                        OnClick="() => ToggleTimeTracking(task)"
+                                        Class="ml-1"
+                                        OnClickStopPropagation="true" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                   OnClick="() => OpenEditTaskDialog(task)" Class="ml-1" 
+                                                   OnClickStopPropagation="true" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                   OnClick="() => DeleteTask(task)" Class="ml-1" 
+                                                   OnClickStopPropagation="true" />
+                                </div>
+                            </MudListItem>
                                 <MudDivider />
                             }
                         </MudList>
@@ -250,6 +264,33 @@
         }
         StateHasChanged(); // Nos aseguramos de que la UI se repinte
     }
+
+    private async Task ToggleTimeTracking(TodoItemDto task)
+    {
+        try
+        {
+            if (task.IsCurrentlyTracking)
+            {
+                var stoppedLog = await TimeLogService.StopAsync(task.Id);
+                task.IsCurrentlyTracking = false;
+                task.TotalTimeTracked += stoppedLog.Duration;
+                Snackbar.Add($"Temporizador detenido para '{task.Title}'.", MudSeverity.Info);
+            }
+            else
+            {
+                await TimeLogService.StartAsync(task.Id);
+                task.IsCurrentlyTracking = true;
+                Snackbar.Add($"Temporizador iniciado para '{task.Title}'.", MudSeverity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", MudSeverity.Error);
+        }
+        // No need for StateHasChanged() here as the OnClick event will trigger a re-render.
+    }
+
+    private string FormatTimeSpan(TimeSpan ts) => $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
 
     private Color GetStatusColor(ProjectStatus status) => status switch
     {

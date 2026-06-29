@@ -45,6 +45,11 @@ public interface IUnitOfWork : IDisposable
     IHabitRepository Habits { get; }
 
     /// <summary>
+    /// Repositorio para las entidades de Registros de Tiempo (TimeLog).
+    /// </summary>
+    ITimeLogRepository TimeLogs { get; }
+
+    /// <summary>
     /// Guarda todos los cambios realizados en el contexto de la base de datos.
     /// </summary>
     /// <returns>El número de entidades afectadas.</returns>
