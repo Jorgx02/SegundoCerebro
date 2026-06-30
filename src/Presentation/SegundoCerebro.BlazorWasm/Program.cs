@@ -45,6 +45,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITodoItemService, TodoItemService>();
 builder.Services.AddScoped<ICardService, CardService>();
+builder.Services.AddScoped<IHabitService, HabitService>();
 builder.Services.AddScoped<ITimeLogService, TimeLogService>();
 
 await builder.Build().RunAsync();

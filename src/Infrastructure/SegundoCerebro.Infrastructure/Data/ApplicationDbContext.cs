@@ -57,6 +57,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     /// <summary>Conjunto de entidades para los Registros de Tiempo (`TimeLog`).</summary>
     public DbSet<TimeLog> TimeLogs => Set<TimeLog>();
 
+    /// <summary>Conjunto de entidades para los Registros de Hábitos (`HabitLog`).</summary>
+    public DbSet<HabitLog> HabitLogs => Set<HabitLog>();
+
     /// <summary>
     /// Configura el modelo de datos, las relaciones, las restricciones y los filtros globales
     /// antes de que sea bloqueado y utilizado para inicializar el contexto.
@@ -217,6 +220,25 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             // Filtro Global: Solo devuelve registros de tiempo de este usuario
             entity.HasQueryFilter(tl => _currentUserService.UserId == null || tl.UserId == _currentUserService.UserId);
         });
+
+        // HabitLog configuration
+        modelBuilder.Entity<HabitLog>(entity =>
+        {
+            entity.HasKey(hl => hl.Id);
+            entity.Property(hl => hl.UserId).IsRequired().HasMaxLength(450);
+            entity.Property(hl => hl.Date).HasColumnType("date"); // Almacena solo la fecha
+
+            entity.HasOne(hl => hl.Habit)
+                .WithMany(h => h.Logs)
+                .HasForeignKey(hl => hl.HabitId)
+                .OnDelete(DeleteBehavior.Cascade); // Si se borra el hábito, sus registros también.
+
+            // Restricción única para evitar múltiples registros para el mismo hábito en el mismo día.
+            entity.HasIndex(hl => new { hl.HabitId, hl.Date }).IsUnique();
+
+            // Filtro Global: Solo devuelve registros de hábitos de este usuario
+            entity.HasQueryFilter(hl => _currentUserService.UserId == null || hl.UserId == _currentUserService.UserId);
+        });
     }
 
     /// <summary>
@@ -253,6 +275,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                         timeLog.UserId = userId;
                     else if (entry.Entity is Habit habit && string.IsNullOrEmpty(habit.UserId))
                         habit.UserId = userId;
+                    else if (entry.Entity is HabitLog habitLog && string.IsNullOrEmpty(habitLog.UserId))
+                        habitLog.UserId = userId;
                 }
             }
         }

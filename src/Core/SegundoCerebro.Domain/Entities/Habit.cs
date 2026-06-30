@@ -1,4 +1,5 @@
 using SegundoCerebro.Domain.Enums;
+using System.Collections.Generic;
 
 namespace SegundoCerebro.Domain.Entities;
 
@@ -12,9 +13,11 @@ public class Habit
     public string? Description { get; set; }
     public HabitFrequency Frequency { get; set; }
     public string? Icon { get; set; }
-    public string? Color { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string UserId { get; set; } = string.Empty;
 
-    // Futuro: public ICollection<HabitLog> Logs { get; set; } = new List<HabitLog>();
+    /// <summary>
+    /// Colección de registros de cumplimiento para este hábito.
+    /// </summary>
+    public ICollection<HabitLog> Logs { get; set; } = new List<HabitLog>();
 }

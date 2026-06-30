@@ -1,0 +1,291 @@
+@page "/habits"
+@using SegundoCerebro.BlazorWasm.Models
+@using System.Globalization
+@using SegundoCerebro.BlazorWasm.Services
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Components.Dialogs
+@inject IHabitService HabitService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Hábitos - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12" sm="6" Class="d-flex align-center">
+            <MudText Typo="Typo.h4">Mis hábitos</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="6" Class="d-flex justify-end align-center">
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousWeek" aria-label="Semana anterior" />
+            <MudText Typo="Typo.h6" Class="mx-4 text-center" Style="min-width: 220px;">@GetWeekDateRange()</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextWeek" aria-label="Siguiente semana" />
+            <MudButton Variant="Variant.Text" OnClick="GoToToday" Class="ml-4">Hoy</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenCreateDialog" Class="ml-4">
+                Nuevo Hábito
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (loading)
+    {
+        <div class="d-flex justify-center align-center" style="height: 50vh;">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else if (habits.Any())
+    {
+        <MudTable Items="@habits" Hover="true" Dense="true" Elevation="2" Class="rounded-lg">
+            <HeaderContent>
+                <MudTh Style="width: 250px;">Hábito</MudTh>
+                @foreach (var day in GetDaysOfWeek())
+                {
+                    <MudTh Class="text-center">
+                        <div class="@(day.Date == DateTime.Today ? "font-weight-bold mud-text-primary" : "")">
+                            <div>@day.ToString("ddd", new CultureInfo("es-ES")).ToUpper()</div>
+                            <div>@day.Day</div>
+                        </div>
+                    </MudTh>
+                }
+                <MudTh Style="width: 100px;">Acciones</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Hábito">
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@(string.IsNullOrEmpty(context.Icon) ? Icons.Material.Filled.SelfImprovement : context.Icon)" Class="mr-3" />
+                        <div>
+                            <div class="d-flex align-center">
+                                <MudText Typo="Typo.body1">@context.Name</MudText>
+                                @if (context.CurrentStreak > 1)
+                                {
+                                    <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.LocalFireDepartment" Color="Color.Warning" Class="ml-2" Label="true">@($"{context.CurrentStreak} días")</MudChip>
+                                }
+                            </div>
+                            <MudText Typo="Typo.caption">@GetFrequencyName(context.Frequency) &bull; Racha máx: @context.LongestStreak</MudText>
+                        </div>
+                    </div>
+                </MudTd>
+
+                @if (context.Frequency == HabitFrequency.Daily)
+                {
+                    @foreach (var day in GetDaysOfWeek())
+                    {
+                        <MudTd DataLabel="@day.ToString("ddd")" Class="text-center">
+                            <MudCheckBox T="bool" Value="@IsHabitCompletedForDate(context, day)"
+                                         ValueChanged="@(async (e) => await ToggleCompletionForDate(context, day))"
+                                         Color="Color.Success" />
+                        </MudTd>
+                    }
+                }
+                else // Weekly
+                {
+                    <td colspan="7" class="mud-table-cell text-center" style="vertical-align: middle;">
+                        <MudCheckBox T="bool" Value="@IsHabitCompletedForWeek(context)"
+                                     ValueChanged="@(async (e) => await ToggleCompletionForWeek(context))"
+                                     Color="Color.Success" />
+                    </td>
+                }
+
+                <MudTd DataLabel="Acciones">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="() => OpenEditDialog(context)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteHabit(context)" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudAlert Severity="MudBlazor.Severity.Info">Aún no tienes ningún hábito registrado. ¡Crea uno para empezar!
+        </MudAlert>
+    }
+</MudContainer>
+
+@code {
+    /// <summary>
+    /// Lista que almacena todos los hábitos obtenidos del servicio.
+    /// </summary>
+    private List<HabitDto> habits = new();
+    /// <summary>
+    /// Indicador booleano para controlar el estado de carga de la página.
+    /// </summary>
+    private bool loading = true;
+    private DateTime currentWeekStart;
+
+    /// <summary>
+    /// Método del ciclo de vida de Blazor que se ejecuta al inicializar la página.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        GoToToday();
+        await LoadHabits();
+    }
+
+    /// <summary>
+    /// Carga los hábitos y sus registros para la semana actual desde el servicio API.
+    /// </summary>
+    private async Task LoadHabits()
+    {
+        loading = true;
+        try
+        {
+            var result = await HabitService.GetHabitsForTrackerAsync();
+            habits = result?.ToList() ?? new List<HabitDto>();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar los hábitos: {ex.Message}", MudSeverity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    /// <summary>
+    /// Abre el diálogo para crear un nuevo hábito.
+    /// Si la creación es exitosa, añade el nuevo hábito a la lista local para reflejar el cambio inmediatamente.
+    /// </summary>
+    private async Task OpenCreateDialog()
+    {
+        var dialog = DialogService.Show<CreateHabitDialog>("Crear nuevo hábito");
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is HabitDto newHabit)
+        {
+            await LoadHabits(); // Recargar para obtener el nuevo hábito con su estructura de logs
+        }
+    }
+
+    /// <summary>
+    /// Abre el diálogo para editar un hábito existente.
+    /// Si la edición es exitosa, actualiza el hábito en la lista local.
+    /// </summary>
+    /// <param name="habitToEdit">El hábito a editar.</param>
+    private async Task OpenEditDialog(HabitDto habitToEdit)
+    {
+        var parameters = new DialogParameters { ["HabitToEdit"] = habitToEdit };
+        var dialog = DialogService.Show<EditHabitDialog>("Editar hábito", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is HabitDto updatedHabit)
+        {
+            await LoadHabits();
+        }
+    }
+
+    /// <summary>
+    /// Pide confirmación y elimina un hábito.
+    /// Si la eliminación es exitosa, quita el hábito de la lista local.
+    /// </summary>
+    /// <param name="habitToDelete">El hábito a eliminar.</param>
+    private async Task DeleteHabit(HabitDto habitToDelete)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Confirmar Eliminación",
+            $"¿Estás seguro de que quieres eliminar el hábito '{habitToDelete.Name}'?",
+            yesText: "Eliminar", cancelText: "Cancelar");
+
+        if (result == true)
+        {
+            await HabitService.DeleteAsync(habitToDelete.Id);
+            Snackbar.Add("Hábito eliminado.", MudSeverity.Success);
+            await LoadHabits();
+        }
+    }
+
+    private IEnumerable<DateTime> GetDaysOfWeek()
+    {
+        return Enumerable.Range(0, 7).Select(i => currentWeekStart.AddDays(i));
+    }
+
+    private string GetWeekDateRange()
+    {
+        var endDate = currentWeekStart.AddDays(6);
+        var culture = new CultureInfo("es-ES");
+        if (currentWeekStart.Month == endDate.Month)
+        {
+            return $"{currentWeekStart.Day} - {endDate.Day} de {currentWeekStart.ToString("MMMM yyyy", culture)}";
+        }
+        return $"{currentWeekStart.ToString("d 'de' MMMM", culture)} - {endDate.ToString("d 'de' MMMM yyyy", culture)}";
+    }
+
+    private async Task NextWeek()
+    {
+        currentWeekStart = currentWeekStart.AddDays(7);
+        await LoadHabits();
+    }
+
+    private async Task PreviousWeek()
+    {
+        currentWeekStart = currentWeekStart.AddDays(-7);
+        await LoadHabits();
+    }
+
+    private async Task GoToToday()
+    {
+        var today = DateTime.Today;
+        int diff = (7 + (int)today.DayOfWeek - (int)DayOfWeek.Monday) % 7;
+        currentWeekStart = today.AddDays(-1 * diff).Date;
+        if (habits.Any()) // Evitar recarga inicial doble
+        {
+            await LoadHabits();
+        }
+    }
+
+    private string GetFrequencyName(HabitFrequency freq) => freq switch
+    {
+        HabitFrequency.Daily => "Diario",
+        HabitFrequency.Weekly => "Semanal",
+        _ => freq.ToString()
+    };
+
+    private bool IsHabitCompletedForDate(HabitDto habit, DateTime date)
+    {
+        return habit.Logs.Any(log => log.Date.Date == date.Date);
+    }
+
+    private bool IsHabitCompletedForWeek(HabitDto habit)
+    {
+        var weekEnd = currentWeekStart.AddDays(6);
+        return habit.Logs.Any(log => log.Date.Date >= currentWeekStart.Date && log.Date.Date <= weekEnd.Date);
+    }
+
+    private async Task ToggleCompletionForWeek(HabitDto habit)
+    {
+        var weekEnd = currentWeekStart.AddDays(6);
+        var logForWeek = habit.Logs.FirstOrDefault(l => l.Date.Date >= currentWeekStart.Date && l.Date.Date <= weekEnd.Date);
+
+        // Si ya existe un registro en la semana, lo usamos para hacer el 'toggle' (que lo borrará).
+        // Si no existe, creamos uno nuevo en un día representativo de la semana (lunes).
+        var dateToToggle = logForWeek?.Date ?? currentWeekStart;
+
+        try
+        {
+            await HabitService.ToggleHabitCompletionAsync(habit.Id, dateToToggle);
+            await LoadHabits(); // Recargamos para actualizar rachas y estado.
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al actualizar el hábito: {ex.Message}", MudSeverity.Error);
+            await LoadHabits();
+        }
+    }
+
+    private async Task ToggleCompletionForDate(HabitDto habit, DateTime date)
+    {
+        try
+        {
+            // Llamada a la API
+            await HabitService.ToggleHabitCompletionAsync(habit.Id, date);
+
+            // Recargar todos los datos para asegurar que las rachas se actualizan correctamente.
+            // Esto garantiza la consistencia de los datos a costa de una pequeña recarga.
+            await LoadHabits();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al actualizar el hábito: {ex.Message}", MudSeverity.Error);
+            await LoadHabits(); // Revertir y recargar en caso de error
+        }
+    }
+}

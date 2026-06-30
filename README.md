@@ -80,11 +80,11 @@ Empoderar a las personas para que tomen el control total de su vida financiera, 
 - ⏰ **Time Tracking**: Seguimiento de tiempo por tarea con cronómetro integrado en el Kanban y listas de tareas.
 - 📅 **Calendario Integrado**: Vista de calendario mensual con todas las tareas que tienen fecha de vencimiento.
 
-### 🔄 **Módulo de Hábitos** (v3.0 - Planificado)
+### 🔄 **Módulo de Hábitos** (v3.0 - En Progreso 🚧)
 
-- 📊 **Habit Tracker**: Seguimiento diario de hábitos
-- 🎮 **Gamificación**: Sistema de puntos y logros
-- 📈 **Análisis de Patrones**: IA para identificar patrones de comportamiento
+- ✅ **Habit Tracker**: Seguimiento diario/semanal de hábitos en una vista de tracker interactiva.
+- ✅ **Gamificación (Rachas)**: Cálculo y visualización de rachas actuales y máximas para motivar al usuario.
+- ⬜ **Análisis de Patrones**: (Futuro) IA para identificar patrones de comportamiento.
 
 ### 🤖 **Inteligencia Artificial** (v4.0 - Futuro)
 
@@ -300,11 +300,11 @@ dotnet run
 - [x] Lógica de negocio GTD (estados, finalización) ✅
 - [x] Calendario integrado ✅
 
-### 🎯 **Fase 3: Hábitos y Bienestar** (Q3 2026)
+### 🎯 **Fase 3: Hábitos y Bienestar** (Q3 2026) - **EN PROGRESO**
 
-- [ ] Habit tracker diario
+- [x] Habit tracker diario ✅
+- [x] Gamificación (puntos, logros) ✅
 - [ ] Métricas de bienestar
-- [ ] Gamificación (puntos, logros)
 - [ ] Análisis de patrones
 - [ ] Integración con dispositivos wearables
 - [ ] Reportes de progreso

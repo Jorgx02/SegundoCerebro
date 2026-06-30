@@ -1,0 +1,146 @@
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using MudBlazor.Utilities
+@using SegundoCerebro.BlazorWasm.Services
+@inject IHabitService HabitService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@model" @ref="@form">
+            <MudCardContent>
+                <MudTextField @bind-Value="model.Name" For="@(() => model.Name)" Immediately="true"
+                              Label="Nombre del hábito" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+                <MudTextField @bind-Value="model.Description" For="@(() => model.Description)"
+                              Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
+
+                <MudSelect @bind-Value="selectedFrequency" For="@(() => selectedFrequency)" Label="Frecuencia"
+                           Required="true" RequiredError="Debes seleccionar una frecuencia."
+                           Variant="Variant.Outlined" Margin="Margin.Dense" T="HabitFrequency?">
+                    @foreach (HabitFrequency freq in Enum.GetValues<HabitFrequency>())
+                    {
+                        <MudSelectItem Value="@((HabitFrequency?)freq)">@GetFrequencyName(freq)</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudTextField @bind-Value="model.Icon" id="icon-picker-anchor" Label="Icono (Opcional)"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true"
+                              Adornment="Adornment.End" AdornmentIcon="@(string.IsNullOrEmpty(model.Icon) ? Icons.Material.Filled.TouchApp : model.Icon)"
+                              OnAdornmentClick="@(() => _iconPickerOpen = !_iconPickerOpen)" Clearable="true" OnClearButtonClick="@(() => { model.Icon = null; })" />
+
+                <MudPopover @bind-Open="_iconPickerOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
+                            Class="pa-2" AnchorId="icon-picker-anchor" Overlay="true">
+                    <div class="d-flex flex-wrap" style="max-width: 250px; max-height: 200px; overflow-y: auto;">
+                        @foreach (var icon in availableIcons)
+                        {
+                            <MudIconButton Icon="@icon" OnClick="@(() => SelectIcon(icon))" />
+                        }
+                    </div>
+                </MudPopover>
+
+            </MudCardContent>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Crear Hábito</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    /// <summary>
+    /// El modelo de datos (DTO) que se enlaza al formulario para crear el hábito.
+    /// </summary>
+    private CreateHabitDto model = new();
+    /// <summary>
+    /// Referencia al componente MudForm para poder invocar su validación.
+    /// </summary>
+    private MudForm form = null!;
+    private HabitFrequency? selectedFrequency;
+    private bool _iconPickerOpen;
+
+    /// <summary>
+    /// Se ejecuta al inicializar el componente. Establece valores por defecto para el formulario.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+    }
+
+    /// <summary>
+    /// Cierra el diálogo sin guardar cambios.
+    /// </summary>
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    /// <summary>
+    /// Valida el formulario y, si es válido, envía la solicitud de creación al servicio.
+    /// Cierra el diálogo en caso de éxito o muestra un error en caso de fallo.
+    /// </summary>
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (!form.IsValid)
+        {
+            return;
+        }
+
+        // Asignar la frecuencia seleccionada al modelo antes de enviar.
+        // La validación del formulario ya asegura que no es nulo.
+        model.Frequency = selectedFrequency!.Value;
+
+        try
+        {
+            var newHabit = await HabitService.CreateAsync(model);
+            Snackbar.Add("Hábito creado con éxito", MudSeverity.Success);
+            MudDialog.Close(DialogResult.Ok(newHabit));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al crear el hábito: {ex.Message}", MudSeverity.Error);
+        }
+    }
+
+    private void SelectIcon(string icon)
+    {
+        model.Icon = icon;
+        _iconPickerOpen = false;
+    }
+
+    /// <summary>
+    /// Traduce el valor del enumerado de frecuencia a español.
+    /// </summary>
+    private string GetFrequencyName(HabitFrequency freq) => freq switch
+    {
+        HabitFrequency.Daily => "Diario",
+        HabitFrequency.Weekly => "Semanal",
+        _ => freq.ToString()
+    };
+
+    /// <summary>
+    /// Lista curada de iconos relevantes para hábitos.
+    /// </summary>
+    private List<string> availableIcons = new()
+    {
+        Icons.Material.Filled.SelfImprovement,
+        Icons.Material.Filled.FitnessCenter,
+        Icons.Material.Filled.Book,
+        Icons.Material.Filled.WaterDrop,
+        Icons.Material.Filled.SmokeFree,
+        Icons.Material.Filled.RunCircle,
+        Icons.Material.Filled.Bedtime,
+        Icons.Material.Filled.CleanHands,
+        Icons.Material.Filled.MonitorHeart,
+        Icons.Material.Filled.Spa,
+        Icons.Material.Filled.Restaurant,
+        Icons.Material.Filled.MusicNote,
+        Icons.Material.Filled.Brush,
+        Icons.Material.Filled.Pets,
+        Icons.Material.Filled.Recycling
+    };
+}

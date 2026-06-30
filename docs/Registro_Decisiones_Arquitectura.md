@@ -253,4 +253,72 @@ Se decide implementar un sistema de seguimiento de tiempo a nivel de `TodoItem`:
 
 ---
 
+## ADR 011: Implementación del Módulo de Hábitos y Bienestar (v3.0)
+
+**Fecha:** Fase 3 - Implementación del Módulo de Hábitos
+
+### Contexto y Problema
+
+Para cumplir con la visión de ser una aplicación de gestión de vida integral, se necesita un módulo que permita a los usuarios definir, seguir y analizar sus hábitos personales. Esto no solo complementa la productividad (Módulo 2), sino que también introduce un componente de bienestar y autodisciplina, clave para el desarrollo personal.
+
+### Decisión
+
+Se decide implementar un módulo completo de seguimiento de hábitos (`Habits`) siguiendo la arquitectura Clean/CQRS existente:
+
+1.  **Entidades del Dominio:** Se crean dos nuevas entidades:
+    - `Habit`: Representa el hábito en sí (nombre, descripción, frecuencia, etc.).
+    - `HabitLog`: Almacena un registro de cumplimiento para un hábito en una fecha concreta. Se establece una restricción única en la base de datos para el par `(HabitId, Date)` para evitar duplicados.
+2.  **CQRS Completo:** Se implementan todos los `Commands` (Create, Update, Delete, ToggleCompletion) y `Queries` (GetHabitsForTracker) necesarios en la capa de `Application`.
+3.  **Lógica de Rachas (Streaks):** Para añadir un elemento de gamificación y motivación, se implementa una lógica de negocio en el backend (`GetHabitsForTrackerQueryHandler`) que calcula dos métricas clave en cada carga:
+    - `CurrentStreak`: El número de días consecutivos que el hábito se ha completado hasta hoy (o ayer).
+    - `LongestStreak`: La racha más larga de días consecutivos completados en todo el historial del hábito.
+4.  **Frontend Interactivo en Blazor:** Se crea una página `Habits.razor` que funciona como un tracker semanal:
+    - Utiliza un `MudTable` para mostrar los hábitos en filas y los días de la semana en columnas.
+    - Permite la navegación entre semanas ("Semana anterior", "Siguiente semana", "Hoy").
+    - Un `MudCheckBox` en cada celda permite marcar/desmarcar el cumplimiento de un hábito para un día específico, llamando al endpoint `toggle` de la API.
+5.  **Estrategia de Actualización de UI:** Tras marcar o desmarcar un hábito, se realiza una recarga completa de los datos (`LoadHabits()`). Esta decisión, aunque menos performante que una actualización optimista, es crucial para garantizar que las rachas calculadas en el backend se reflejen de forma inmediata y precisa en la interfaz.
+
+### Consecuencias
+
+- **Positivas:** Se añade un módulo funcional de alto valor para el usuario, con una interfaz moderna e interactiva. La gamificación mediante rachas aumenta el potencial de engagement. La arquitectura demuestra de nuevo su capacidad para escalar y albergar módulos complejos.
+- **Negativas:** El cálculo de la racha más larga (`LongestStreak`) podría volverse computacionalmente costoso si un usuario tiene un historial de varios años. La recarga completa de datos en cada interacción de `toggle` introduce una pequeña latencia, un trade-off consciente a favor de la consistencia de los datos.
+
+### Relación con el TFG
+
+Esta implementación constituye el tercer gran módulo funcional de la aplicación. Demuestra la capacidad de diseñar e implementar funcionalidades centradas en el usuario, incluyendo lógica de negocio no trivial (cálculo de rachas) y decisiones de diseño de UX/UI (tracker semanal, estrategia de recarga).
+
+---
+
+## ADR 012: Refinamiento de la Interfaz de Usuario del Módulo de Hábitos
+
+**Fecha:** Fase 3 - Refinamiento del Módulo de Hábitos
+
+### Contexto y Problema
+
+La implementación inicial del tracker de hábitos era funcional, pero presentaba varias áreas de mejora en la experiencia de usuario (UX). Los formularios de creación/edición eran poco intuitivos (requerían entrada manual de iconos) y la visualización de los hábitos semanales era confusa, ya que mostraba una parrilla de siete días.
+
+### Decisión
+
+Se decide aplicar una serie de refinamientos de UX en los componentes de Blazor:
+
+1.  **Formularios de Creación/Edición Mejorados:**
+    - **Frecuencia:** El `MudSelect` para la frecuencia se convierte en un tipo que acepta nulos (`HabitFrequency?`) y se marca como `Required`, forzando al usuario a hacer una elección explícita en lugar de tener un valor por defecto.
+    - **Iconos:** Se reemplaza el campo de texto por un `MudPopover` que contiene una cuadrícula de `MudIconButton`, ofreciendo una selección de iconos puramente visual e intuitiva.
+    - **Color (Decisión de Eliminación):** Tras un intento de implementar un selector de color que presentó complejidades de UI (posicionamiento del popover), se tomó la decisión pragmática de eliminar por completo la personalización de colores. Se priorizó la simplicidad y estabilidad de la interfaz sobre una característica no esencial.
+2.  **Visualización Diferenciada por Frecuencia:**
+    - La tabla en `Habits.razor` ahora utiliza lógica condicional (`@if (context.Frequency == HabitFrequency.Daily)`).
+    - **Hábitos Diarios:** Renderizan una celda con un `MudCheckBox` para cada uno de los 7 días de la semana.
+    - **Hábitos Semanales:** Renderizan una única celda que abarca las 7 columnas (`<td colspan="7">`) con un único `MudCheckBox` centrado, clarificando que la acción se realiza una vez por semana.
+
+### Consecuencias
+
+- **Positivas:** La experiencia de usuario mejora significativamente. Los formularios son más intuitivos y el tracker es menos ambiguo. La decisión de eliminar la funcionalidad de color demuestra un enfoque pragmático, favoreciendo la simplicidad y la robustez.
+- **Negativas:** El código Razor en `Habits.razor` gana en complejidad debido a la lógica de renderizado condicional, un trade-off aceptable por la mejora en la claridad de la interfaz.
+
+### Relación con el TFG
+
+Este ADR demuestra un proceso de desarrollo iterativo, centrado en la usabilidad y la experiencia de usuario. Documenta cómo se refina una funcionalidad basándose en su uso y cómo se toman decisiones pragmáticas (como eliminar una característica problemática) para mejorar la calidad general del producto.
+
+---
+
 _(Nuevas decisiones se añadirán a continuación...)_

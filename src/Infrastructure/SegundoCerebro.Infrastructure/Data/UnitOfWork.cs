@@ -23,6 +23,7 @@ public class UnitOfWork : IUnitOfWork
     private ICardRepository? _cardRepository;
     private IHabitRepository? _habitRepository;
     private ITimeLogRepository? _timeLogRepository;
+    private IHabitLogRepository? _habitLogRepository;
 
     /// <summary>
     /// Inicializa una nueva instancia de la clase <see cref="UnitOfWork"/>.
@@ -51,6 +52,8 @@ public class UnitOfWork : IUnitOfWork
     public IHabitRepository Habits => _habitRepository ??= new HabitRepository(_context);
     /// <inheritdoc />
     public ITimeLogRepository TimeLogs => _timeLogRepository ??= new TimeLogRepository(_context);
+    /// <inheritdoc />
+    public IHabitLogRepository HabitLogs => _habitLogRepository ??= new HabitLogRepository(_context);
 
     /// <summary>
     /// Guarda todos los cambios pendientes en el contexto de la base de datos.
