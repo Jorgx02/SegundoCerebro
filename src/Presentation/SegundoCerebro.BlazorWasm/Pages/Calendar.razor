@@ -1,0 +1,162 @@
+@page "/calendar"
+@using System.Globalization
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Services
+@using MudBlazor
+@inject ITodoItemService TodoItemService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<PageTitle>Calendario - SegundoCerebro</PageTitle>
+
+<style>
+    .calendar-grid-container {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-auto-rows: 1fr;
+        /* Hace que todas las filas tengan la misma altura */
+        gap: 8px;
+        height: calc(85vh - 128px);
+        /* Ocupa el espacio vertical disponible */
+    }
+
+    .calendar-day-cell {
+        min-height: 120px;
+        /* Asegura una altura mínima para cada celda */
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+            <MudText Typo="Typo.h4">Calendario de Tareas</MudText>
+            <div class="d-flex align-center">
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousMonth"
+                               aria-label="Mes anterior" />
+                <MudText Typo="Typo.h5" Class="mx-4">@currentMonth.ToString("MMMM yyyy", new CultureInfo("es-ES"))
+                </MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextMonth"
+                               aria-label="Mes siguiente" />
+                <MudButton Variant="Variant.Text" OnClick="GoToToday" Class="ml-4">Hoy</MudButton>
+            </div>
+        </MudItem>
+    </MudGrid>
+
+    @if (loading)
+    {
+        <div class="d-flex justify-center align-center" style="height: 50vh;">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else
+    {
+        <div class="calendar-grid-container">
+            <!-- Day Headers -->
+            @foreach (var dayName in dayNames)
+            {
+                <MudPaper Elevation="0" Class="pa-2 text-center" Style="font-weight: bold;">
+                    @dayName
+                </MudPaper>
+            }
+
+            <!-- Day Cells -->
+            @{
+                var firstDayOfMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+                int daysToPad = (int)firstDayOfMonth.DayOfWeek - (int)DayOfWeek.Monday;
+                if (daysToPad < 0) daysToPad += 7;
+                var calendarStartDate = firstDayOfMonth.AddDays(-daysToPad);
+            }
+
+            @for (int i = 0; i < 42; i++)
+            {
+                var day = calendarStartDate.AddDays(i);
+                <MudPaper Elevation="2" Class="pa-2 rounded-lg d-flex flex-column calendar-day-cell"
+                          Style="@($"background-color: {(day.Month == currentMonth.Month ? "var(--mud-palette-surface)" : "var(--mud-palette-background-grey)")};")">
+                    <div class="d-flex justify-end">
+                        <MudText Typo="Typo.caption"
+                                 Class="@(day.Date == DateTime.Today ? "font-weight-bold mud-text-primary" : "")">@day.Day</MudText>
+                    </div>
+                    <div class="flex-grow-1 overflow-y-auto">
+                        @foreach (var task in GetTasksForDate(day))
+                        {
+                            <MudTooltip Text="@($"{task.Title} - {task.ProjectName}")">
+                                <MudChip Size="Size.Small" Color="@GetTaskColor(task)"
+                                         OnClick="@(() => NavigateToProject(task.ProjectId))" Class="my-1 mx-1"
+                                         Style="cursor:pointer; width: 95%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">
+                                    @task.Title
+                                </MudChip>
+                            </MudTooltip>
+                        }
+                    </div>
+                </MudPaper>
+            }
+        </div>
+    }
+</MudContainer>
+
+@code {
+    private List<TodoItemDto> tasksWithDueDate = new();
+    private bool loading = true;
+    private DateTime currentMonth = DateTime.Today;
+
+    private readonly string[] dayNames = new CultureInfo("es-ES").DateTimeFormat.AbbreviatedDayNames
+        .Select((day, index) => new { day, index })
+        .OrderBy(x => (x.index + 6) % 7) // Start week on Monday
+        .Select(x => x.day.ToUpper())
+        .ToArray();
+
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        try
+        {
+            var allTasks = await TodoItemService.GetAllAsync();
+            tasksWithDueDate = allTasks?.Where(t => t.DueDate.HasValue).ToList() ?? new List<TodoItemDto>();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar las tareas: {ex.Message}", MudSeverity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void PreviousMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+    }
+
+    private void NextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+    }
+
+    private void GoToToday()
+    {
+        currentMonth = DateTime.Today;
+    }
+
+    private IEnumerable<TodoItemDto> GetTasksForDate(DateTime date)
+    {
+        return tasksWithDueDate.Where(t => t.DueDate.HasValue && t.DueDate.Value.Date == date.Date);
+    }
+
+    private Color GetTaskColor(TodoItemDto task)
+    {
+        if (task.Status == Models.Enums.TodoItemStatus.Completed)
+            return Color.Success;
+        if (task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today.Date)
+            return Color.Error;
+        return Color.Primary;
+    }
+
+    private void NavigateToProject(Guid? projectId)
+    {
+        if (projectId.HasValue)
+        {
+            NavigationManager.NavigateTo($"/projects/{projectId.Value}");
+        }
+    }
+}

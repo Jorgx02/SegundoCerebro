@@ -212,16 +212,44 @@ Se decide implementar un módulo completo de `Projects` y `TodoItems` siguiendo 
     - `ProjectDetails.razor`: Una vista detallada de un proyecto que lista todas sus tareas asociadas y permite el CRUD completo sobre ellas.
     - `TodoItems.razor`: Una vista global que muestra todas las tareas de todos los proyectos, agrupadas por el nombre del proyecto para una visión general.
     - `KanbanBoard.razor`: Un tablero Kanban interactivo que permite visualizar y cambiar el estado de las tareas mediante drag-and-drop. Se utiliza el componente `MudDropContainer` para una gestión robusta del estado.
+    - `Calendar.razor`: Una vista de calendario mensual que muestra todas las tareas con fecha de vencimiento (`DueDate`), proporcionando una perspectiva temporal para la planificación.
 6.  **Actualización Optimista:** En la página de detalles del proyecto, el `CheckBox` para completar tareas implementa una actualización optimista de la UI. El estado visual cambia instantáneamente, y la llamada a la API se realiza en segundo plano, mejorando la percepción de velocidad para el usuario.
 
 ### Consecuencias
 
 - **Positivas:** El módulo de productividad está completamente integrado en la arquitectura existente, es robusto y ofrece una experiencia de usuario fluida y visualmente rica gracias al tablero Kanban. Las reglas de negocio garantizan la integridad de los datos.
+- **Positivas:** El módulo de productividad está completamente integrado en la arquitectura existente, es robusto y ofrece una experiencia de usuario fluida y visualmente rica gracias al tablero Kanban y la vista de calendario. Las reglas de negocio garantizan la integridad de los datos.
 - **Negativas:** Aumenta la complejidad del dominio y el número de endpoints y componentes de la UI a mantener.
 
 ### Relación con el TFG
 
 Esta implementación constituye el segundo gran módulo funcional de la aplicación, demostrando la escalabilidad de la arquitectura elegida y la capacidad de construir funcionalidades complejas sobre ella.
+
+---
+
+## ADR 010: Implementación del Seguimiento de Tiempo (Time Tracking)
+
+**Fecha:** Fase 2 - Evolución del Módulo de Productividad
+
+### Contexto y Problema
+
+Para proporcionar una herramienta de productividad completa, no basta con gestionar tareas; es crucial poder medir el tiempo invertido en ellas. Esto permite a los usuarios analizar su rendimiento, facturar horas de trabajo y entender mejor en qué invierten su tiempo. El módulo de productividad necesitaba una forma integrada y no intrusiva de registrar estos tiempos.
+
+### Decisión
+
+Se decide implementar un sistema de seguimiento de tiempo a nivel de `TodoItem`:
+
+1.  **Nueva Entidad `TimeLog`:** Se crea una entidad `TimeLog` para almacenar cada intervalo de tiempo trabajado. Contiene `StartTime`, `EndTime?`, y una relación de muchos a uno con `TodoItem`.
+2.  **Lógica de Negocio en CQRS:** Se implementan los comandos `StartTimeLogCommand` y `StopTimeLogCommand`. La lógica de negocio en sus manejadores asegura que no se pueda iniciar un nuevo cronómetro si ya hay uno activo para la misma tarea.
+3.  **Cálculos en AutoMapper:** Para optimizar las consultas del frontend, se enriquece el `TodoItemDto` con dos propiedades calculadas a través de AutoMapper:
+    - `TotalTimeTracked`: Suma la duración de todos los `TimeLog` completados para una tarea.
+    - `IsCurrentlyTracking`: Un booleano que indica si existe un `TimeLog` activo (con `EndTime` nulo).
+4.  **Integración en la UI:** Se añade un componente de cronómetro (botón Play/Stop y contador) directamente en las tarjetas de tarea del `KanbanBoard.razor` y en las listas de `ProjectDetails.razor`, ofreciendo una experiencia de usuario consistente.
+
+### Consecuencias
+
+- **Positivas:** El módulo de productividad se vuelve significativamente más potente. La integración directa en la UI existente hace que la funcionalidad sea muy accesible. La arquitectura permite futuras ampliaciones, como reportes de tiempo.
+- **Negativas:** Aumenta la carga de consultas a la base de datos, ya que cada carga de tareas ahora debe incluir sus `TimeLogs` asociados (`.Include(t => t.TimeLogs)`).
 
 ---
 

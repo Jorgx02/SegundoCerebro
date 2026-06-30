@@ -8,7 +8,6 @@
 @inject ITodoItemService TodoItemService
 @inject IProjectService ProjectService
 @inject ISnackbar Snackbar
-@inject ITimeLogService TimeLogService
 
 <PageTitle>Kanban - SegundoCerebro</PageTitle>
 
@@ -100,17 +99,6 @@
                                                                 @context.DueDate.Value.ToString("MMM dd")
                                                             </MudChip>
                                                         }
-                                                        <MudSpacer />
-                                                        <div class="d-flex align-center">
-                                                            <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" Class="mr-1" />
-                                                            <MudText Typo="Typo.caption">@FormatTimeSpan(context.TotalTimeTracked)</MudText>
-                                                        </div>
-                                                        <MudIconButton
-                                                            Icon="@(context.IsCurrentlyTracking ? Icons.Material.Filled.StopCircle : Icons.Material.Filled.PlayCircle)"
-                                                            Color="@(context.IsCurrentlyTracking ? Color.Error : Color.Success)"
-                                                            Size="Size.Small"
-                                                            OnClick="() => ToggleTimeTracking(context)"
-                                                            Class="ml-2" />
                                                     </MudCardActions>
                                                 </MudCard>
                                             </ItemRenderer>
@@ -202,32 +190,6 @@
         item.Status = newStatus; // Optimistic update
         _ = UpdateTaskStatusInBackend(item, newStatus);
     }
-
-    private async Task ToggleTimeTracking(TodoItemDto task)
-    {
-        try
-        {
-            if (task.IsCurrentlyTracking)
-            {
-                var stoppedLog = await TimeLogService.StopAsync(task.Id);
-                task.IsCurrentlyTracking = false;
-                task.TotalTimeTracked += stoppedLog.Duration;
-                Snackbar.Add($"Temporizador detenido para '{task.Title}'.", MudSeverity.Info);
-            }
-            else
-            {
-                await TimeLogService.StartAsync(task.Id);
-                task.IsCurrentlyTracking = true;
-                Snackbar.Add($"Temporizador iniciado para '{task.Title}'.", MudSeverity.Success);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error: {ex.Message}", MudSeverity.Error);
-        }
-    }
-
-    private string FormatTimeSpan(TimeSpan ts) => $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
 
     private async Task UpdateTaskStatusInBackend(TodoItemDto task, TodoItemStatus newStatus)
     {

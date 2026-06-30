@@ -183,5 +183,12 @@ public class MappingProfile : Profile
         // TimeLog mappings
         // Mapeo de Entidad a DTO.
         CreateMap<TimeLog, TimeLogDto>();
+
+        // Habit mappings
+        CreateMap<Habit, HabitDto>();
+        CreateMap<CreateHabitDto, Habit>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.UserId, opt => opt.Ignore());
     }
 }

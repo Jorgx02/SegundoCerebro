@@ -77,6 +77,8 @@ Empoderar a las personas para que tomen el control total de su vida financiera, 
 - 👁️ **Vista Centralizada**: Página "Todas las Tareas" agrupadas por proyecto.
 - 🛡️ **Reglas de Negocio**: Lógica para prevenir borrado de proyectos completados o finalización con tareas pendientes.
 - Kanban Interactivo: Tablero visual para gestionar tareas con drag-and-drop y filtros por proyecto y fecha.
+- ⏰ **Time Tracking**: Seguimiento de tiempo por tarea con cronómetro integrado en el Kanban y listas de tareas.
+- 📅 **Calendario Integrado**: Vista de calendario mensual con todas las tareas que tienen fecha de vencimiento.
 
 ### 🔄 **Módulo de Hábitos** (v3.0 - Planificado)
 
@@ -101,7 +103,6 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 ├── 📂 src/
 │   ├── 📂 Core/
 │   │   ├── 📂 SegundoCerebro.Domain/          # Entidades de negocio
-│   │   │   └── 📂 tests/                      # Tests automatizados
 │   │   └── 📂 SegundoCerebro.Application/     # Lógica de aplicación (CQRS)
 │   ├── 📂 Infrastructure/
 │   │   └── 📂 SegundoCerebro.Infrastructure/  # Acceso a datos y servicios externos
@@ -109,6 +110,7 @@ SegundoCerebro utiliza **Clean Architecture** con CQRS (Command Query Responsibi
 │       ├── 📂 SegundoCerebro.WebAPI/          # API REST
 │       ├── 📂 SegundoCerebro.BlazorWasm/      # Frontend Web
 │       └── 📂 SegundoCerebro.Maui/            # App Móvil (Futuro)
+└── 📂 tests/                                  # Tests automatizados
 ```
 
 ### 🔧 Patrones Implementados
@@ -294,9 +296,9 @@ dotnet run
 - [x] Página de detalles de Proyecto con lista de tareas ✅
 - [x] Página global de Tareas agrupadas por Proyecto ✅
 - [x] Tablero Kanban interactivo con filtros ✅
+- [x] Time tracking por tarea ✅
 - [x] Lógica de negocio GTD (estados, finalización) ✅
-- [ ] Time tracking (Planificado)
-- [ ] Calendario integrado (Planificado)
+- [x] Calendario integrado ✅
 
 ### 🎯 **Fase 3: Hábitos y Bienestar** (Q3 2026)
 
