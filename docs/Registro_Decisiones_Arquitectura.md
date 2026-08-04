@@ -321,4 +321,30 @@ Este ADR demuestra un proceso de desarrollo iterativo, centrado en la usabilidad
 
 ---
 
+## ADR 013: Implementación de la Visualización de Análisis de Hábitos (Heatmap)
+
+**Fecha:** Fase 3 - Evolución del Módulo de Hábitos
+
+### Contexto y Problema
+
+El tracker de hábitos semanal es excelente para el seguimiento a corto plazo, pero no ofrece una visión a largo plazo de la consistencia del usuario. Para un análisis de patrones y una revisión anual, se necesita una visualización de datos más densa e intuitiva.
+
+### Decisión
+
+1.  **Crear una nueva página de "Análisis"** (`/habits/heatmap`) dedicada a la visualización de datos de hábitos.
+2.  **Implementar un componente de "mapa de calor" (heatmap)** similar al de contribuciones de GitHub para cada hábito. Este componente mostrará un año completo de actividad (365 días) en una cuadrícula compacta.
+3.  **Crear un nuevo endpoint en el backend** (`GET /api/habits/heatmap/{year}`) que devuelva los datos agregados de cumplimiento para todos los hábitos de un usuario en un año específico. Esto optimiza la carga de datos, ya que el frontend solo necesita hacer una llamada para obtener toda la información del año.
+4.  **El componente del heatmap (`HabitHeatmapGrid.razor`)** se diseñará para ser reutilizable y se encargará de toda la lógica de renderizado, incluyendo el cálculo de la posición de los días y los meses para una alineación perfecta usando CSS Grid.
+
+### Consecuencias
+
+- **Positivas:** Aporta un valor analítico inmenso a la aplicación. La visualización es intuitiva, profesional y altamente motivadora. La arquitectura demuestra su capacidad para soportar endpoints de agregación de datos complejos.
+- **Negativas:** La lógica de renderizado del componente del heatmap es compleja, especialmente el cálculo para alinear los meses con las semanas, lo que requiere un mantenimiento cuidadoso.
+
+### Relación con el TFG
+
+Esta decisión demuestra la capacidad de ir más allá de un simple CRUD y construir funcionalidades de visualización de datos avanzadas que mejoran la experiencia de usuario y el valor del producto. Documenta la creación de un componente de UI complejo y su correspondiente endpoint de API optimizado.
+
+---
+
 _(Nuevas decisiones se añadirán a continuación...)_

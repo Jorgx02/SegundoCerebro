@@ -8,6 +8,7 @@ using SegundoCerebro.Application.Features.Habits.Commands.UpdateHabit;
 using SegundoCerebro.Application.Features.Habits.Commands.ToggleHabitCompletion;
 using SegundoCerebro.Application.Features.Habits.Queries.GetHabitsForTracker;
 using SegundoCerebro.Application.Features.Habits.Queries.GetAllHabits;
+using SegundoCerebro.Application.Features.Habits.Queries.GetHabitHeatmap;
 
 namespace SegundoCerebro.WebAPI.Controllers;
 
@@ -116,5 +117,17 @@ public class HabitsController : ControllerBase
         command.HabitId = id;
         var isCompleted = await _mediator.Send(command);
         return Ok(isCompleted);
+    }
+
+    /// <summary>
+    /// Obtiene los datos para el mapa de calor de hábitos para un año específico.
+    /// </summary>
+    /// <param name="year">El año para el cual se solicitan los datos.</param>
+    /// <returns>Una colección de datos de mapa de calor para cada hábito.</returns>
+    [HttpGet("heatmap/{year}")]
+    public async Task<ActionResult<IEnumerable<HabitHeatmapDto>>> GetHeatmapData(int year)
+    {
+        var data = await _mediator.Send(new GetHabitHeatmapQuery(year));
+        return Ok(data);
     }
 }

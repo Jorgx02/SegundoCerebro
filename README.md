@@ -82,9 +82,9 @@ Empoderar a las personas para que tomen el control total de su vida financiera, 
 
 ### 🔄 **Módulo de Hábitos** (v3.0 - En Progreso 🚧)
 
-- ✅ **Habit Tracker**: Seguimiento diario/semanal de hábitos en una vista de tracker interactiva.
+- ✅ **Habit Tracker**: Seguimiento diario/semanal de hábitos en una vista de tracker interactiva con UI diferenciada por frecuencia.
 - ✅ **Gamificación (Rachas)**: Cálculo y visualización de rachas actuales y máximas para motivar al usuario.
-- ⬜ **Análisis de Patrones**: (Futuro) IA para identificar patrones de comportamiento.
+- ✅ **Análisis Visual (Heatmap)**: Mapa de calor anual por hábito, similar al de GitHub, para analizar la consistencia a largo plazo.
 
 ### 🤖 **Inteligencia Artificial** (v4.0 - Futuro)
 

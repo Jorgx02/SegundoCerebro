@@ -32,4 +32,10 @@ public class HabitService : ApiService<HabitDto, CreateHabitDto, UpdateHabitDto>
         var content = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<bool>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
+
+    public async Task<IEnumerable<HabitHeatmapDto>> GetHeatmapDataAsync(int year)
+    {
+        var result = await _httpClient.GetFromJsonAsync<IEnumerable<HabitHeatmapDto>>($"api/habits/heatmap/{year}");
+        return result ?? Enumerable.Empty<HabitHeatmapDto>();
+    }
 }

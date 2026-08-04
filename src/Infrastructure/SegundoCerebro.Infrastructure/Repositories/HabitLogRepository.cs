@@ -14,9 +14,13 @@ public class HabitLogRepository : Repository<HabitLog>, IHabitLogRepository
     {
     }
 
-    /// <inheritdoc />
-    public async Task<HabitLog?> GetLogForDateAsync(Guid habitId, DateTime date)
+    public async Task<IEnumerable<HabitLog>> GetLogsForYearAsync(int year, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FirstOrDefaultAsync(hl => hl.HabitId == habitId && hl.Date == date.Date);
+        return await _dbSet.Where(log => log.Date.Year == year).ToListAsync(cancellationToken);
+    }
+
+    public async Task<HabitLog?> GetLogForDateAsync(Guid habitId, DateTime date, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.FirstOrDefaultAsync(log => log.HabitId == habitId && log.Date.Date == date.Date, cancellationToken);
     }
 }

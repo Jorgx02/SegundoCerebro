@@ -134,7 +134,7 @@ public class MappingProfile : Profile
         // Mapeo de Entidad a DTO, incluyendo el nombre del proyecto asociado.
         CreateMap<TodoItem, TodoItemDto>()
             .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project != null ? src.Project.Name : null))
-            .ForMember(dest => dest.TotalTimeTracked, opt => opt.MapFrom(src => src.TimeLogs != null ? src.TimeLogs.Where(tl => tl.EndTime.HasValue).Aggregate(TimeSpan.Zero, (total, log) => total + (log.EndTime.Value - log.StartTime)) : TimeSpan.Zero))
+            .ForMember(dest => dest.TotalTimeTracked, opt => opt.MapFrom(src => src.TimeLogs != null ? src.TimeLogs.Where(tl => tl.EndTime.HasValue).Aggregate(TimeSpan.Zero, (total, log) => total + (log.EndTime!.Value - log.StartTime)) : TimeSpan.Zero))
             .ForMember(dest => dest.IsCurrentlyTracking, opt => opt.MapFrom(src => src.TimeLogs != null && src.TimeLogs.Any(tl => !tl.EndTime.HasValue)));
 
         // Mapeo de DTO de creación a Entidad.
@@ -192,7 +192,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Logs, opt => opt.MapFrom(src => src.Logs))
             .ForMember(dest => dest.CurrentStreak, opt => opt.Ignore())
             .ForMember(dest => dest.LongestStreak, opt => opt.Ignore());
-            
+
         CreateMap<CreateHabitDto, Habit>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())

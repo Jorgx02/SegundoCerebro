@@ -22,4 +22,11 @@ public interface IHabitService : IApiService<HabitDto, CreateHabitDto, UpdateHab
     /// <param name="date">Fecha del registro.</param>
     /// <returns>El nuevo estado de completado.</returns>
     Task<bool> ToggleHabitCompletionAsync(Guid habitId, DateTime date);
+
+    /// <summary>
+    /// Obtiene los datos para el mapa de calor de hábitos para un año específico.
+    /// </summary>
+    /// <param name="year">El año para el cual se solicitan los datos.</param>
+    /// <returns>Una colección de datos de mapa de calor para cada hábito.</returns>
+    Task<IEnumerable<HabitHeatmapDto>> GetHeatmapDataAsync(int year);
 }

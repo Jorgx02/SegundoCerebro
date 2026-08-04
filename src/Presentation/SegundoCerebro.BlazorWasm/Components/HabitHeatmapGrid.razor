@@ -1,0 +1,168 @@
+@using System.Globalization
+
+<div class="heatmap-container">
+    <div class="heatmap-months-grid">
+        @foreach (var monthPos in _monthPositions)
+        {
+            <div class="heatmap-month-label" style="grid-column: @(monthPos.StartColumn) / span @(monthPos.SpanColumns);">
+                @monthPos.Label
+            </div>
+        }
+    </div>
+    <div class="heatmap-grid-wrapper">
+        <div class="heatmap-weekdays">
+            <div>L</div>
+            <div class="invisible">M</div>
+            <div>X</div>
+            <div class="invisible">J</div>
+            <div>V</div>
+            <div class="invisible">S</div>
+            <div>D</div>
+        </div>
+        <div class="heatmap-grid">
+            @foreach (var day in _heatmapDays)
+            {
+                if (day.IsPlaceholder)
+                {
+                    <div class="heatmap-day placeholder"></div>
+                }
+                else
+                {
+                    <MudTooltip Text="@day.TooltipText" Duration="250">
+                        <div class="heatmap-day" style="@($"background-color: {day.Color};")"></div>
+                    </MudTooltip>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .heatmap-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    .heatmap-months-grid {
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: repeat(53, calc(14px + 4px));
+        /* 53 semanas, ancho celda + gap */
+        margin-left: 28px;
+        /* Espacio para las etiquetas de los días de la semana */
+        margin-bottom: 4px;
+    }
+
+    .heatmap-month-label {
+        font-size: 0.75rem;
+        color: var(--mud-palette-text-secondary);
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .heatmap-grid-wrapper {
+        display: flex;
+    }
+
+    .heatmap-weekdays {
+        display: flex;
+        flex-direction: column;
+        font-size: 0.75rem;
+        color: var(--mud-palette-text-secondary);
+        margin-right: 4px;
+    }
+
+    .heatmap-weekdays>div {
+        height: 18px;
+        /* alto celda + gap */
+        display: flex;
+        align-items: center;
+    }
+
+    .heatmap-weekdays>div.invisible {
+        visibility: hidden;
+    }
+
+    .heatmap-grid {
+        display: grid;
+        grid-template-rows: repeat(7, 1fr);
+        grid-auto-flow: column;
+        grid-gap: 4px;
+    }
+
+    .heatmap-day {
+        width: 14px;
+        height: 14px;
+        border-radius: 2px;
+        background-color: var(--mud-palette-background-grey);
+        cursor: default;
+    }
+
+    .heatmap-day.placeholder {
+        background-color: transparent;
+    }
+</style>
+
+@code {
+    [Parameter] public int Year { get; set; }
+    [Parameter] public HashSet<DateTime> CompletedDates { get; set; } = new();
+
+    private record HeatmapDay(string Color, string TooltipText, bool IsPlaceholder = false);
+    private List<HeatmapDay> _heatmapDays = new();
+    private List<(string Label, int StartColumn, int SpanColumns)> _monthPositions = new();
+
+    protected override void OnParametersSet()
+    {
+        _heatmapDays.Clear();
+        _monthPositions.Clear();
+        var culture = new CultureInfo("es-ES");
+
+        var firstDayOfYear = new DateTime(Year, 1, 1);
+        int initialPlaceholderCount = (int)firstDayOfYear.DayOfWeek;
+        initialPlaceholderCount = (initialPlaceholderCount == 0 ? 6 : initialPlaceholderCount - 1); // Monday = 0
+
+        // Add initial placeholders
+        for (int i = 0; i < initialPlaceholderCount; i++)
+        {
+            _heatmapDays.Add(new HeatmapDay("", "", true));
+        }
+
+        int currentDayIndex = initialPlaceholderCount; // Index in _heatmapDays (0-based)
+        int currentMonth = 1;
+        int firstDayOfMonthGridColumn = 0; // 0-based grid column index for the first day of the current month
+
+        for (var day = firstDayOfYear; day.Year == Year; day = day.AddDays(1))
+        {
+            if (day.Month != currentMonth)
+            {
+                // End of previous month. Calculate its range.
+                int lastDayOfPreviousMonthGridColumn = (currentDayIndex - 1) / 7;
+                _monthPositions.Add((
+                    culture.DateTimeFormat.GetAbbreviatedMonthName(currentMonth).ToUpper(),
+                    firstDayOfMonthGridColumn + 1, // CSS grid-column is 1-based
+                    lastDayOfPreviousMonthGridColumn - firstDayOfMonthGridColumn + 1 // Span count
+                ));
+
+                currentMonth = day.Month;
+                firstDayOfMonthGridColumn = currentDayIndex / 7; // New month starts at this column index
+            }
+
+            bool isCompleted = CompletedDates.Contains(day);
+            _heatmapDays.Add(new HeatmapDay(
+                isCompleted ? "var(--mud-palette-success)" : "var(--mud-palette-background-grey)",
+                $"{day:d 'de' MMMM} - {(isCompleted ? "Completado" : "No completado")}"
+            ));
+            currentDayIndex++;
+        }
+
+        // Add the last month's position
+        int lastDayOfLastMonthGridColumn = (currentDayIndex - 1) / 7;
+        _monthPositions.Add((
+            culture.DateTimeFormat.GetAbbreviatedMonthName(currentMonth).ToUpper(),
+            firstDayOfMonthGridColumn + 1,
+            lastDayOfLastMonthGridColumn - firstDayOfMonthGridColumn + 1
+        ));
+    }
+}
