@@ -86,12 +86,12 @@
             };
             await AccountService.UpdateAsync(AccountToDelete.Id, deactivateDto);
 
-            Snackbar.Add("Fondos transferidos y cuenta desactivada correctamente.", MudSeverity.Success);
+            Snackbar.Add("Fondos transferidos y cuenta desactivada correctamente.", Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error en el proceso: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error en el proceso: {ex.Message}", Severity.Error);
         }
     }
 }

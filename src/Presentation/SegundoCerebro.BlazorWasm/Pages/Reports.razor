@@ -136,7 +136,7 @@
                         }
                         else
                         {
-                            <MudAlert Severity="MudSeverity.Info">Ningún dato de categoría disponible para este periodo
+                            <MudAlert Severity="Severity.Info">Ningún dato de categoría disponible para este periodo
                             </MudAlert>
                         }
                     </MudCardContent>
@@ -159,7 +159,7 @@
                         }
                         else
                         {
-                            <MudAlert Severity="MudSeverity.Info">Ningún dato de tendencia disponible para este periodo
+                            <MudAlert Severity="Severity.Info">Ningún dato de tendencia disponible para este periodo
                             </MudAlert>
                         }
                     </MudCardContent>
@@ -206,7 +206,7 @@
                 }
                 else
                 {
-                    <MudAlert Severity="MudSeverity.Info">Ninguna categoría a mostrar</MudAlert>
+                    <MudAlert Severity="Severity.Info">Ninguna categoría a mostrar</MudAlert>
                 }
             </MudCardContent>
         </MudCard>
@@ -246,13 +246,13 @@
     {
         if (!startDate.HasValue || !endDate.HasValue)
         {
-            Snackbar.Add("Por favor, selecciona ambas fechas", MudSeverity.Warning);
+            Snackbar.Add("Por favor, selecciona ambas fechas", Severity.Warning);
             return;
         }
 
         if (startDate.Value > endDate.Value)
         {
-            Snackbar.Add("La fecha de inicio debe ser antes de la fecha de finalización", MudSeverity.Warning);
+            Snackbar.Add("La fecha de inicio debe ser antes de la fecha de finalización", Severity.Warning);
             return;
         }
 
@@ -264,11 +264,11 @@
             // Prepare chart data
             PrepareChartData();
 
-            Snackbar.Add("Reporte generado exitosamente", MudSeverity.Success);
+            Snackbar.Add("Reporte generado exitosamente", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al generar el reporte: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al generar el reporte: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -311,7 +311,7 @@
     {
         if (!startDate.HasValue || !endDate.HasValue)
         {
-            Snackbar.Add("Por favor, selecciona un rango de fechas primero", MudSeverity.Warning);
+            Snackbar.Add("Por favor, selecciona un rango de fechas primero", Severity.Warning);
             return;
         }
 
@@ -320,11 +320,11 @@
             var fileBytes = await ReportService.ExportTransactionsToExcelAsync(startDate.Value, endDate.Value);
             var fileName = $"transactions_{startDate.Value:yyyyMMdd}_{endDate.Value:yyyyMMdd}.xlsx";
             await DownloadFile(fileBytes, fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            Snackbar.Add("Excel descargado con éxito", MudSeverity.Success);
+            Snackbar.Add("Excel descargado con éxito", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al exporatar el Excel: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al exporatar el Excel: {ex.Message}", Severity.Error);
         }
     }
 
@@ -332,7 +332,7 @@
     {
         if (!startDate.HasValue || !endDate.HasValue)
         {
-            Snackbar.Add("Por favor, selecciona un rango de fechas primero", MudSeverity.Warning);
+            Snackbar.Add("Por favor, selecciona un rango de fechas primero", Severity.Warning);
             return;
         }
 
@@ -341,11 +341,11 @@
             var fileBytes = await ReportService.ExportTransactionsToPdfAsync(startDate.Value, endDate.Value);
             var fileName = $"transactions_{startDate.Value:yyyyMMdd}_{endDate.Value:yyyyMMdd}.pdf";
             await DownloadFile(fileBytes, fileName, "application/pdf");
-            Snackbar.Add("PDF descargado con éxito", MudSeverity.Success);
+            Snackbar.Add("PDF descargado con éxito", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al exportar a PDF: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al exportar a PDF: {ex.Message}", Severity.Error);
         }
     }
 

@@ -130,4 +130,5 @@ public class HabitsController : ControllerBase
         var data = await _mediator.Send(new GetHabitHeatmapQuery(year));
         return Ok(data);
     }
+
 }

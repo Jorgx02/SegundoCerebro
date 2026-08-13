@@ -62,7 +62,7 @@
         catch (Exception ex)
         {
             // Mostramos el error de la API (ej. "No se puede completar si hay tareas pendientes")
-            Snackbar.Add($"Error al actualizar el proyecto: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al actualizar el proyecto: {ex.Message}", Severity.Error);
         }
     }
 

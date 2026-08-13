@@ -101,7 +101,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error cargando proyectos: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error cargando proyectos: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -139,7 +139,7 @@
             if (index != -1)
             {
                 projects[index] = updatedProject;
-                Snackbar.Add("Proyecto actualizado con éxito", MudSeverity.Success);
+                Snackbar.Add("Proyecto actualizado con éxito", Severity.Success);
                 StateHasChanged();
             }
         }
@@ -162,11 +162,11 @@
             {
                 await ProjectService.DeleteAsync(projectToDelete.Id);
                 projects.Remove(projectToDelete);
-                Snackbar.Add("Proyecto eliminado con éxito", MudSeverity.Success);
+                Snackbar.Add("Proyecto eliminado con éxito", Severity.Success);
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error eliminando proyecto: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error eliminando proyecto: {ex.Message}", Severity.Error);
             }
         }
     }

@@ -57,17 +57,17 @@
                 var success = await AuthService.RegisterAsync(model);
                 if (success)
                 {
-                    Snackbar.Add("Registro exitoso. Ya puedes iniciar sesión.", MudSeverity.Success);
+                    Snackbar.Add("Registro exitoso. Ya puedes iniciar sesión.", Severity.Success);
                     NavigationManager.NavigateTo("/login");
                 }
                 else
                 {
-                    Snackbar.Add("Error al registrar. El email podría estar en uso o la contraseña no ser segura.", MudSeverity.Error);
+                    Snackbar.Add("Error al registrar. El email podría estar en uso o la contraseña no ser segura.", Severity.Error);
                 }
             }
             catch (Exception)
             {
-                Snackbar.Add("Error de conexión con el servidor.", MudSeverity.Error);
+                Snackbar.Add("Error de conexión con el servidor.", Severity.Error);
             }
             finally
             {

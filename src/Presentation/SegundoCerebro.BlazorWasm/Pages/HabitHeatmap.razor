@@ -72,7 +72,7 @@
     {
         loading = true; StateHasChanged();
         try { heatmapData = (await HabitService.GetHeatmapDataAsync(selectedYear)).ToList(); }
-        catch (Exception ex) { Snackbar.Add($"Error al cargar datos: {ex.Message}", MudSeverity.Error); }
+        catch (Exception ex) { Snackbar.Add($"Error al cargar datos: {ex.Message}", Severity.Error); }
         finally { loading = false; StateHasChanged(); }
     }
 }

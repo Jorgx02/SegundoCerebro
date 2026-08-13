@@ -70,7 +70,7 @@
             var publishableKey = Configuration["Stripe:PublishableKey"];
             if (string.IsNullOrEmpty(publishableKey))
             {
-                Snackbar.Add("La Publishable Key de Stripe no está configurada.", MudSeverity.Error);
+                Snackbar.Add("La Publishable Key de Stripe no está configurada.", Severity.Error);
                 return;
             }
             // 2. Llama a las funciones a través de la referencia al módulo.
@@ -99,12 +99,12 @@
         try
         {
             var newCard = await CardService.CreateAsync(model);
-            Snackbar.Add("Tarjeta añadida con éxito", MudSeverity.Success);
+            Snackbar.Add("Tarjeta añadida con éxito", Severity.Success);
             MudDialog.Close(DialogResult.Ok(newCard));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al guardar la tarjeta: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al guardar la tarjeta: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -116,7 +116,7 @@
     [JSInvokable]
     public Task OnStripeError(string errorMessage)
     {
-        Snackbar.Add(errorMessage, MudSeverity.Error);
+        Snackbar.Add(errorMessage, Severity.Error);
         processing = false;
         StateHasChanged();
         return Task.CompletedTask;

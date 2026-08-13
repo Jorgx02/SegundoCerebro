@@ -158,7 +158,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error cargando los datos: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error cargando los datos: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -174,7 +174,7 @@
         if (!result.Canceled)
         {
             await LoadData();
-            Snackbar.Add("Transacción creada con éxito", MudSeverity.Success);
+            Snackbar.Add("Transacción creada con éxito", Severity.Success);
         }
     }
 
@@ -187,7 +187,7 @@
         if (!result.Canceled)
         {
             await LoadData();
-            Snackbar.Add("Transacción actualizada con éxito", MudSeverity.Success);
+            Snackbar.Add("Transacción actualizada con éxito", Severity.Success);
         }
     }
 }

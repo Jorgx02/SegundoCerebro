@@ -63,12 +63,12 @@
                 }
 
                 await CategoryService.UpdateAsync(Category.Id, model);
-                Snackbar.Add("Categoría actualizada", MudSeverity.Success);
+                Snackbar.Add("Categoría actualizada", Severity.Success);
                 MudDialog.Close(DialogResult.Ok(true));
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
             }
         }
     }

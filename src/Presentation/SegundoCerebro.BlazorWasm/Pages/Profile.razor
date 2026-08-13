@@ -180,7 +180,7 @@
             {
                 // Si el token expira o hay error, evitamos que la aplicación "crashee"
                 Snackbar.Add("Tu sesión ha expirado o hay un problema de red. Por favor, cierra sesión y vuelve a entrar.",
-MudSeverity.Warning);
+Severity.Warning);
             }
         }
     }
@@ -192,11 +192,11 @@ MudSeverity.Warning);
             var dto = new UpdateProfileDto { Email = userEmail, UserName = userName };
             await AuthService.UpdateProfileAsync(dto);
             Snackbar.Add("Perfil actualizado con éxito. Inicia sesión de nuevo para ver los cambios en tu correo.",
-MudSeverity.Success);
+Severity.Success);
         }
         catch (Exception)
         {
-            Snackbar.Add("Error al actualizar. Es posible que el correo ya esté en uso.", MudSeverity.Error);
+            Snackbar.Add("Error al actualizar. Es posible que el correo ya esté en uso.", Severity.Error);
         }
     }
 
@@ -204,12 +204,12 @@ MudSeverity.Success);
     {
         if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword))
         {
-            Snackbar.Add("Rellena todos los campos de contraseña.", MudSeverity.Warning);
+            Snackbar.Add("Rellena todos los campos de contraseña.", Severity.Warning);
             return;
         }
         if (newPassword != confirmPassword)
         {
-            Snackbar.Add("Las contraseñas nuevas no coinciden.", MudSeverity.Error);
+            Snackbar.Add("Las contraseñas nuevas no coinciden.", Severity.Error);
             return;
         }
 
@@ -217,12 +217,12 @@ MudSeverity.Success);
         {
             var dto = new ChangePasswordDto { CurrentPassword = currentPassword, NewPassword = newPassword };
             await AuthService.ChangePasswordAsync(dto);
-            Snackbar.Add("Contraseña cambiada exitosamente.", MudSeverity.Success);
+            Snackbar.Add("Contraseña cambiada exitosamente.", Severity.Success);
             currentPassword = ""; newPassword = ""; confirmPassword = "";
         }
         catch (Exception)
         {
-            Snackbar.Add("Error al cambiar la contraseña. Verifica tu contraseña actual.", MudSeverity.Error);
+            Snackbar.Add("Error al cambiar la contraseña. Verifica tu contraseña actual.", Severity.Error);
         }
     }
 
@@ -230,7 +230,7 @@ MudSeverity.Success);
     {
         if (string.IsNullOrWhiteSpace(twoFactorPassword))
         {
-            Snackbar.Add("Debes introducir tu contraseña para modificar el 2FA.", MudSeverity.Warning);
+            Snackbar.Add("Debes introducir tu contraseña para modificar el 2FA.", Severity.Warning);
             return;
         }
         try
@@ -241,24 +241,24 @@ MudSeverity.Success);
             if (response.RequiresCode)
             {
                 show2FACodeInput = true;
-                Snackbar.Add("Revisa tu correo para el código de confirmación.", MudSeverity.Info);
+                Snackbar.Add("Revisa tu correo para el código de confirmación.", Severity.Info);
             }
             else
             {
                 is2FAEnabled = false;
                 twoFactorPassword = "";
-                Snackbar.Add("2FA desactivado correctamente.", MudSeverity.Success);
+                Snackbar.Add("2FA desactivado correctamente.", Severity.Success);
             }
         }
         catch (Exception)
         {
-            Snackbar.Add("Contraseña incorrecta o error al modificar 2FA.", MudSeverity.Error);
+            Snackbar.Add("Contraseña incorrecta o error al modificar 2FA.", Severity.Error);
         }
     }
 
     private async Task Confirm2FA()
     {
-        if (string.IsNullOrWhiteSpace(confirmCode)) { Snackbar.Add("Introduce el código.", MudSeverity.Warning); return; }
+        if (string.IsNullOrWhiteSpace(confirmCode)) { Snackbar.Add("Introduce el código.", Severity.Warning); return; }
         try
         {
             await AuthService.Confirm2FAAsync(new Confirm2FADto { Code = confirmCode });
@@ -266,11 +266,11 @@ MudSeverity.Success);
             show2FACodeInput = false;
             twoFactorPassword = "";
             confirmCode = "";
-            Snackbar.Add("2FA activado de forma exitosa.", MudSeverity.Success);
+            Snackbar.Add("2FA activado de forma exitosa.", Severity.Success);
         }
         catch
         {
-            Snackbar.Add("Código incorrecto o expirado.", MudSeverity.Error);
+            Snackbar.Add("Código incorrecto o expirado.", Severity.Error);
         }
     }
 
@@ -278,7 +278,7 @@ MudSeverity.Success);
     {
         if (string.IsNullOrWhiteSpace(deletePassword))
         {
-            Snackbar.Add("Debes introducir tu contraseña para eliminar la cuenta.", MudSeverity.Warning);
+            Snackbar.Add("Debes introducir tu contraseña para eliminar la cuenta.", Severity.Warning);
             return;
         }
 
@@ -289,7 +289,7 @@ MudSeverity.Success);
         {
             var accountNames = string.Join(", ", accountsWithFunds.Select(a => $"{a.Name} ({a.Balance:N2})"));
             Snackbar.Add($"No puedes eliminar tu cuenta. Tienes fondos en: {accountNames}. Transfiérelos o ponlos a cero primero.",
-MudSeverity.Error);
+Severity.Error);
             return;
         }
 
@@ -300,13 +300,13 @@ MudSeverity.Error);
             try
             {
                 await AuthService.DeleteAccountAsync(new DeleteAccountDto { Password = deletePassword });
-                Snackbar.Add("Cuenta eliminada correctamente. ¡Hasta pronto!", MudSeverity.Success);
+                Snackbar.Add("Cuenta eliminada correctamente. ¡Hasta pronto!", Severity.Success);
                 await AuthService.LogoutAsync();
                 NavigationManager.NavigateTo("/login", replace: true);
             }
             catch (Exception)
             {
-                Snackbar.Add("Contraseña incorrecta o error de conexión.", MudSeverity.Error);
+                Snackbar.Add("Contraseña incorrecta o error de conexión.", Severity.Error);
             }
         }
     }

@@ -121,7 +121,7 @@
         }
         else
         {
-            Snackbar.Add("ID de cuenta no válido.", MudSeverity.Error);
+            Snackbar.Add("ID de cuenta no válido.", Severity.Error);
             loading = false;
         }
     }
@@ -150,7 +150,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar los detalles de la cuenta: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al cargar los detalles de la cuenta: {ex.Message}", Severity.Error);
             account = null;
         }
         finally
@@ -170,7 +170,7 @@
         if (!result.Canceled && result.Data is CardDto newCard)
         {
             cards.Add(newCard);
-            Snackbar.Add("Tarjeta añadida con éxito.", MudSeverity.Success);
+            Snackbar.Add("Tarjeta añadida con éxito.", Severity.Success);
         }
     }
 
@@ -186,7 +186,7 @@
             if (index != -1)
             {
                 cards[index] = updatedCard;
-                Snackbar.Add("Tarjeta actualizada con éxito.", MudSeverity.Success);
+                Snackbar.Add("Tarjeta actualizada con éxito.", Severity.Success);
             }
         }
     }
@@ -207,11 +207,11 @@
             {
                 await CardService.DeleteAsync(card.Id);
                 cards.Remove(card);
-                Snackbar.Add("Tarjeta eliminada con éxito.", MudSeverity.Success);
+                Snackbar.Add("Tarjeta eliminada con éxito.", Severity.Success);
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error eliminando la tarjeta: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error eliminando la tarjeta: {ex.Message}", Severity.Error);
             }
         }
     }

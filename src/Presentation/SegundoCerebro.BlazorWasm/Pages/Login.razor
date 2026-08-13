@@ -98,7 +98,7 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error: {ex.Message}. Comprueba tus credenciales.", MudSeverity.Error);
+                Snackbar.Add($"Error: {ex.Message}. Comprueba tus credenciales.", Severity.Error);
             }
             finally
             {
@@ -118,7 +118,7 @@
             await AuthService.Verify2FALoginAsync(verifyModel);
             NavigationManager.NavigateTo("/");
         }
-        catch { Snackbar.Add("Código incorrecto o expirado.", MudSeverity.Error); }
+        catch { Snackbar.Add("Código incorrecto o expirado.", Severity.Error); }
         finally { loading = false; }
     }
 }

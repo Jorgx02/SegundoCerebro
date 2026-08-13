@@ -245,7 +245,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error cargando cuentas: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error cargando cuentas: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -263,11 +263,11 @@
         {
             await AccountService.ToggleFavoriteAsync(account.Id);
             account.IsFavorite = !account.IsFavorite; // Actualiza el estado local para reflejo inmediato en la UI
-            Snackbar.Add("Estado de favorito actualizado.", MudSeverity.Success);
+            Snackbar.Add("Estado de favorito actualizado.", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error actualizando el estado de favorito: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error actualizando el estado de favorito: {ex.Message}", Severity.Error);
         }
         // StateHasChanged se invoca automáticamente por el evento OnClick
     }
@@ -310,7 +310,7 @@
         if (!result.Canceled)
         {
             await LoadAccounts();
-            Snackbar.Add("Cuenta creada con éxito", MudSeverity.Success);
+            Snackbar.Add("Cuenta creada con éxito", Severity.Success);
         }
     }
 
@@ -328,7 +328,7 @@
         if (!result.Canceled)
         {
             await LoadAccounts();
-            Snackbar.Add("Cuenta actualizada con éxito", MudSeverity.Success);
+            Snackbar.Add("Cuenta actualizada con éxito", Severity.Success);
         }
     }
 
@@ -342,13 +342,13 @@
     {
         if (account.Balance < 0)
         {
-            Snackbar.Add("No se puede desactivar una cuenta con saldo negativo.", MudSeverity.Error);
+            Snackbar.Add("No se puede desactivar una cuenta con saldo negativo.", Severity.Error);
             return;
         }
 
         if (!account.IsActive && account.Balance == 0)
         {
-            Snackbar.Add("La cuenta ya se encuentra inactiva y vacía.", MudSeverity.Info);
+            Snackbar.Add("La cuenta ya se encuentra inactiva y vacía.", Severity.Info);
             return;
         }
 
@@ -389,11 +389,11 @@
                 await AccountService.UpdateAsync(account.Id, updateDto);
 
                 await LoadAccounts();
-                Snackbar.Add("Cuenta desactivada correctamente.", MudSeverity.Success);
+                Snackbar.Add("Cuenta desactivada correctamente.", Severity.Success);
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error al desactivar la cuenta: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error al desactivar la cuenta: {ex.Message}", Severity.Error);
             }
         }
     }
@@ -426,11 +426,11 @@
 
                 await AccountService.UpdateAsync(account.Id, updateDto);
                 await LoadAccounts();
-                Snackbar.Add($"Divisa cambiada a {data.NewCurrency} y balance actualizado correctamente.", MudSeverity.Success);
+                Snackbar.Add($"Divisa cambiada a {data.NewCurrency} y balance actualizado correctamente.", Severity.Success);
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error al cambiar divisa: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error al cambiar divisa: {ex.Message}", Severity.Error);
             }
         }
     }

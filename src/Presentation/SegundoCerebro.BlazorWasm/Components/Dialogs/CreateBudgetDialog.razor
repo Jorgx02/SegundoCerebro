@@ -92,7 +92,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar los datos: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al cargar los datos: {ex.Message}", Severity.Error);
         }
     }
 
@@ -107,7 +107,7 @@
 
         if (!form.IsValid)
         {
-            Snackbar.Add("Por favor, corrija los errores de validación", MudSeverity.Warning);
+            Snackbar.Add("Por favor, corrija los errores de validación", Severity.Warning);
             return;
         }
 
@@ -117,12 +117,12 @@
             model.EndDate = endDate ?? DateTime.Today.AddMonths(1);
 
             await BudgetService.CreateAsync(model);
-            Snackbar.Add("Presupuesto creado exitosamente", MudSeverity.Success);
+            Snackbar.Add("Presupuesto creado exitosamente", Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al crear el presupuesto: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al crear el presupuesto: {ex.Message}", Severity.Error);
         }
     }
 }

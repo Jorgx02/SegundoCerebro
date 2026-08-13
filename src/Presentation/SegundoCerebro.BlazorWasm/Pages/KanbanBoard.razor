@@ -153,7 +153,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar las tareas: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al cargar las tareas: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -206,14 +206,14 @@
         try
         {
             await TodoItemService.UpdateAsync(task.Id, updateDto);
-            Snackbar.Add($"Tarea '{task.Title}' movida a '{newStatus}'.", MudSeverity.Success);
+            Snackbar.Add($"Tarea '{task.Title}' movida a '{newStatus}'.", Severity.Success);
         }
         catch (Exception ex)
         {
             // En caso de error, la UI ya se ha actualizado. Para revertir, necesitaríamos
             // una lógica más compleja, pero por ahora, solo notificamos el error.
             // La UI quedará desincronizada hasta la próxima recarga.
-            Snackbar.Add($"Error al mover la tarea: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al mover la tarea: {ex.Message}", Severity.Error);
         }
     }
 

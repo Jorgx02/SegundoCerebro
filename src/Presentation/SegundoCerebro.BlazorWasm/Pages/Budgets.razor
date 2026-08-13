@@ -95,7 +95,7 @@
             }
             else if (!budgets.Any())
             {
-                <MudAlert Severity="MudSeverity.Info">No se encontraron presupuestos. Crea tu primer presupuesto</MudAlert>
+                <MudAlert Severity="Severity.Info">No se encontraron presupuestos. Crea tu primer presupuesto</MudAlert>
             }
             else
             {
@@ -190,7 +190,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error cargando presupuestos: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error cargando presupuestos: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -238,12 +238,12 @@
             try
             {
                 await BudgetService.DeleteAsync(budget.Id);
-                Snackbar.Add("Presupuesto eliminado con éxito", MudSeverity.Success);
+                Snackbar.Add("Presupuesto eliminado con éxito", Severity.Success);
                 await LoadBudgets();
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error eliminando presupuesto: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error eliminando presupuesto: {ex.Message}", Severity.Error);
             }
         }
     }

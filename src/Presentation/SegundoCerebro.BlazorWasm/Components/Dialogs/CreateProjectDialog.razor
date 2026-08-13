@@ -35,7 +35,7 @@
         if (!form.IsValid) return;
 
         var newProject = await ProjectService.CreateAsync(model);
-        Snackbar.Add("Proyecto creado con éxito", MudSeverity.Success);
+        Snackbar.Add("Proyecto creado con éxito", Severity.Success);
         MudDialog.Close(DialogResult.Ok(newProject));
     }
 

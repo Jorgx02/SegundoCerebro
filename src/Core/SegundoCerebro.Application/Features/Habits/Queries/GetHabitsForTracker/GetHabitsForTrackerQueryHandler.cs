@@ -3,12 +3,11 @@ using MediatR;
 using SegundoCerebro.Application.DTOs;
 using SegundoCerebro.Domain.Entities;
 using SegundoCerebro.Domain.Interfaces;
-using System.Collections.Generic;
 
 namespace SegundoCerebro.Application.Features.Habits.Queries.GetHabitsForTracker;
 
 /// <summary>
-/// Manejador para la consulta que obtiene los datos para el tracker de hábitos.
+/// Manejador para la consulta GetHabitsForTrackerQuery.
 /// </summary>
 public class GetHabitsForTrackerQueryHandler : IRequestHandler<GetHabitsForTrackerQuery, IEnumerable<HabitDto>>
 {
@@ -21,90 +20,103 @@ public class GetHabitsForTrackerQueryHandler : IRequestHandler<GetHabitsForTrack
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Procesa la solicitud para obtener los hábitos del usuario con sus logs para el tracker.
+    /// </summary>
+    /// <param name="request">La consulta.</param>
+    /// <param name="cancellationToken">Token de cancelación.</param>
+    /// <returns>Una colección de DTOs de hábitos con sus logs y rachas calculadas.</returns>
     public async Task<IEnumerable<HabitDto>> Handle(GetHabitsForTrackerQuery request, CancellationToken cancellationToken)
     {
-        var habits = await _unitOfWork.Habits.GetHabitsWithAllLogsAsync();
+        // Obtener todos los hábitos del usuario, ordenados por DisplayOrder
+        var habits = (await _unitOfWork.Habits.GetAllAsync()).ToList();
+
+        // Obtener todos los logs de hábitos del usuario
+        // Podríamos optimizar esto para solo cargar logs de un rango de fechas,
+        // pero para el cálculo de rachas necesitamos el historial completo.
+        var allHabitLogs = await _unitOfWork.HabitLogs.GetAllAsync();
+        var logsByHabitId = allHabitLogs.GroupBy(log => log.HabitId)
+                                        .ToDictionary(g => g.Key, g => g.OrderBy(l => l.Date).ToList());
+
         var habitDtos = new List<HabitDto>();
 
         foreach (var habit in habits)
         {
-            var dto = _mapper.Map<HabitDto>(habit);
-            var (currentStreak, longestStreak) = CalculateStreaks(habit.Logs);
-            dto.CurrentStreak = currentStreak;
-            dto.LongestStreak = longestStreak;
-            habitDtos.Add(dto);
+            var habitDto = _mapper.Map<HabitDto>(habit);
+            habitDto.Logs = logsByHabitId.TryGetValue(habit.Id, out var logs)
+                ? _mapper.Map<ICollection<HabitLogDto>>(logs)
+                : new List<HabitLogDto>();
+
+            // Calcular rachas
+            CalculateStreaks(habitDto);
+            habitDtos.Add(habitDto);
         }
 
         return habitDtos;
     }
 
     /// <summary>
-    /// Calcula la racha actual y la más larga para un hábito basándose en sus registros.
+    /// Calcula la racha actual y la racha más larga para un hábito.
     /// </summary>
-    /// <param name="logs">La colección de registros de cumplimiento del hábito.</param>
-    /// <returns>Una tupla con la racha actual y la racha más larga.</returns>
-    private (int currentStreak, int longestStreak) CalculateStreaks(ICollection<HabitLog> logs)
+    /// <param name="habitDto">El DTO del hábito con sus logs.</param>
+    private void CalculateStreaks(HabitDto habitDto)
     {
-        if (logs == null || !logs.Any()) return (0, 0);
+        if (!habitDto.Logs.Any())
+        {
+            habitDto.CurrentStreak = 0;
+            habitDto.LongestStreak = 0;
+            return;
+        }
 
-        var dates = logs.Select(l => l.Date.Date).ToHashSet();
+        var sortedLogs = habitDto.Logs.OrderBy(log => log.Date).ToList();
         var today = DateTime.Today;
+        var yesterday = today.AddDays(-1);
 
-        // --- Current Streak Calculation ---
+        // Calcular racha actual
         int currentStreak = 0;
-        DateTime dateToCheck;
+        DateTime? lastCompletedDate = null;
 
-        if (dates.Contains(today))
+        // Buscar si el hábito se completó hoy o ayer
+        if (sortedLogs.Any(log => log.Date.Date == today))
         {
-            dateToCheck = today;
+            lastCompletedDate = today;
         }
-        else if (dates.Contains(today.AddDays(-1)))
+        else if (sortedLogs.Any(log => log.Date.Date == yesterday))
         {
-            dateToCheck = today.AddDays(-1);
-        }
-        else
-        {
-            // Streak is broken if not completed today or yesterday
-            return (0, CalculateLongestStreak(dates));
+            lastCompletedDate = yesterday;
         }
 
-        currentStreak = 1;
-        var previousDay = dateToCheck.AddDays(-1);
-        while (dates.Contains(previousDay))
+        if (lastCompletedDate.HasValue)
         {
-            currentStreak++;
-            previousDay = previousDay.AddDays(-1);
+            currentStreak = 1;
+            for (int i = sortedLogs.Count - 1; i >= 0; i--)
+            {
+                if (sortedLogs[i].Date.Date == lastCompletedDate.Value.AddDays(-currentStreak))
+                {
+                    currentStreak++;
+                }
+            }
         }
+        habitDto.CurrentStreak = currentStreak;
 
-        return (currentStreak, CalculateLongestStreak(dates));
-    }
-
-    private int CalculateLongestStreak(HashSet<DateTime> dates)
-    {
-        if (!dates.Any()) return 0;
-
-        var orderedDates = dates.OrderBy(d => d).ToList();
+        // Calcular racha más larga (LongestStreak)
         int longestStreak = 0;
         int tempStreak = 0;
-        if (orderedDates.Count > 0) {
-            longestStreak = 1;
-            tempStreak = 1;
-        }
-        
-        for (int i = 1; i < orderedDates.Count; i++)
+        for (int i = 0; i < sortedLogs.Count; i++)
         {
-            if (orderedDates[i].Date == orderedDates[i - 1].Date.AddDays(1))
+            if (i == 0 || sortedLogs[i].Date.Date == sortedLogs[i - 1].Date.Date.AddDays(1))
             {
                 tempStreak++;
             }
             else
             {
-                longestStreak = Math.Max(longestStreak, tempStreak);
                 tempStreak = 1;
             }
+            if (tempStreak > longestStreak)
+            {
+                longestStreak = tempStreak;
+            }
         }
-        longestStreak = Math.Max(longestStreak, tempStreak);
-
-        return longestStreak;
+        habitDto.LongestStreak = longestStreak;
     }
 }

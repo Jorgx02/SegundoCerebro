@@ -17,8 +17,8 @@
                               Label="Descripción (Opcional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
 
                 <MudSelect @bind-Value="selectedFrequency" For="@(() => selectedFrequency)" Label="Frecuencia"
-                           Required="true" RequiredError="Debes seleccionar una frecuencia."
-                           Variant="Variant.Outlined" Margin="Margin.Dense" T="HabitFrequency?">
+                           Required="true" RequiredError="Debes seleccionar una frecuencia." Variant="Variant.Outlined"
+                           Margin="Margin.Dense" T="HabitFrequency?">
                     @foreach (HabitFrequency freq in Enum.GetValues<HabitFrequency>())
                     {
                         <MudSelectItem Value="@((HabitFrequency?)freq)">@GetFrequencyName(freq)</MudSelectItem>
@@ -26,12 +26,13 @@
                 </MudSelect>
 
                 <MudTextField @bind-Value="model.Icon" id="icon-picker-anchor" Label="Icono (Opcional)"
-                              Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true"
-                              Adornment="Adornment.End" AdornmentIcon="@(string.IsNullOrEmpty(model.Icon) ? Icons.Material.Filled.TouchApp : model.Icon)"
-                              OnAdornmentClick="@(() => _iconPickerOpen = !_iconPickerOpen)" Clearable="true" OnClearButtonClick="@(() => { model.Icon = null; })" />
+                              Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" Adornment="Adornment.End"
+                              AdornmentIcon="@(string.IsNullOrEmpty(model.Icon) ? Icons.Material.Filled.TouchApp : model.Icon)"
+                              OnAdornmentClick="@(() => _iconPickerOpen = !_iconPickerOpen)" Clearable="true"
+                              OnClearButtonClick="@(() => { model.Icon = null; })" />
 
-                <MudPopover @bind-Open="_iconPickerOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
-                            Class="pa-2" AnchorId="icon-picker-anchor" Overlay="true">
+                <MudPopover @bind-Open="_iconPickerOpen" AnchorOrigin="Origin.BottomCenter"
+                            TransformOrigin="Origin.TopCenter" Class="pa-2" AnchorId="icon-picker-anchor" Overlay="true">
                     <div class="d-flex flex-wrap" style="max-width: 250px; max-height: 200px; overflow-y: auto;">
                         @foreach (var icon in availableIcons)
                         {
@@ -97,12 +98,12 @@
         try
         {
             var newHabit = await HabitService.CreateAsync(model);
-            Snackbar.Add("Hábito creado con éxito", MudSeverity.Success);
+            Snackbar.Add("Hábito creado con éxito", Severity.Success);
             MudDialog.Close(DialogResult.Ok(newHabit));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al crear el hábito: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al crear el hábito: {ex.Message}", Severity.Error);
         }
     }
 

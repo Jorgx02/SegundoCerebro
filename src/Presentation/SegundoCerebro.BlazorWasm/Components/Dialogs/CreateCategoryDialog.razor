@@ -59,12 +59,12 @@
                 }
 
                 await CategoryService.CreateAsync(model);
-                Snackbar.Add("Categoría creada", MudSeverity.Success);
+                Snackbar.Add("Categoría creada", Severity.Success);
                 MudDialog.Close(DialogResult.Ok(true));
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
             }
         }
     }

@@ -71,12 +71,9 @@
                         <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" Class="mr-1" />
                         <MudText Typo="Typo.caption">@FormatTimeSpan(context.TotalTimeTracked)</MudText>
                         <MudIconButton
-                            Icon="@(context.IsCurrentlyTracking ? Icons.Material.Filled.StopCircle : Icons.Material.Filled.PlayCircle)"
-                            Color="@(context.IsCurrentlyTracking ? Color.Error : Color.Success)"
-                            Size="Size.Small"
-                            OnClick="() => ToggleTimeTracking(context)"
-                            Class="ml-2"
-                            OnClickStopPropagation="true" />
+                        Icon="@(context.IsCurrentlyTracking ? Icons.Material.Filled.StopCircle : Icons.Material.Filled.PlayCircle)"
+                        Color="@(context.IsCurrentlyTracking ? Color.Error : Color.Success)" Size="Size.Small"
+                        OnClick="() => ToggleTimeTracking(context)" Class="ml-2" OnClickStopPropagation="true" />
                     </div>
                 </MudTd>
             </RowTemplate>
@@ -106,7 +103,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar las tareas: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al cargar las tareas: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -123,18 +120,18 @@
                 var stoppedLog = await TimeLogService.StopAsync(task.Id);
                 task.IsCurrentlyTracking = false;
                 task.TotalTimeTracked += stoppedLog.Duration;
-                Snackbar.Add($"Temporizador detenido para '{task.Title}'.", MudSeverity.Info);
+                Snackbar.Add($"Temporizador detenido para '{task.Title}'.", Severity.Info);
             }
             else
             {
                 await TimeLogService.StartAsync(task.Id);
                 task.IsCurrentlyTracking = true;
-                Snackbar.Add($"Temporizador iniciado para '{task.Title}'.", MudSeverity.Success);
+                Snackbar.Add($"Temporizador iniciado para '{task.Title}'.", Severity.Success);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
     }
 

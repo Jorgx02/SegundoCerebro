@@ -72,33 +72,28 @@
                                                 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">@task.Description</MudText>
                                             }
                                         </div>
-                                    <MudSpacer />
-                                    @if (task.DueDate.HasValue)
-                                    {
-                                        <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Event"
-                                                 Color="@(task.DueDate.Value.Date < DateTime.Today ? Color.Error : Color.Default)">
-                                            @task.DueDate.Value.ToString("MMM dd")
-                                        </MudChip>
-                                    }
-                                    <div class="d-flex align-center ml-2">
-                                        <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" Class="mr-1" />
-                                        <MudText Typo="Typo.caption">@FormatTimeSpan(task.TotalTimeTracked)</MudText>
-                                    </div>
-                                    <MudIconButton
+                                        <MudSpacer />
+                                        @if (task.DueDate.HasValue)
+                                        {
+                                            <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Event"
+                                                     Color="@(task.DueDate.Value.Date < DateTime.Today ? Color.Error : Color.Default)">
+                                                @task.DueDate.Value.ToString("MMM dd")
+                                            </MudChip>
+                                        }
+                                        <div class="d-flex align-center ml-2">
+                                            <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" Class="mr-1" />
+                                            <MudText Typo="Typo.caption">@FormatTimeSpan(task.TotalTimeTracked)</MudText>
+                                        </div>
+                                        <MudIconButton
                                         Icon="@(task.IsCurrentlyTracking ? Icons.Material.Filled.StopCircle : Icons.Material.Filled.PlayCircle)"
-                                        Color="@(task.IsCurrentlyTracking ? Color.Error : Color.Success)"
-                                        Size="Size.Small"
-                                        OnClick="() => ToggleTimeTracking(task)"
-                                        Class="ml-1"
-                                        OnClickStopPropagation="true" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
-                                                   OnClick="() => OpenEditTaskDialog(task)" Class="ml-1" 
-                                                   OnClickStopPropagation="true" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                                   OnClick="() => DeleteTask(task)" Class="ml-1" 
-                                                   OnClickStopPropagation="true" />
-                                </div>
-                            </MudListItem>
+                                        Color="@(task.IsCurrentlyTracking ? Color.Error : Color.Success)" Size="Size.Small"
+                                        OnClick="() => ToggleTimeTracking(task)" Class="ml-1" OnClickStopPropagation="true" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                       OnClick="() => OpenEditTaskDialog(task)" Class="ml-1" OnClickStopPropagation="true" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                       OnClick="() => DeleteTask(task)" Class="ml-1" OnClickStopPropagation="true" />
+                                    </div>
+                                </MudListItem>
                                 <MudDivider />
                             }
                         </MudList>
@@ -136,7 +131,7 @@
         }
         else
         {
-            Snackbar.Add("ID de proyecto no válido.", MudSeverity.Error);
+            Snackbar.Add("ID de proyecto no válido.", Severity.Error);
             loading = false;
         }
     }
@@ -165,7 +160,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar los detalles del proyecto: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al cargar los detalles del proyecto: {ex.Message}", Severity.Error);
             project = null;
         }
         finally
@@ -185,7 +180,7 @@
         if (!result.Canceled && result.Data is TodoItemDto newTask)
         {
             tasks.Add(newTask);
-            Snackbar.Add("Tarea creada con éxito", MudSeverity.Success);
+            Snackbar.Add("Tarea creada con éxito", Severity.Success);
         }
     }
 
@@ -201,7 +196,7 @@
             if (index != -1)
             {
                 tasks[index] = updatedTask;
-                Snackbar.Add("Tarea actualizada con éxito", MudSeverity.Success);
+                Snackbar.Add("Tarea actualizada con éxito", Severity.Success);
             }
         }
     }
@@ -224,11 +219,11 @@
             {
                 await TodoItemService.DeleteAsync(taskToDelete.Id);
                 tasks.Remove(taskToDelete);
-                Snackbar.Add("Tarea eliminada con éxito", MudSeverity.Success);
+                Snackbar.Add("Tarea eliminada con éxito", Severity.Success);
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error eliminando tarea: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error eliminando tarea: {ex.Message}", Severity.Error);
             }
         }
     }
@@ -254,13 +249,13 @@
             var updatedTask = await TodoItemService.UpdateAsync(task.Id, model);
             var index = tasks.FindIndex(t => t.Id == task.Id);
             if (index != -1) tasks[index] = updatedTask; // Refresca con datos del servidor (ej. CompletedAt)
-            Snackbar.Add($"Tarea '{@task.Title}' marcada como {(isChecked ? "completada" : "pendiente")}.", MudSeverity.Success);
+            Snackbar.Add($"Tarea '{@task.Title}' marcada como {(isChecked ? "completada" : "pendiente")}.", Severity.Success);
         }
         catch (Exception ex)
         {
             // Si falla la API, revertimos el cambio en la UI
             task.Status = originalStatus;
-            Snackbar.Add($"Error actualizando tarea: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error actualizando tarea: {ex.Message}", Severity.Error);
         }
         StateHasChanged(); // Nos aseguramos de que la UI se repinte
     }
@@ -274,18 +269,18 @@
                 var stoppedLog = await TimeLogService.StopAsync(task.Id);
                 task.IsCurrentlyTracking = false;
                 task.TotalTimeTracked += stoppedLog.Duration;
-                Snackbar.Add($"Temporizador detenido para '{task.Title}'.", MudSeverity.Info);
+                Snackbar.Add($"Temporizador detenido para '{task.Title}'.", Severity.Info);
             }
             else
             {
                 await TimeLogService.StartAsync(task.Id);
                 task.IsCurrentlyTracking = true;
-                Snackbar.Add($"Temporizador iniciado para '{task.Title}'.", MudSeverity.Success);
+                Snackbar.Add($"Temporizador iniciado para '{task.Title}'.", Severity.Success);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
         // No need for StateHasChanged() here as the OnClick event will trigger a re-render.
     }

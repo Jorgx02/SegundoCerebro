@@ -3,6 +3,7 @@
 @using System.Globalization
 @using SegundoCerebro.BlazorWasm.Services
 @using SegundoCerebro.BlazorWasm.Models.Enums
+@using MudBlazor
 @using SegundoCerebro.BlazorWasm.Components.Dialogs
 @inject IHabitService HabitService
 @inject ISnackbar Snackbar
@@ -16,9 +17,11 @@
             <MudText Typo="Typo.h4">Mis hábitos</MudText>
         </MudItem>
         <MudItem xs="12" sm="6" Class="d-flex justify-end align-center">
-            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousWeek" aria-label="Semana anterior" />
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousWeek"
+                           aria-label="Semana anterior" />
             <MudText Typo="Typo.h6" Class="mx-4 text-center" Style="min-width: 220px;">@GetWeekDateRange()</MudText>
-            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextWeek" aria-label="Siguiente semana" />
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextWeek"
+                           aria-label="Siguiente semana" />
             <MudButton Variant="Variant.Text" OnClick="GoToToday" Class="ml-4">Hoy</MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
                        OnClick="OpenCreateDialog" Class="ml-4">
@@ -52,53 +55,58 @@
             <RowTemplate>
                 <MudTd DataLabel="Hábito">
                     <div class="d-flex align-center">
-                        <MudIcon Icon="@(string.IsNullOrEmpty(context.Icon) ? Icons.Material.Filled.SelfImprovement : context.Icon)" Class="mr-3" />
+                        <MudIcon
+                        Icon="@(string.IsNullOrEmpty(context.Icon) ? Icons.Material.Filled.SelfImprovement : context.Icon)"
+                        Class="mr-3" />
                         <div>
                             <div class="d-flex align-center">
                                 <MudText Typo="Typo.body1">@context.Name</MudText>
                                 @if (context.CurrentStreak > 1)
                                 {
-                                    <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.LocalFireDepartment" Color="Color.Warning" Class="ml-2" Label="true">@($"{context.CurrentStreak} días")</MudChip>
+                                    <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.LocalFireDepartment"
+                                             Color="Color.Warning" Class="ml-2" Label="true">@($"{context.CurrentStreak} días")
+                                    </MudChip>
                                 }
                             </div>
-                            <MudText Typo="Typo.caption">@GetFrequencyName(context.Frequency) &bull; Racha máx: @context.LongestStreak</MudText>
+                            <MudText Typo="Typo.caption">@GetFrequencyName(context.Frequency) &bull; Racha máx:
+                                @context.LongestStreak</MudText>
+                            </div>
                         </div>
-                    </div>
-                </MudTd>
+                    </MudTd>
 
-                @if (context.Frequency == HabitFrequency.Daily)
-                {
-                    @foreach (var day in GetDaysOfWeek())
+                    @if (context.Frequency == HabitFrequency.Daily)
                     {
-                        <MudTd DataLabel="@day.ToString("ddd")" Class="text-center">
-                            <MudCheckBox T="bool" Value="@IsHabitCompletedForDate(context, day)"
-                                         ValueChanged="@(async (e) => await ToggleCompletionForDate(context, day))"
-                                         Color="Color.Success" />
-                        </MudTd>
+                        @foreach (var day in GetDaysOfWeek())
+                        {
+                            <MudTd DataLabel="@day.ToString("ddd")" Class="text-center">
+                                <MudCheckBox T="bool" Value="@IsHabitCompletedForDate(context, day)"
+                                             ValueChanged="@(async (e) => await ToggleCompletionForDate(context, day))" Color="Color.Success" />
+                            </MudTd>
+                        }
                     }
-                }
-                else // Weekly
-                {
-                    <td colspan="7" class="mud-table-cell text-center" style="vertical-align: middle;">
-                        <MudCheckBox T="bool" Value="@IsHabitCompletedForWeek(context)"
-                                     ValueChanged="@(async (e) => await ToggleCompletionForWeek(context))"
-                                     Color="Color.Success" />
-                    </td>
-                }
+                    else // Weekly
+                    {
+                        <td colspan="7" class="mud-table-cell text-center" style="vertical-align: middle;">
+                            <MudCheckBox T="bool" Value="@IsHabitCompletedForWeek(context)"
+                                         ValueChanged="@(async (e) => await ToggleCompletionForWeek(context))" Color="Color.Success" />
+                        </td>
+                    }
 
-                <MudTd DataLabel="Acciones">
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="() => OpenEditDialog(context)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteHabit(context)" />
-                </MudTd>
-            </RowTemplate>
-        </MudTable>
-    }
+                    <MudTd DataLabel="Acciones">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                       OnClick="() => OpenEditDialog(context)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                       OnClick="() => DeleteHabit(context)" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
     else
-    {
-        <MudAlert Severity="MudBlazor.Severity.Info">Aún no tienes ningún hábito registrado. ¡Crea uno para empezar!
-        </MudAlert>
-    }
-</MudContainer>
+        {
+            <MudAlert Severity="MudBlazor.Severity.Info">Aún no tienes ningún hábito registrado. ¡Crea uno para empezar!
+            </MudAlert>
+        }
+    </MudContainer>
 
 @code {
     /// <summary>
@@ -116,7 +124,7 @@
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        GoToToday();
+        SetCurrentWeekToToday();
         await LoadHabits();
     }
 
@@ -133,7 +141,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar los hábitos: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al cargar los hábitos: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -188,7 +196,7 @@
         if (result == true)
         {
             await HabitService.DeleteAsync(habitToDelete.Id);
-            Snackbar.Add("Hábito eliminado.", MudSeverity.Success);
+            Snackbar.Add("Hábito eliminado.", Severity.Success);
             await LoadHabits();
         }
     }
@@ -223,13 +231,18 @@
 
     private async Task GoToToday()
     {
-        var today = DateTime.Today;
-        int diff = (7 + (int)today.DayOfWeek - (int)DayOfWeek.Monday) % 7;
-        currentWeekStart = today.AddDays(-1 * diff).Date;
+        SetCurrentWeekToToday();
         if (habits.Any()) // Evitar recarga inicial doble
         {
             await LoadHabits();
         }
+    }
+
+    private void SetCurrentWeekToToday()
+    {
+        var today = DateTime.Today;
+        int diff = (7 + (int)today.DayOfWeek - (int)DayOfWeek.Monday) % 7;
+        currentWeekStart = today.AddDays(-1 * diff).Date;
     }
 
     private string GetFrequencyName(HabitFrequency freq) => freq switch
@@ -254,38 +267,136 @@
     {
         var weekEnd = currentWeekStart.AddDays(6);
         var logForWeek = habit.Logs.FirstOrDefault(l => l.Date.Date >= currentWeekStart.Date && l.Date.Date <= weekEnd.Date);
+        bool wasCompleted = logForWeek != null;
 
-        // Si ya existe un registro en la semana, lo usamos para hacer el 'toggle' (que lo borrará).
-        // Si no existe, creamos uno nuevo en un día representativo de la semana (lunes).
-        var dateToToggle = logForWeek?.Date ?? currentWeekStart;
+        var dateToToggle = wasCompleted ? logForWeek!.Date : currentWeekStart;
 
+        // --- Optimistic UI Update ---
+        if (wasCompleted)
+        {
+            habit.Logs.Remove(logForWeek!);
+        }
+        else
+        {
+            habit.Logs.Add(new HabitLogDto { Id = Guid.NewGuid(), Date = dateToToggle, HabitId = habit.Id });
+        }
+
+        CalculateStreaks(habit);
+        StateHasChanged();
+
+        // --- Call API in the background ---
         try
         {
             await HabitService.ToggleHabitCompletionAsync(habit.Id, dateToToggle);
-            await LoadHabits(); // Recargamos para actualizar rachas y estado.
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al actualizar el hábito: {ex.Message}", MudSeverity.Error);
-            await LoadHabits();
+            Snackbar.Add($"Error al actualizar el hábito: {ex.Message}", Severity.Error);
+
+            // --- Revert UI on failure ---
+            if (wasCompleted)
+            {
+                habit.Logs.Add(logForWeek!);
+            }
+            else
+            {
+                var logToRemove = habit.Logs.FirstOrDefault(l => l.Date.Date == dateToToggle.Date);
+                if (logToRemove != null)
+                {
+                    habit.Logs.Remove(logToRemove);
+                }
+            }
+            CalculateStreaks(habit);
+            StateHasChanged();
         }
     }
 
     private async Task ToggleCompletionForDate(HabitDto habit, DateTime date)
     {
+        var logForDate = habit.Logs.FirstOrDefault(l => l.Date.Date == date.Date);
+        bool wasCompleted = logForDate != null;
+
+        // --- Optimistic UI Update ---
+        if (wasCompleted)
+        {
+            habit.Logs.Remove(logForDate!);
+        }
+        else
+        {
+            habit.Logs.Add(new HabitLogDto { Id = Guid.NewGuid(), Date = date, HabitId = habit.Id });
+        }
+
+        CalculateStreaks(habit);
+        StateHasChanged();
+
+        // --- Call API in the background ---
         try
         {
-            // Llamada a la API
             await HabitService.ToggleHabitCompletionAsync(habit.Id, date);
-
-            // Recargar todos los datos para asegurar que las rachas se actualizan correctamente.
-            // Esto garantiza la consistencia de los datos a costa de una pequeña recarga.
-            await LoadHabits();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al actualizar el hábito: {ex.Message}", MudSeverity.Error);
-            await LoadHabits(); // Revertir y recargar en caso de error
+            Snackbar.Add($"Error al actualizar el hábito: {ex.Message}", Severity.Error);
+
+            // --- Revert UI on failure ---
+            if (wasCompleted)
+            {
+                habit.Logs.Add(logForDate!);
+            }
+            else
+            {
+                var logToRemove = habit.Logs.FirstOrDefault(l => l.Date.Date == date.Date);
+                if (logToRemove != null)
+                {
+                    habit.Logs.Remove(logToRemove);
+                }
+            }
+            CalculateStreaks(habit);
+            StateHasChanged();
         }
+    }
+
+    private void CalculateStreaks(HabitDto habit)
+    {
+        if (habit.Logs == null || !habit.Logs.Any())
+        {
+            habit.CurrentStreak = 0;
+            habit.LongestStreak = 0;
+            return;
+        }
+
+        var logDates = habit.Logs.Select(l => l.Date.Date).ToHashSet();
+        var today = DateTime.Today;
+
+        // --- Calculate Current Streak ---
+        int currentStreak = 0;
+        if (logDates.Contains(today) || logDates.Contains(today.AddDays(-1)))
+        {
+            var dateToCheck = logDates.Contains(today) ? today : today.AddDays(-1);
+            while (logDates.Contains(dateToCheck))
+            {
+                currentStreak++;
+                dateToCheck = dateToCheck.AddDays(-1);
+            }
+        }
+        habit.CurrentStreak = currentStreak;
+
+        // --- Calculate Longest Streak ---
+        var sortedDates = logDates.OrderBy(d => d).ToList();
+        int longestStreak = 0;
+        int tempStreak = 0;
+        for (int i = 0; i < sortedDates.Count; i++)
+        {
+            if (i == 0 || sortedDates[i] == sortedDates[i - 1].AddDays(1))
+            {
+                tempStreak++;
+            }
+            else
+            {
+                longestStreak = Math.Max(longestStreak, tempStreak);
+                tempStreak = 1;
+            }
+        }
+        habit.LongestStreak = Math.Max(longestStreak, tempStreak);
     }
 }

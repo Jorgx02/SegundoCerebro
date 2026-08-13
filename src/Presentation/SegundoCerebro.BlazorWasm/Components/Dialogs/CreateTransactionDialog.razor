@@ -94,7 +94,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar cuentas: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al cargar cuentas: {ex.Message}", Severity.Error);
         }
 
         try
@@ -104,7 +104,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar categorías: {ex.Message}", MudSeverity.Error);
+            Snackbar.Add($"Error al cargar categorías: {ex.Message}", Severity.Error);
         }
     }
 
@@ -142,7 +142,7 @@
 
         if (selectedType == null)
         {
-            Snackbar.Add("Por favor, selecciona un tipo de transacción.", MudSeverity.Warning);
+            Snackbar.Add("Por favor, selecciona un tipo de transacción.", Severity.Warning);
             return;
         }
         model.Type = selectedType.Value;
@@ -150,13 +150,13 @@
         var selectedAccount = accounts.FirstOrDefault(a => a.Id == model.AccountId);
         if (selectedAccount != null && selectedAccount.Type == AccountType.Savings && model.Type == TransactionType.Expense)
         {
-            Snackbar.Add("No se pueden registrar gastos en una cuenta de Ahorros.", MudSeverity.Error);
+            Snackbar.Add("No se pueden registrar gastos en una cuenta de Ahorros.", Severity.Error);
             return;
         }
 
         if (model.CategoryId == Guid.Empty || model.AccountId == Guid.Empty)
         {
-            Snackbar.Add("Por favor, selecciona una cuenta y una categoría.", MudSeverity.Warning);
+            Snackbar.Add("Por favor, selecciona una cuenta y una categoría.", Severity.Warning);
             return;
         }
 
@@ -171,7 +171,7 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error creating transaction: {ex.Message}", MudSeverity.Error);
+                Snackbar.Add($"Error creating transaction: {ex.Message}", Severity.Error);
             }
         }
     }
