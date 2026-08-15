@@ -3,6 +3,11 @@ using MediatR;
 using SegundoCerebro.Application.DTOs;
 using SegundoCerebro.Domain.Entities;
 using SegundoCerebro.Domain.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
 
 namespace SegundoCerebro.Application.Features.Habits.Queries.GetHabitsForTracker;
 
@@ -28,26 +33,29 @@ public class GetHabitsForTrackerQueryHandler : IRequestHandler<GetHabitsForTrack
     /// <returns>Una colección de DTOs de hábitos con sus logs y rachas calculadas.</returns>
     public async Task<IEnumerable<HabitDto>> Handle(GetHabitsForTrackerQuery request, CancellationToken cancellationToken)
     {
-        // Obtener todos los hábitos del usuario, ordenados por DisplayOrder
+        // 1. Obtener todos los hábitos del usuario.
         var habits = (await _unitOfWork.Habits.GetAllAsync()).ToList();
 
-        // Obtener todos los logs de hábitos del usuario
-        // Podríamos optimizar esto para solo cargar logs de un rango de fechas,
-        // pero para el cálculo de rachas necesitamos el historial completo.
+        // 2. Obtener todos los logs de hábitos del usuario.
+        // Se necesita el historial completo para calcular correctamente las rachas.
         var allHabitLogs = await _unitOfWork.HabitLogs.GetAllAsync();
+
+        // 3. Agrupar los logs por el ID del hábito para una búsqueda eficiente.
         var logsByHabitId = allHabitLogs.GroupBy(log => log.HabitId)
-                                        .ToDictionary(g => g.Key, g => g.OrderBy(l => l.Date).ToList());
+                                        .ToDictionary(g => g.Key, g => g.ToList());
 
         var habitDtos = new List<HabitDto>();
 
         foreach (var habit in habits)
         {
             var habitDto = _mapper.Map<HabitDto>(habit);
+
+            // 4. Asignar los logs correspondientes a cada hábito.
             habitDto.Logs = logsByHabitId.TryGetValue(habit.Id, out var logs)
                 ? _mapper.Map<ICollection<HabitLogDto>>(logs)
                 : new List<HabitLogDto>();
 
-            // Calcular rachas
+            // 5. Calcular las rachas para el hábito.
             CalculateStreaks(habitDto);
             habitDtos.Add(habitDto);
         }
@@ -61,61 +69,116 @@ public class GetHabitsForTrackerQueryHandler : IRequestHandler<GetHabitsForTrack
     /// <param name="habitDto">El DTO del hábito con sus logs.</param>
     private void CalculateStreaks(HabitDto habitDto)
     {
-        if (!habitDto.Logs.Any())
+        if (habitDto.Logs == null || !habitDto.Logs.Any())
         {
             habitDto.CurrentStreak = 0;
             habitDto.LongestStreak = 0;
             return;
         }
 
-        var sortedLogs = habitDto.Logs.OrderBy(log => log.Date).ToList();
-        var today = DateTime.Today;
-        var yesterday = today.AddDays(-1);
+        if (habitDto.Frequency == Domain.Enums.HabitFrequency.Daily)
+        {
+            CalculateDailyStreaks(habitDto);
+        }
+        else if (habitDto.Frequency == Domain.Enums.HabitFrequency.Weekly)
+        {
+            CalculateWeeklyStreaks(habitDto);
+        }
+    }
 
-        // Calcular racha actual
+    private void CalculateDailyStreaks(HabitDto habitDto)
+    {
+        var logDates = habitDto.Logs.Select(l => l.Date.Date).ToHashSet();
+        var today = DateTime.UtcNow.Date;
+
+        // --- Calcular Racha Actual ---
         int currentStreak = 0;
-        DateTime? lastCompletedDate = null;
-
-        // Buscar si el hábito se completó hoy o ayer
-        if (sortedLogs.Any(log => log.Date.Date == today))
+        if (logDates.Contains(today) || logDates.Contains(today.AddDays(-1)))
         {
-            lastCompletedDate = today;
-        }
-        else if (sortedLogs.Any(log => log.Date.Date == yesterday))
-        {
-            lastCompletedDate = yesterday;
-        }
-
-        if (lastCompletedDate.HasValue)
-        {
-            currentStreak = 1;
-            for (int i = sortedLogs.Count - 1; i >= 0; i--)
+            var dateToCheck = logDates.Contains(today) ? today : today.AddDays(-1);
+            while (logDates.Contains(dateToCheck))
             {
-                if (sortedLogs[i].Date.Date == lastCompletedDate.Value.AddDays(-currentStreak))
-                {
-                    currentStreak++;
-                }
+                currentStreak++;
+                dateToCheck = dateToCheck.AddDays(-1);
             }
         }
         habitDto.CurrentStreak = currentStreak;
 
-        // Calcular racha más larga (LongestStreak)
+        // --- Calcular Racha Más Larga ---
+        var sortedDates = logDates.OrderBy(d => d).ToList();
         int longestStreak = 0;
         int tempStreak = 0;
-        for (int i = 0; i < sortedLogs.Count; i++)
+        if (sortedDates.Any())
         {
-            if (i == 0 || sortedLogs[i].Date.Date == sortedLogs[i - 1].Date.Date.AddDays(1))
+            tempStreak = 1;
+            longestStreak = 1;
+            for (int i = 1; i < sortedDates.Count; i++)
             {
-                tempStreak++;
+                if (sortedDates[i] == sortedDates[i - 1].AddDays(1))
+                {
+                    tempStreak++;
+                }
+                else
+                {
+                    longestStreak = Math.Max(longestStreak, tempStreak);
+                    tempStreak = 1;
+                }
             }
-            else
+            longestStreak = Math.Max(longestStreak, tempStreak);
+        }
+        habitDto.LongestStreak = longestStreak;
+    }
+
+    private DateTime GetStartOfWeek(DateTime date)
+    {
+        int diff = (7 + (int)date.DayOfWeek - (int)DayOfWeek.Monday) % 7;
+        return date.AddDays(-1 * diff).Date;
+    }
+
+    private void CalculateWeeklyStreaks(HabitDto habitDto)
+    {
+        var logDates = habitDto.Logs.Select(l => l.Date.Date).ToHashSet();
+        var today = DateTime.UtcNow.Date;
+        var startOfThisWeek = GetStartOfWeek(today);
+        var startOfLastWeek = startOfThisWeek.AddDays(-7);
+
+        // --- Calculate Current Streak ---
+        int currentStreak = 0;
+        bool completedThisWeek = logDates.Any(d => d >= startOfThisWeek);
+        bool completedLastWeek = logDates.Any(d => d >= startOfLastWeek && d < startOfThisWeek);
+
+        if (completedThisWeek || completedLastWeek)
+        {
+            var weekToCheckStart = completedThisWeek ? startOfThisWeek : startOfLastWeek;
+            while (logDates.Any(d => d >= weekToCheckStart && d < weekToCheckStart.AddDays(7)))
             {
-                tempStreak = 1;
+                currentStreak++;
+                weekToCheckStart = weekToCheckStart.AddDays(-7);
             }
-            if (tempStreak > longestStreak)
+        }
+        habitDto.CurrentStreak = currentStreak;
+
+        // --- Calculate Longest Streak ---
+        var weekStarts = logDates.Select(GetStartOfWeek).Distinct().OrderBy(d => d).ToList();
+        int longestStreak = 0;
+        int tempStreak = 0;
+        if (weekStarts.Any())
+        {
+            tempStreak = 1;
+            longestStreak = 1;
+            for (int i = 1; i < weekStarts.Count; i++)
             {
-                longestStreak = tempStreak;
+                if (weekStarts[i] == weekStarts[i - 1].AddDays(7))
+                {
+                    tempStreak++;
+                }
+                else
+                {
+                    longestStreak = Math.Max(longestStreak, tempStreak);
+                    tempStreak = 1;
+                }
             }
+            longestStreak = Math.Max(longestStreak, tempStreak);
         }
         habitDto.LongestStreak = longestStreak;
     }

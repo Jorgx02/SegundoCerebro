@@ -44,7 +44,7 @@
                 @foreach (var day in GetDaysOfWeek())
                 {
                     <MudTh Class="text-center">
-                        <div class="@(day.Date == DateTime.Today ? "font-weight-bold mud-text-primary" : "")">
+                        <div class="@(day.Date == DateTime.UtcNow.Date ? "font-weight-bold mud-text-primary" : "")">
                             <div>@day.ToString("ddd", new CultureInfo("es-ES")).ToUpper()</div>
                             <div>@day.Day</div>
                         </div>
@@ -61,12 +61,6 @@
                         <div>
                             <div class="d-flex align-center">
                                 <MudText Typo="Typo.body1">@context.Name</MudText>
-                                @if (context.CurrentStreak > 1)
-                                {
-                                    <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.LocalFireDepartment"
-                                             Color="Color.Warning" Class="ml-2" Label="true">@($"{context.CurrentStreak} días")
-                                    </MudChip>
-                                }
                             </div>
                             <MudText Typo="Typo.caption">@GetFrequencyName(context.Frequency) &bull; Racha máx:
                                 @context.LongestStreak</MudText>
@@ -240,7 +234,7 @@
 
     private void SetCurrentWeekToToday()
     {
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
         int diff = (7 + (int)today.DayOfWeek - (int)DayOfWeek.Monday) % 7;
         currentWeekStart = today.AddDays(-1 * diff).Date;
     }
@@ -281,8 +275,10 @@
             habit.Logs.Add(new HabitLogDto { Id = Guid.NewGuid(), Date = dateToToggle, HabitId = habit.Id });
         }
 
+        // Forzar la detección de cambios en Blazor reasignando la colección.
+        habit.Logs = new List<HabitLogDto>(habit.Logs);
+
         CalculateStreaks(habit);
-        StateHasChanged();
 
         // --- Call API in the background ---
         try
@@ -326,8 +322,10 @@
             habit.Logs.Add(new HabitLogDto { Id = Guid.NewGuid(), Date = date, HabitId = habit.Id });
         }
 
+        // Forzar la detección de cambios en Blazor reasignando la colección.
+        habit.Logs = new List<HabitLogDto>(habit.Logs);
+
         CalculateStreaks(habit);
-        StateHasChanged();
 
         // --- Call API in the background ---
         try
@@ -356,6 +354,13 @@
         }
     }
 
+    // Helper to get the start of the week (Monday) for a given date.
+    private DateTime GetStartOfWeek(DateTime date)
+    {
+        int diff = (7 + (int)date.DayOfWeek - (int)DayOfWeek.Monday) % 7;
+        return date.AddDays(-1 * diff).Date;
+    }
+
     private void CalculateStreaks(HabitDto habit)
     {
         if (habit.Logs == null || !habit.Logs.Any())
@@ -365,8 +370,20 @@
             return;
         }
 
+        if (habit.Frequency == HabitFrequency.Daily)
+        {
+            CalculateDailyStreaks(habit);
+        }
+        else if (habit.Frequency == HabitFrequency.Weekly)
+        {
+            CalculateWeeklyStreaks(habit);
+        }
+    }
+
+    private void CalculateDailyStreaks(HabitDto habit)
+    {
         var logDates = habit.Logs.Select(l => l.Date.Date).ToHashSet();
-        var today = DateTime.Today;
+        var today = DateTime.UtcNow.Date;
 
         // --- Calculate Current Streak ---
         int currentStreak = 0;
@@ -385,18 +402,72 @@
         var sortedDates = logDates.OrderBy(d => d).ToList();
         int longestStreak = 0;
         int tempStreak = 0;
-        for (int i = 0; i < sortedDates.Count; i++)
+        if (sortedDates.Any())
         {
-            if (i == 0 || sortedDates[i] == sortedDates[i - 1].AddDays(1))
+            tempStreak = 1;
+            longestStreak = 1;
+            for (int i = 1; i < sortedDates.Count; i++)
             {
-                tempStreak++;
+                if (sortedDates[i] == sortedDates[i - 1].AddDays(1))
+                {
+                    tempStreak++;
+                }
+                else
+                {
+                    longestStreak = Math.Max(longestStreak, tempStreak);
+                    tempStreak = 1;
+                }
             }
-            else
+            longestStreak = Math.Max(longestStreak, tempStreak);
+        }
+        habit.LongestStreak = longestStreak;
+    }
+
+    private void CalculateWeeklyStreaks(HabitDto habit)
+    {
+        var logDates = habit.Logs.Select(l => l.Date.Date).ToHashSet();
+        var today = DateTime.UtcNow.Date;
+        var startOfThisWeek = GetStartOfWeek(today);
+        var startOfLastWeek = startOfThisWeek.AddDays(-7);
+
+        // --- Calculate Current Streak ---
+        int currentStreak = 0;
+        bool completedThisWeek = logDates.Any(d => d >= startOfThisWeek);
+        bool completedLastWeek = logDates.Any(d => d >= startOfLastWeek && d < startOfThisWeek);
+
+        if (completedThisWeek || completedLastWeek)
+        {
+            var weekToCheckStart = completedThisWeek ? startOfThisWeek : startOfLastWeek;
+            while (logDates.Any(d => d >= weekToCheckStart && d < weekToCheckStart.AddDays(7)))
             {
-                longestStreak = Math.Max(longestStreak, tempStreak);
-                tempStreak = 1;
+                currentStreak++;
+                weekToCheckStart = weekToCheckStart.AddDays(-7);
             }
         }
-        habit.LongestStreak = Math.Max(longestStreak, tempStreak);
+        habit.CurrentStreak = currentStreak;
+
+        // --- Calculate Longest Streak ---
+        var weekStarts = logDates.Select(GetStartOfWeek).Distinct().OrderBy(d => d).ToList();
+        int longestStreak = 0;
+        int tempStreak = 0;
+        if (weekStarts.Any())
+        {
+            tempStreak = 1;
+            longestStreak = 1;
+            for (int i = 1; i < weekStarts.Count; i++)
+            {
+                if (weekStarts[i] == weekStarts[i - 1].AddDays(7))
+                {
+                    tempStreak++;
+                }
+                else
+                {
+                    longestStreak = Math.Max(longestStreak, tempStreak);
+                    tempStreak = 1;
+                }
+            }
+            longestStreak = Math.Max(longestStreak, tempStreak);
+        }
+        habit.LongestStreak = longestStreak;
     }
 }
