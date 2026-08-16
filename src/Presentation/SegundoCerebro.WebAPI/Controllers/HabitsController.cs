@@ -9,6 +9,7 @@ using SegundoCerebro.Application.Features.Habits.Commands.ToggleHabitCompletion;
 using SegundoCerebro.Application.Features.Habits.Queries.GetHabitsForTracker;
 using SegundoCerebro.Application.Features.Habits.Queries.GetAllHabits;
 using SegundoCerebro.Application.Features.Habits.Queries.GetHabitHeatmap;
+using SegundoCerebro.Application.Features.Habits.Queries.GetHabitStats;
 
 namespace SegundoCerebro.WebAPI.Controllers;
 
@@ -128,6 +129,17 @@ public class HabitsController : ControllerBase
     public async Task<ActionResult<IEnumerable<HabitHeatmapDto>>> GetHeatmapData(int year)
     {
         var data = await _mediator.Send(new GetHabitHeatmapQuery(year));
+        return Ok(data);
+    }
+
+    /// <summary>
+    /// Obtiene estadísticas agregadas sobre todos los hábitos del usuario.
+    /// </summary>
+    /// <returns>Un DTO con varias métricas de rendimiento de hábitos.</returns>
+    [HttpGet("stats")]
+    public async Task<ActionResult<HabitStatsDto>> GetHabitStats()
+    {
+        var data = await _mediator.Send(new GetHabitStatsQuery());
         return Ok(data);
     }
 

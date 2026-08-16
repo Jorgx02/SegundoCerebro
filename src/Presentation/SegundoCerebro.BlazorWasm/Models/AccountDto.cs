@@ -17,6 +17,7 @@ public class AccountDto
     public bool IsFavorite { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public int CardCount { get; set; }
 }
 
 public class CreateAccountDto

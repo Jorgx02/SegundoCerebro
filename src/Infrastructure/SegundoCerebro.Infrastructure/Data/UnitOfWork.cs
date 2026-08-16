@@ -24,6 +24,7 @@ public class UnitOfWork : IUnitOfWork
     private IHabitRepository? _habitRepository;
     private ITimeLogRepository? _timeLogRepository;
     private IHabitLogRepository? _habitLogRepository;
+    private IWellnessEntryRepository? _wellnessEntryRepository;
 
     /// <summary>
     /// Inicializa una nueva instancia de la clase <see cref="UnitOfWork"/>.
@@ -54,6 +55,8 @@ public class UnitOfWork : IUnitOfWork
     public ITimeLogRepository TimeLogs => _timeLogRepository ??= new TimeLogRepository(_context);
     /// <inheritdoc />
     public IHabitLogRepository HabitLogs => _habitLogRepository ??= new HabitLogRepository(_context);
+    /// <inheritdoc />
+    public IWellnessEntryRepository WellnessEntries => _wellnessEntryRepository ??= new WellnessEntryRepository(_context);
 
     /// <summary>
     /// Guarda todos los cambios pendientes en el contexto de la base de datos.

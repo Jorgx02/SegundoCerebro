@@ -33,6 +33,8 @@ public class AccountDto
     public DateTime CreatedAt { get; set; }
     /// <summary>Fecha de la última actualización.</summary>
     public DateTime? UpdatedAt { get; set; }
+    /// <summary>Número de tarjetas asociadas a esta cuenta.</summary>
+    public int CardCount { get; set; }
 }
 
 /// <summary>

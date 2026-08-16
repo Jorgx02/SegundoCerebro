@@ -1,0 +1,240 @@
+@page "/wellness"
+@using SegundoCerebro.BlazorWasm.Models
+@using MudBlazor
+@using SegundoCerebro.BlazorWasm.Services
+@inject IWellnessService WellnessService
+@inject ISnackbar Snackbar
+
+<PageTitle>Diario de Bienestar - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudPaper Elevation="3" Class="pa-6 rounded-lg">
+        <MudText Typo="Typo.h4" GutterBottom="true">Diario de Bienestar</MudText>
+        <MudText Color="Color.Secondary" Class="mb-6">Registra cómo te sientes cada día para encontrar patrones y
+            mejorar tu bienestar.</MudText>
+
+            <MudDatePicker Label="Fecha de la entrada" @bind-Date="selectedDate" ReadOnly="true" Variant="Variant.Outlined"
+                           DateFormat="dd/MM/yyyy" Class="mb-4" HelperText="Solo se puede registrar la entrada del día actual." />
+
+            <MudText Typo="Typo.h6" Class="mt-4">Estado de ánimo</MudText>
+            <MudRating @bind-SelectedValue="model.MoodRating" MaxValue="5">
+                <EmptyIcon>@Icons.Material.Filled.SentimentVeryDissatisfied</EmptyIcon>
+                <FullIcon>@Icons.Material.Filled.SentimentVerySatisfied</FullIcon>
+            </MudRating>
+
+            <MudText Typo="Typo.h6" Class="mt-4">Nivel de energía</MudText>
+            <MudRating @bind-SelectedValue="model.EnergyLevel" MaxValue="5">
+                <EmptyIcon>@Icons.Material.Filled.BatteryAlert</EmptyIcon>
+                <FullIcon>@Icons.Material.Filled.BatteryFull</FullIcon>
+            </MudRating>
+
+            <MudTextField @bind-Value="model.Notes" Label="Notas del día (opcional)" Variant="Variant.Outlined" Lines="4"
+                          Class="mt-6" />
+
+            <div class="d-flex justify-end mt-6">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveEntry"
+                           Disabled="isSaving || isLoading">
+                    @if (isSaving)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">Guardando...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Guardar Entrada</MudText>
+                    }
+                </MudButton>
+            </div>
+        </MudPaper>
+
+        <MudPaper Elevation="3" Class="pa-6 rounded-lg mt-6">
+            <MudText Typo="Typo.h5" GutterBottom="true">Entradas de la semana</MudText>
+            <MudText Color="Color.Secondary" Class="mb-4">
+                @currentWeekStart.ToString("dd/MM/yyyy") - @currentWeekStart.AddDays(6).ToString("dd/MM/yyyy")
+            </MudText>
+
+            @if (isLoading)
+            {
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+            }
+            else if (weeklyEntries.Any())
+            {
+                <MudList>
+                    @foreach (var entry in weeklyEntries.OrderByDescending(e => e.Date))
+                    {
+                        <MudListItem Class="py-2">
+                            <div class="d-flex align-center" style="width: 100%;">
+                                <MudText Typo="Typo.body1" Class="mr-4">@entry.Date.ToString("ddd, dd MMM")</MudText>
+                                <MudIcon Icon="@GetMoodIcon(entry.MoodRating)" Color="@GetMoodColor(entry.MoodRating)"
+                                         Class="mr-2" />
+                                <MudText Typo="Typo.body2" Class="mr-4">@GetMoodDescription(entry.MoodRating)</MudText>
+                                <MudIcon Icon="@GetEnergyIcon(entry.EnergyLevel)" Color="@GetEnergyColor(entry.EnergyLevel)"
+                                         Class="mr-2" />
+                                <MudText Typo="Typo.body2">@GetRatingDescription(entry.EnergyLevel)</MudText>
+                                <MudSpacer />
+                                @if (!string.IsNullOrEmpty(entry.Notes))
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Notes" Color="Color.Info" Title="@entry.Notes" />
+                                }
+                            </div>
+                        </MudListItem>
+                        <MudDivider />
+                    }
+                </MudList>
+            }
+            else
+            {
+                <MudText Color="Color.Secondary">No hay entradas de bienestar para esta semana.</MudText>
+            }
+        </MudPaper>
+
+    </MudContainer>
+
+@code {
+    private DateTime? selectedDate = DateTime.Today;
+    private UpsertWellnessEntryDto model = new();
+    private bool isSaving = false;
+    private bool isLoading = true;
+
+    private List<WellnessEntryDto> weeklyEntries = new();
+    private DateTime currentWeekStart;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        try
+        {
+            SetCurrentWeek(DateTime.Today);
+            await LoadTodaysEntryInternal();
+            await LoadWeeklyEntries();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar la página: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged(); // Forzar la actualización de la UI después de la carga de datos
+        }
+    }
+
+    private async Task LoadTodaysEntryInternal()
+    {
+        var today = DateTime.Today;
+        var entries = await WellnessService.GetByDateRangeAsync(today, today);
+        var entry = entries.FirstOrDefault();
+
+        if (entry != null)
+        {
+            model = new UpsertWellnessEntryDto
+            {
+                Date = entry.Date,
+                MoodRating = entry.MoodRating,
+                EnergyLevel = entry.EnergyLevel,
+                Notes = entry.Notes
+            };
+        }
+        else
+        {
+            // Si no hay entrada, preparamos un modelo nuevo con valores por defecto.
+            model = new UpsertWellnessEntryDto { Date = today, MoodRating = 3, EnergyLevel = 3 };
+        }
+    }
+
+    private async Task SaveEntry()
+    {
+        isSaving = true;
+        model.Date = DateTime.Today; // Aseguramos que la fecha es la de hoy
+        try
+        {
+            var savedEntry = await WellnessService.UpsertAsync(model);
+            Snackbar.Add("Entrada guardada con éxito.", Severity.Success);
+            // Recargamos todos los datos para mantener la consistencia
+            await LoadTodaysEntryInternal();
+            await LoadWeeklyEntries();
+            StateHasChanged();
+        }
+        catch (Exception ex) { Snackbar.Add($"Error al guardar la entrada: {ex.Message}", Severity.Error); }
+        finally { isSaving = false; }
+    }
+
+    private void SetCurrentWeek(DateTime date)
+    {
+        int diff = (7 + (int)date.DayOfWeek - (int)DayOfWeek.Monday) % 7;
+        currentWeekStart = date.AddDays(-1 * diff).Date;
+    }
+
+    private async Task LoadWeeklyEntries()
+    {
+        var weekEnd = currentWeekStart.AddDays(6);
+        var entries = await WellnessService.GetByDateRangeAsync(currentWeekStart, weekEnd);
+        weeklyEntries = entries.ToList();
+    }
+
+    // Helper para obtener texto descriptivo para el ánimo/energía
+    private string GetRatingDescription(int rating) => rating switch
+    {
+        1 => "Muy bajo",
+        2 => "Bajo",
+        3 => "Normal",
+        4 => "Alto",
+        5 => "Muy alto",
+        _ => "N/A"
+    };
+
+    // Helper para obtener texto descriptivo para el ánimo
+    private string GetMoodDescription(int rating) => rating switch
+    {
+        1 => "Muy mal",
+        2 => "Mal",
+        3 => "Neutral",
+        4 => "Bien",
+        5 => "Muy bien",
+        _ => "N/A"
+    };
+
+    // Helper para obtener iconos de ánimo
+    private string GetMoodIcon(int rating) => rating switch
+    {
+        1 => Icons.Material.Filled.SentimentVeryDissatisfied,
+        2 => Icons.Material.Filled.SentimentDissatisfied,
+        3 => Icons.Material.Filled.SentimentNeutral,
+        4 => Icons.Material.Filled.SentimentSatisfied,
+        5 => Icons.Material.Filled.SentimentVerySatisfied,
+        _ => Icons.Material.Filled.QuestionMark
+    };
+
+    // Helper para obtener colores de ánimo
+    private Color GetMoodColor(int rating) => rating switch
+    {
+        1 => Color.Error,
+        2 => Color.Warning,
+        3 => Color.Info,
+        4 => Color.Success,
+        5 => Color.Primary,
+        _ => Color.Default
+    };
+
+    // Helper para obtener iconos de energía
+    private string GetEnergyIcon(int rating) => rating switch
+    {
+        1 => Icons.Material.Filled.BatteryAlert,
+        2 => Icons.Material.Filled.Battery2Bar,
+        3 => Icons.Material.Filled.Battery4Bar,
+        4 => Icons.Material.Filled.Battery5Bar,
+        5 => Icons.Material.Filled.BatteryFull,
+        _ => Icons.Material.Filled.QuestionMark
+    };
+
+    // Helper para obtener colores de energía
+    private Color GetEnergyColor(int rating) => rating switch
+    {
+        1 => Color.Error,
+        2 => Color.Warning,
+        3 => Color.Info,
+        4 => Color.Success,
+        5 => Color.Primary,
+        _ => Color.Default
+    };
+}

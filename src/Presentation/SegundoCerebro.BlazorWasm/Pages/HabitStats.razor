@@ -1,0 +1,178 @@
+@page "/habits/stats"
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Services
+@using System.Globalization
+@inject IHabitService HabitService
+@inject ISnackbar Snackbar
+
+<PageTitle>Estadísticas de Hábitos - SegundoCerebro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudText Typo="Typo.h4">Estadísticas de Hábitos</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mb-4">Un resumen de tu consistencia y
+                progreso.</MudText>
+            </MudItem>
+        </MudGrid>
+
+        @if (loading)
+        {
+            <div class="d-flex justify-center align-center" style="height: 50vh;">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else if (stats != null && stats.TotalHabits > 0)
+        {
+            <MudGrid>
+                <!-- Summary Cards -->
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="3">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Tasa de Éxito</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h4" Color="Color.Primary">@stats.OverallSuccessRate.ToString("F1")%</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Promedio general</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="3">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Total Hábitos</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h4">@stats.TotalHabits</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Hábitos activos</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="3">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Mejor Hábito</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5" Style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                     Title="@stats.BestHabitName">@stats.BestHabitName</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Success">@stats.BestHabitSuccessRate.ToString("F1")% de
+                                éxito</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard Elevation="3">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">A Mejorar</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudText Typo="Typo.h5" Style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                         Title="@stats.WorstHabitName">@stats.WorstHabitName</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Warning">@stats.WorstHabitSuccessRate.ToString("F1")% de
+                                    éxito</MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+
+                        <!-- Charts -->
+                        <MudItem xs="12" md="6">
+                            <MudCard Elevation="3">
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudText Typo="Typo.h6">Consistencia Semanal</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">Total de hábitos completados por día
+                                        </MudText>
+                                    </CardHeaderContent>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudChart ChartType="ChartType.Bar" ChartSeries="@weeklySeries" XAxisLabels="@weeklyXAxisLabels"
+                                              Height="300px" />
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudCard Elevation="3">
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudText Typo="Typo.h6">Progreso Mensual</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">Total de hábitos completados por mes (último
+                                            año)</MudText>
+                                        </CardHeaderContent>
+                                    </MudCardHeader>
+                                    <MudCardContent>
+                                        <MudChart ChartType="ChartType.Line" ChartSeries="@monthlySeries" XAxisLabels="@monthlyXAxisLabels"
+                                                  Height="300px" />
+                                    </MudCardContent>
+                                </MudCard>
+                            </MudItem>
+                        </MudGrid>
+                    }
+    else
+                    {
+                        <MudAlert Severity="Severity.Info">No hay suficientes datos para mostrar estadísticas. ¡Sigue registrando tus
+                            hábitos!</MudAlert>
+                        }
+                    </MudContainer>
+
+@code {
+    private bool loading = true;
+    private HabitStatsDto? stats;
+
+    private List<ChartSeries> weeklySeries = new();
+    private string[] weeklyXAxisLabels = { "lun.", "mar.", "mié.", "jue.", "vie.", "sáb.", "dom." };
+
+    private List<ChartSeries> monthlySeries = new();
+    private string[] monthlyXAxisLabels = Array.Empty<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            stats = await HabitService.GetHabitStatsAsync();
+            if (stats != null && stats.TotalHabits > 0)
+            {
+                PrepareWeeklyChart();
+                PrepareMonthlyChart();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al cargar las estadísticas: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void PrepareWeeklyChart()
+    {
+        var data = new double[7];
+        for (int i = 0; i < weeklyXAxisLabels.Length; i++)
+        {
+            if (stats!.CompletionsByDayOfWeek.TryGetValue(weeklyXAxisLabels[i], out var count))
+            {
+                data[i] = count;
+            }
+        }
+        weeklySeries.Add(new ChartSeries() { Name = "Completados", Data = data });
+    }
+
+    private void PrepareMonthlyChart()
+    {
+        var sortedMonths = stats!.CompletionsByMonth.OrderBy(kvp => kvp.Key).ToList();
+        monthlyXAxisLabels = sortedMonths.Select(kvp => DateTime.ParseExact(kvp.Key, "yyyy-MM",
+CultureInfo.InvariantCulture).ToString("MMM yy", new CultureInfo("es-ES"))).ToArray();
+        var data = sortedMonths.Select(kvp => (double)kvp.Value).ToArray();
+        monthlySeries.Add(new ChartSeries() { Name = "Completados", Data = data });
+    }
+}

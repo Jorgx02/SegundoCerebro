@@ -47,5 +47,6 @@ builder.Services.AddScoped<ITodoItemService, TodoItemService>();
 builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<IHabitService, HabitService>();
 builder.Services.AddScoped<ITimeLogService, TimeLogService>();
+builder.Services.AddScoped<IWellnessService, WellnessService>();
 
 await builder.Build().RunAsync();

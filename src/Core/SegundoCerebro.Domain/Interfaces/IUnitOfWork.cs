@@ -55,6 +55,11 @@ public interface IUnitOfWork : IDisposable
     IHabitLogRepository HabitLogs { get; }
 
     /// <summary>
+    /// Repositorio para las entidades de Entradas de Bienestar (WellnessEntry).
+    /// </summary>
+    IWellnessEntryRepository WellnessEntries { get; }
+
+    /// <summary>
     /// Guarda todos los cambios realizados en el contexto de la base de datos.
     /// </summary>
     /// <returns>El número de entidades afectadas.</returns>

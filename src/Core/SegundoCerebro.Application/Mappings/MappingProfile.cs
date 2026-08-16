@@ -202,5 +202,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UserId, opt => opt.Ignore());
+
+        // Wellness Mappings
+        CreateMap<WellnessEntry, WellnessEntryDto>().ReverseMap();
+        CreateMap<UpsertWellnessEntryDto, WellnessEntry>();
     }
 }

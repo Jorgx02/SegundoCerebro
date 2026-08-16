@@ -127,10 +127,18 @@
                             Class="mr-1" />
                             <MudIcon Icon="@GetAccountIcon(context.Type)" Class="mr-3" />
                             <div>
-                                <MudLink Href="@($"/accounts/{context.Id}")" Typo="Typo.body1" Color="Color.Default"
-                                         Underline="Underline.None">
-                                    @context.Name
-                                </MudLink>
+                                <div class="d-flex align-center">
+                                    <MudLink Href="@($"/accounts/{context.Id}")" Typo="Typo.body1" Color="Color.Default"
+                                             Underline="Underline.None">
+                                        @context.Name
+                                    </MudLink>
+                                    @if (context.CardCount > 0)
+                                    {
+                                        <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.CreditCard"
+                                                 Color="Color.Info" Class="ml-2" Label="true">@context.CardCount
+                                        </MudChip>
+                                    }
+                                </div>
                                 @if (!string.IsNullOrEmpty(context.Description))
                                 {
                                     <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText>

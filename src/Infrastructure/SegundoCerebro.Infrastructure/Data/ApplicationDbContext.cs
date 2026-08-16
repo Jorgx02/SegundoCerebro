@@ -60,6 +60,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     /// <summary>Conjunto de entidades para los Registros de Hábitos (`HabitLog`).</summary>
     public DbSet<HabitLog> HabitLogs => Set<HabitLog>();
 
+    /// <summary>Conjunto de entidades para las Entradas de Bienestar (`WellnessEntry`).</summary>
+    public DbSet<WellnessEntry> WellnessEntries => Set<WellnessEntry>();
+
     /// <summary>
     /// Configura el modelo de datos, las relaciones, las restricciones y los filtros globales
     /// antes de que sea bloqueado y utilizado para inicializar el contexto.
@@ -239,6 +242,21 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             // Filtro Global: Solo devuelve registros de hábitos de este usuario
             entity.HasQueryFilter(hl => _currentUserService.UserId == null || hl.UserId == _currentUserService.UserId);
         });
+
+        // WellnessEntry configuration
+        modelBuilder.Entity<WellnessEntry>(entity =>
+        {
+            entity.HasKey(we => we.Id);
+            entity.Property(we => we.UserId).IsRequired().HasMaxLength(450);
+            entity.Property(we => we.Date).HasColumnType("date");
+            entity.Property(we => we.Notes).HasMaxLength(2000);
+
+            // Restricción única para evitar múltiples entradas para el mismo día.
+            entity.HasIndex(we => new { we.UserId, we.Date }).IsUnique();
+
+            // Filtro Global: Solo devuelve entradas de este usuario
+            entity.HasQueryFilter(we => _currentUserService.UserId == null || we.UserId == _currentUserService.UserId);
+        });
     }
 
     /// <summary>
@@ -277,6 +295,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
                         habit.UserId = userId;
                     else if (entry.Entity is HabitLog habitLog && string.IsNullOrEmpty(habitLog.UserId))
                         habitLog.UserId = userId;
+                    else if (entry.Entity is WellnessEntry wellnessEntry && string.IsNullOrEmpty(wellnessEntry.UserId))
+                        wellnessEntry.UserId = userId;
                 }
             }
         }

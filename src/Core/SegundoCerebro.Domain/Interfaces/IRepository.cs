@@ -1,5 +1,7 @@
 namespace SegundoCerebro.Domain.Interfaces;
 
+using System.Linq.Expressions;
+
 /// <summary>
 /// Define un contrato genérico para los repositorios, encapsulando las operaciones CRUD estándar.
 /// </summary>
@@ -18,6 +20,13 @@ public interface IRepository<T> where T : class
     /// </summary>
     /// <returns>Una colección enumerable de todas las entidades.</returns>
     Task<IEnumerable<T>> GetAllAsync();
+
+    /// <summary>
+    /// Busca entidades que coincidan con una condición específica.
+    /// </summary>
+    /// <param name="predicate">La expresión de filtro a aplicar.</param>
+    /// <returns>Una colección enumerable de entidades que cumplen la condición.</returns>
+    Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
 
     /// <summary>
     /// Añade una nueva entidad al conjunto de datos.
