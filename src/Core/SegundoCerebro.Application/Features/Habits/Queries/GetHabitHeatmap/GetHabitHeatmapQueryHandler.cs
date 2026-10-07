@@ -31,12 +31,32 @@ public class GetHabitHeatmapQueryHandler : IRequestHandler<GetHabitHeatmapQuery,
             .GroupBy(log => log.HabitId)
             .ToDictionary(g => g.Key, g => g.Select(l => l.Date).ToHashSet());
 
-        // 4. Construir los DTOs para cada hábito, tenga o no tenga logs.
-        var heatmapData = allHabits.Select(habit => new HabitHeatmapDto
+        // 4. Construir los DTOs para cada hábito, expandiendo fechas si es semanal.
+        var heatmapData = allHabits.Select(habit =>
         {
-            HabitId = habit.Id,
-            HabitName = habit.Name,
-            CompletedDates = logsByHabit.TryGetValue(habit.Id, out var dates) ? dates : new HashSet<DateTime>()
+            var dates = logsByHabit.TryGetValue(habit.Id, out var d) ? d : new HashSet<DateTime>();
+            
+            if (habit.Frequency == Domain.Enums.HabitFrequency.Weekly)
+            {
+                var expandedDates = new HashSet<DateTime>();
+                foreach (var date in dates)
+                {
+                    int diff = (7 + (int)date.DayOfWeek - (int)DayOfWeek.Monday) % 7;
+                    var monday = date.AddDays(-1 * diff).Date;
+                    for (int i = 0; i < 7; i++)
+                    {
+                        expandedDates.Add(monday.AddDays(i));
+                    }
+                }
+                dates = expandedDates;
+            }
+
+            return new HabitHeatmapDto
+            {
+                HabitId = habit.Id,
+                HabitName = habit.Name,
+                CompletedDates = dates
+            };
         }).ToList();
 
         return heatmapData;

@@ -7,20 +7,20 @@
 <MudDialog>
     <DialogContent>
         <MudAlert Severity="MudBlazor.Severity.Info" Class="mb-4">
-            Por motivos de seguridad, solo es posible añadir o modificar las notas de una transacción ya registrada. El
+            Por motivos de seguridad, solo es posible modificar la descripción de una transacción ya registrada. El
             resto de datos no pueden ser alterados.
         </MudAlert>
 
         <MudForm Model="@model" @ref="@form">
             <MudCardContent>
-                <MudTextField @bind-Value="model.Notes" For="@(() => model.Notes)" Label="Notas (Opcional)"
-                              Variant="Variant.Outlined" Margin="Margin.Dense" Lines="4" />
+                <MudTextField @bind-Value="model.Description" For="@(() => model.Description)" Label="Descripción"
+                              Variant="Variant.Outlined" Margin="Margin.Dense" />
             </MudCardContent>
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancelar</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar notas</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">Actualizar descripción</MudButton>
     </DialogActions>
 </MudDialog>
 

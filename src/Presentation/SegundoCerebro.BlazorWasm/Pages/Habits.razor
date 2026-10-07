@@ -11,24 +11,57 @@
 
 <PageTitle>Hábitos - SegundoCerebro</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudGrid>
-        <MudItem xs="12" sm="6" Class="d-flex align-center">
-            <MudText Typo="Typo.h4">Mis hábitos</MudText>
-        </MudItem>
-        <MudItem xs="12" sm="6" Class="d-flex justify-end align-center">
-            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousWeek"
-                           aria-label="Semana anterior" />
-            <MudText Typo="Typo.h6" Class="mx-4 text-center" Style="min-width: 220px;">@GetWeekDateRange()</MudText>
-            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextWeek"
-                           aria-label="Siguiente semana" />
-            <MudButton Variant="Variant.Text" OnClick="GoToToday" Class="ml-4">Hoy</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="OpenCreateDialog" Class="ml-4">
-                Nuevo Hábito
+<style>
+    .habit-card {
+        background-color: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .check-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin: 0 auto;
+    }
+    .check-btn:hover {
+        border-color: var(--mud-palette-primary);
+    }
+    .check-btn.completed {
+        background-color: var(--mud-palette-primary);
+        border-color: var(--mud-palette-primary);
+        color: white;
+    }
+    .check-btn.completed:hover {
+        opacity: 0.8;
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-4 px-md-8">
+    <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Habitos</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Haz un seguimiento de tus rutinas y gana impulso.</MudText>
+        </div>
+        <div class="d-flex align-center gap-4 mt-4 mt-sm-0">
+            <div class="d-flex align-center rounded-lg pa-1" style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.12);">
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" OnClick="PreviousWeek" />
+                <MudText Typo="Typo.button" Class="px-3" Style="font-weight: 700; width: 180px; text-align: center;">@GetWeekDateRange()</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" OnClick="NextWeek" />
+            </div>
+            <MudButton Variant="Variant.Outlined" OnClick="GoToToday" Style="border-color: rgba(255,255,255,0.12);">Hoy</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateDialog">
+                Add Habit
             </MudButton>
-        </MudItem>
-    </MudGrid>
+        </div>
+    </div>
 
     @if (loading)
     {
@@ -38,69 +71,92 @@
     }
     else if (habits.Any())
     {
-        <MudTable Items="@habits" Hover="true" Dense="true" Elevation="2" Class="rounded-lg">
-            <HeaderContent>
-                <MudTh Style="width: 250px;">Hábito</MudTh>
-                @foreach (var day in GetDaysOfWeek())
-                {
-                    <MudTh Class="text-center">
-                        <div class="@(day.Date == DateTime.UtcNow.Date ? "font-weight-bold mud-text-primary" : "")">
-                            <div>@day.ToString("ddd", new CultureInfo("es-ES")).ToUpper()</div>
-                            <div>@day.Day</div>
-                        </div>
-                    </MudTh>
-                }
-                <MudTh Style="width: 100px;">Acciones</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Hábito">
-                    <div class="d-flex align-center">
-                        <MudIcon
-                        Icon="@(string.IsNullOrEmpty(context.Icon) ? Icons.Material.Filled.SelfImprovement : context.Icon)"
-                        Class="mr-3" />
-                        <div>
-                            <div class="d-flex align-center">
-                                <MudText Typo="Typo.body1">@context.Name</MudText>
+        <div class="habit-card">
+            <MudTable Items="@habits" Hover="true" Dense="false" Elevation="0" Style="background-color: transparent;">
+                <HeaderContent>
+                    <MudTh><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Hábito</MudText></MudTh>
+                    <MudTh><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Frecuencia</MudText></MudTh>
+                    @foreach (var day in GetDaysOfWeek())
+                    {
+                        <MudTh Style="text-align: center; width: 60px;">
+                            <div style="@(day.Date == DateTime.UtcNow.Date ? "color: var(--mud-palette-primary);" : "color: var(--mud-palette-secondary);") text-transform: uppercase; font-size: 10px; font-weight: 700; letter-spacing: 1px;">
+                                @day.ToString("ddd", new CultureInfo("en-US"))
                             </div>
-                            <MudText Typo="Typo.caption">@GetFrequencyName(context.Frequency) &bull; Racha máx:
-                                @context.LongestStreak</MudText>
-                            </div>
+                        </MudTh>
+                    }
+                    <MudTh Style="text-align: right;"><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Racha</MudText></MudTh>
+                    <MudTh Style="width: 50px;"></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Habit">
+                        <div class="d-flex align-center gap-3">
+                            <MudIcon Icon="@(string.IsNullOrEmpty(context.Icon) ? Icons.Material.Filled.SelfImprovement : context.Icon)" Color="Color.Primary" />
+                            <MudText Typo="Typo.body2" Style="font-weight: 700;">@context.Name</MudText>
                         </div>
                     </MudTd>
-
+                    <MudTd DataLabel="Freq">
+                        <div style="background-color: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; font-weight: 700; display: inline-block;">
+                            @GetFrequencyName(context.Frequency)
+                        </div>
+                    </MudTd>
+                    
                     @if (context.Frequency == HabitFrequency.Daily)
                     {
                         @foreach (var day in GetDaysOfWeek())
                         {
-                            <MudTd DataLabel="@day.ToString("ddd")" Class="text-center">
-                                <MudCheckBox T="bool" Value="@IsHabitCompletedForDate(context, day)"
-                                             ValueChanged="@(async (e) => await ToggleCompletionForDate(context, day))" Color="Color.Success" />
+                            bool completed = IsHabitCompletedForDate(context, day);
+                            bool isBeforeCreation = day.Date < context.CreatedAt.Date;
+                            <MudTd DataLabel="@day.ToString("ddd")" Style="text-align: center; padding: 12px 4px;">
+                                <div class="check-btn @(completed ? "completed" : "")" 
+                                     @onclick="@(async () => { if (!isBeforeCreation) await ToggleCompletionForDate(context, day); })"
+                                     style="@(isBeforeCreation ? "opacity: 0.3; cursor: not-allowed;" : "")">
+                                    @if (completed)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                                    }
+                                </div>
                             </MudTd>
                         }
                     }
-                    else // Weekly
+                    else
                     {
+                        bool completed = IsHabitCompletedForWeek(context);
+                        bool isBeforeCreation = currentWeekStart.AddDays(6).Date < context.CreatedAt.Date;
                         <td colspan="7" class="mud-table-cell text-center" style="vertical-align: middle;">
-                            <MudCheckBox T="bool" Value="@IsHabitCompletedForWeek(context)"
-                                         ValueChanged="@(async (e) => await ToggleCompletionForWeek(context))" Color="Color.Success" />
+                            <div class="d-flex justify-center w-100" style="padding: 0 16px;">
+                                <MudButton Disabled="@isBeforeCreation" Variant="@(completed ? Variant.Filled : Variant.Outlined)" Color="Color.Tertiary" FullWidth="true" Style="@(completed ? "" : "border-color: rgba(255,255,255,0.2);")" OnClick="@(async () => await ToggleCompletionForWeek(context))">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
+                                    @(completed ? "Semana completada" : "Marcar semana como completada")
+                                </MudButton>
+                            </div>
                         </td>
                     }
-
-                    <MudTd DataLabel="Acciones">
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
-                                       OnClick="() => OpenEditDialog(context)" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                       OnClick="() => DeleteHabit(context)" />
+                    
+                    <MudTd DataLabel="Streak" Style="text-align: right;">
+                        <div class="d-flex align-center justify-end gap-1" style="color: var(--mud-palette-tertiary);">
+                            <MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Small" />
+                            <MudText Typo="Typo.body2" Style="font-weight: 700;">@context.CurrentStreak <span style="color: var(--mud-palette-text-secondary); font-weight: 400; font-size: 12px;">/ @context.LongestStreak</span></MudText>
+                        </div>
+                    </MudTd>
+                    <MudTd Style="text-align: right;">
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                            <MudMenuItem OnClick="() => OpenEditDialog(context)" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
+                            <MudMenuItem OnClick="() => DeleteHabit(context)" Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error">Eliminar</MudMenuItem>
+                        </MudMenu>
                     </MudTd>
                 </RowTemplate>
             </MudTable>
-        }
+        </div>
+    }
     else
-        {
-            <MudAlert Severity="MudBlazor.Severity.Info">Aún no tienes ningún hábito registrado. ¡Crea uno para empezar!
+    {
+        <div class="mt-8">
+            <MudAlert Severity="MudBlazor.Severity.Info" Style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);">
+                Aún no tienes ningún hábito registrado. ¡Crea uno para empezar!
             </MudAlert>
-        }
-    </MudContainer>
+        </div>
+    }
+</MudContainer>
 
 @code {
     /// <summary>
@@ -387,13 +443,17 @@
 
         // --- Calculate Current Streak ---
         int currentStreak = 0;
-        if (logDates.Contains(today) || logDates.Contains(today.AddDays(-1)))
+        if (logDates.Any())
         {
-            var dateToCheck = logDates.Contains(today) ? today : today.AddDays(-1);
-            while (logDates.Contains(dateToCheck))
+            var maxDate = logDates.Max();
+            if (maxDate >= today.AddDays(-1))
             {
-                currentStreak++;
-                dateToCheck = dateToCheck.AddDays(-1);
+                var dateToCheck = maxDate;
+                while (logDates.Contains(dateToCheck))
+                {
+                    currentStreak++;
+                    dateToCheck = dateToCheck.AddDays(-1);
+                }
             }
         }
         habit.CurrentStreak = currentStreak;
@@ -432,16 +492,18 @@
 
         // --- Calculate Current Streak ---
         int currentStreak = 0;
-        bool completedThisWeek = logDates.Any(d => d >= startOfThisWeek);
-        bool completedLastWeek = logDates.Any(d => d >= startOfLastWeek && d < startOfThisWeek);
-
-        if (completedThisWeek || completedLastWeek)
+        var weekStartsForStreak = logDates.Select(GetStartOfWeek).Distinct().ToList();
+        if (weekStartsForStreak.Any())
         {
-            var weekToCheckStart = completedThisWeek ? startOfThisWeek : startOfLastWeek;
-            while (logDates.Any(d => d >= weekToCheckStart && d < weekToCheckStart.AddDays(7)))
+            var maxWeek = weekStartsForStreak.Max();
+            if (maxWeek >= startOfLastWeek)
             {
-                currentStreak++;
-                weekToCheckStart = weekToCheckStart.AddDays(-7);
+                var weekToCheck = maxWeek;
+                while (weekStartsForStreak.Contains(weekToCheck))
+                {
+                    currentStreak++;
+                    weekToCheck = weekToCheck.AddDays(-7);
+                }
             }
         }
         habit.CurrentStreak = currentStreak;

@@ -7,33 +7,73 @@
 
 <PageTitle>Diario de Bienestar - SegundoCerebro</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
-    <MudPaper Elevation="3" Class="pa-6 rounded-lg">
-        <MudText Typo="Typo.h4" GutterBottom="true">Diario de Bienestar</MudText>
-        <MudText Color="Color.Secondary" Class="mb-6">Registra cómo te sientes cada día para encontrar patrones y
-            mejorar tu bienestar.</MudText>
+<style>
+    .card-outline {
+        border: 1px solid var(--mud-palette-lines-default);
+        background-color: var(--mud-palette-surface) !important;
+        backdrop-filter: blur(12px);
+    }
+    
+    .glow-bg {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.15;
+        pointer-events: none;
+    }
+</style>
 
-            <MudDatePicker Label="Fecha de la entrada" @bind-Date="selectedDate" ReadOnly="true" Variant="Variant.Outlined"
-                           DateFormat="dd/MM/yyyy" Class="mb-4" HelperText="Solo se puede registrar la entrada del día actual." />
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row align-center justify-space-between mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Diario de bienestar</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Registra cómo te sientes cada día para encontrar patrones y mejorar tu bienestar general.</MudText>
+        </div>
+    </div>
 
-            <MudText Typo="Typo.h6" Class="mt-4">Estado de ánimo</MudText>
-            <MudRating @bind-SelectedValue="model.MoodRating" MaxValue="5">
-                <EmptyIcon>@Icons.Material.Filled.SentimentVeryDissatisfied</EmptyIcon>
-                <FullIcon>@Icons.Material.Filled.SentimentVerySatisfied</FullIcon>
-            </MudRating>
+    <MudGrid Spacing="4">
+        <!-- Formulario -->
+        <MudItem xs="12" md="5" lg="4">
+            <MudCard Class="card-outline pa-4" Style="position: relative; overflow: hidden;">
+                <div class="glow-bg" style="top: -50px; right: -50px; background-color: var(--mud-palette-secondary);"></div>
+                
+                <MudText Typo="Typo.h6" Style="font-weight: 700;" Class="mb-4">Registro de hoy</MudText>
 
-            <MudText Typo="Typo.h6" Class="mt-4">Nivel de energía</MudText>
-            <MudRating @bind-SelectedValue="model.EnergyLevel" MaxValue="5">
-                <EmptyIcon>@Icons.Material.Filled.BatteryAlert</EmptyIcon>
-                <FullIcon>@Icons.Material.Filled.BatteryFull</FullIcon>
-            </MudRating>
+                <MudDatePicker Label="Fecha de la entrada" @bind-Date="selectedDate" ReadOnly="true" Variant="Variant.Outlined"
+                               DateFormat="dd MMM yyyy" Class="mb-6" />
 
-            <MudTextField @bind-Value="model.Notes" Label="Notas del día (opcional)" Variant="Variant.Outlined" Lines="4"
-                          Class="mt-6" />
+                <MudText Typo="Typo.subtitle2" Style="font-weight: 700;" Class="mb-2">Estado de ánimo</MudText>
+                <div class="d-flex justify-center gap-2 mb-6">
+                    <MudIconButton Icon="@(model.MoodRating == 1 ? Icons.Material.Filled.SentimentVeryDissatisfied : Icons.Material.Outlined.SentimentVeryDissatisfied)"
+                                   Color="@(model.MoodRating == 1 ? Color.Error : Color.Default)"
+                                   OnClick="@(() => model.MoodRating = 1)" Size="Size.Large" />
+                    <MudIconButton Icon="@(model.MoodRating == 2 ? Icons.Material.Filled.SentimentDissatisfied : Icons.Material.Outlined.SentimentDissatisfied)"
+                                   Color="@(model.MoodRating == 2 ? Color.Warning : Color.Default)"
+                                   OnClick="@(() => model.MoodRating = 2)" Size="Size.Large" />
+                    <MudIconButton Icon="@(model.MoodRating == 3 ? Icons.Material.Filled.SentimentNeutral : Icons.Material.Outlined.SentimentNeutral)"
+                                   Color="@(model.MoodRating == 3 ? Color.Info : Color.Default)"
+                                   OnClick="@(() => model.MoodRating = 3)" Size="Size.Large" />
+                    <MudIconButton Icon="@(model.MoodRating == 4 ? Icons.Material.Filled.SentimentSatisfied : Icons.Material.Outlined.SentimentSatisfied)"
+                                   Color="@(model.MoodRating == 4 ? Color.Success : Color.Default)"
+                                   OnClick="@(() => model.MoodRating = 4)" Size="Size.Large" />
+                    <MudIconButton Icon="@(model.MoodRating == 5 ? Icons.Material.Filled.SentimentVerySatisfied : Icons.Material.Outlined.SentimentVerySatisfied)"
+                                   Color="@(model.MoodRating == 5 ? Color.Primary : Color.Default)"
+                                   OnClick="@(() => model.MoodRating = 5)" Size="Size.Large" />
+                </div>
 
-            <div class="d-flex justify-end mt-6">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveEntry"
-                           Disabled="isSaving || isLoading">
+                <MudText Typo="Typo.subtitle2" Style="font-weight: 700;" Class="mb-2">Nivel de energía</MudText>
+                <div class="d-flex justify-center mb-6">
+                    <MudRating @bind-SelectedValue="model.EnergyLevel" MaxValue="5" Size="Size.Large" Color="Color.Warning"
+                               EmptyIcon="@Icons.Material.Outlined.Battery0Bar" FullIcon="@Icons.Material.Filled.BatteryChargingFull" />
+                </div>
+
+                <MudTextField @bind-Value="model.Notes" Label="Notas del día (opcional)" Variant="Variant.Outlined" Lines="4"
+                              Class="mb-6" Placeholder="¿Cómo te ha ido hoy? ¿Qué ha afectado tu energía o ánimo?" />
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveEntry" Disabled="isSaving || isLoading" FullWidth="true" Size="Size.Large">
                     @if (isSaving)
                     {
                         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
@@ -41,54 +81,70 @@
                     }
                     else
                     {
-                        <MudText>Guardar Entrada</MudText>
+                        <MudText Style="font-weight: 600;">Guardar entrada</MudText>
                     }
                 </MudButton>
-            </div>
-        </MudPaper>
+            </MudCard>
+        </MudItem>
 
-        <MudPaper Elevation="3" Class="pa-6 rounded-lg mt-6">
-            <MudText Typo="Typo.h5" GutterBottom="true">Entradas de la semana</MudText>
-            <MudText Color="Color.Secondary" Class="mb-4">
-                @currentWeekStart.ToString("dd/MM/yyyy") - @currentWeekStart.AddDays(6).ToString("dd/MM/yyyy")
-            </MudText>
+        <!-- Historial Semanal -->
+        <MudItem xs="12" md="7" lg="8">
+            <MudCard Class="card-outline pa-4 h-100" Style="position: relative; overflow: hidden;">
+                <div class="glow-bg" style="bottom: -50px; left: -50px; background-color: var(--mud-palette-info);"></div>
+                
+                <div class="d-flex justify-space-between align-center mb-6">
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">Entradas recientes</MudText>
+                    <MudChip Size="Size.Small" Color="Color.Surface" Variant="Variant.Filled" Style="border: 1px solid rgba(255,255,255,0.1);">
+                        @currentWeekStart.ToString("dd MMM") - @currentWeekStart.AddDays(6).ToString("dd MMM")
+                    </MudChip>
+                </div>
 
-            @if (isLoading)
-            {
-                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
-            }
-            else if (weeklyEntries.Any())
-            {
-                <MudList>
-                    @foreach (var entry in weeklyEntries.OrderByDescending(e => e.Date))
-                    {
-                        <MudListItem Class="py-2">
-                            <div class="d-flex align-center" style="width: 100%;">
-                                <MudText Typo="Typo.body1" Class="mr-4">@entry.Date.ToString("ddd, dd MMM")</MudText>
-                                <MudIcon Icon="@GetMoodIcon(entry.MoodRating)" Color="@GetMoodColor(entry.MoodRating)"
-                                         Class="mr-2" />
-                                <MudText Typo="Typo.body2" Class="mr-4">@GetMoodDescription(entry.MoodRating)</MudText>
-                                <MudIcon Icon="@GetEnergyIcon(entry.EnergyLevel)" Color="@GetEnergyColor(entry.EnergyLevel)"
-                                         Class="mr-2" />
-                                <MudText Typo="Typo.body2">@GetRatingDescription(entry.EnergyLevel)</MudText>
-                                <MudSpacer />
-                                @if (!string.IsNullOrEmpty(entry.Notes))
-                                {
-                                    <MudIcon Icon="@Icons.Material.Filled.Notes" Color="Color.Info" Title="@entry.Notes" />
-                                }
-                            </div>
-                        </MudListItem>
-                        <MudDivider />
-                    }
-                </MudList>
-            }
-            else
-            {
-                <MudText Color="Color.Secondary">No hay entradas de bienestar para esta semana.</MudText>
-            }
-        </MudPaper>
-
-    </MudContainer>
+                @if (isLoading)
+                {
+                    <div class="d-flex justify-center my-10">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    </div>
+                }
+                else if (weeklyEntries.Any())
+                {
+                    <MudStack Spacing="3">
+                        @foreach (var entry in weeklyEntries.OrderByDescending(e => e.Date))
+                        {
+                            <MudPaper Elevation="0" Class="pa-4 d-flex align-start gap-4" Style="background-color: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
+                                <div class="d-flex flex-column align-center mr-2" style="min-width: 60px;">
+                                    <MudText Typo="Typo.h6" Style="font-weight: 700; color: var(--mud-palette-primary);">@entry.Date.ToString("dd")</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase;">@entry.Date.ToString("MMM")</MudText>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex gap-4 mb-2 flex-wrap">
+                                        <MudChip Size="Size.Small" Icon="@GetMoodIcon(entry.MoodRating)" Color="@GetMoodColor(entry.MoodRating)" Variant="Variant.Text" Style="font-weight: 600;">
+                                            @GetMoodDescription(entry.MoodRating)
+                                        </MudChip>
+                                        <MudChip Size="Size.Small" Icon="@GetEnergyIcon(entry.EnergyLevel)" Color="@GetEnergyColor(entry.EnergyLevel)" Variant="Variant.Text" Style="font-weight: 600;">
+                                            Energía: @GetRatingDescription(entry.EnergyLevel)
+                                        </MudChip>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(entry.Notes))
+                                    {
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1" Style="font-style: italic;">"@entry.Notes"</MudText>
+                                    }
+                                </div>
+                            </MudPaper>
+                        }
+                    </MudStack>
+                }
+                else
+                {
+                    <div class="d-flex flex-column align-center justify-center h-100 pa-8 text-center" style="opacity: 0.7;">
+                        <MudIcon Icon="@Icons.Material.Filled.SelfImprovement" Size="Size.Large" Class="mb-4" />
+                        <MudText Typo="Typo.h6">Aún no hay registros esta semana</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">Comienza a registrar cómo te sientes hoy en el panel lateral.</MudText>
+                    </div>
+                }
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
 
 @code {
     private DateTime? selectedDate = DateTime.Today;
@@ -110,12 +166,12 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar la página: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error al cargar la página", Severity.Error);
         }
         finally
         {
             isLoading = false;
-            StateHasChanged(); // Forzar la actualización de la UI después de la carga de datos
+            StateHasChanged(); 
         }
     }
 
@@ -137,7 +193,6 @@
         }
         else
         {
-            // Si no hay entrada, preparamos un modelo nuevo con valores por defecto.
             model = new UpsertWellnessEntryDto { Date = today, MoodRating = 3, EnergyLevel = 3 };
         }
     }
@@ -145,17 +200,16 @@
     private async Task SaveEntry()
     {
         isSaving = true;
-        model.Date = DateTime.Today; // Aseguramos que la fecha es la de hoy
+        model.Date = DateTime.Today; 
         try
         {
             var savedEntry = await WellnessService.UpsertAsync(model);
             Snackbar.Add("Entrada guardada con éxito.", Severity.Success);
-            // Recargamos todos los datos para mantener la consistencia
             await LoadTodaysEntryInternal();
             await LoadWeeklyEntries();
             StateHasChanged();
         }
-        catch (Exception ex) { Snackbar.Add($"Error al guardar la entrada: {ex.Message}", Severity.Error); }
+        catch (Exception ex) { Snackbar.Add($"Error al guardar la entrada", Severity.Error); }
         finally { isSaving = false; }
     }
 
@@ -172,18 +226,16 @@
         weeklyEntries = entries.ToList();
     }
 
-    // Helper para obtener texto descriptivo para el ánimo/energía
     private string GetRatingDescription(int rating) => rating switch
     {
-        1 => "Muy bajo",
-        2 => "Bajo",
+        1 => "Muy baja",
+        2 => "Baja",
         3 => "Normal",
-        4 => "Alto",
-        5 => "Muy alto",
+        4 => "Alta",
+        5 => "Muy alta",
         _ => "N/A"
     };
 
-    // Helper para obtener texto descriptivo para el ánimo
     private string GetMoodDescription(int rating) => rating switch
     {
         1 => "Muy mal",
@@ -194,7 +246,6 @@
         _ => "N/A"
     };
 
-    // Helper para obtener iconos de ánimo
     private string GetMoodIcon(int rating) => rating switch
     {
         1 => Icons.Material.Filled.SentimentVeryDissatisfied,
@@ -205,7 +256,6 @@
         _ => Icons.Material.Filled.QuestionMark
     };
 
-    // Helper para obtener colores de ánimo
     private Color GetMoodColor(int rating) => rating switch
     {
         1 => Color.Error,
@@ -216,7 +266,6 @@
         _ => Color.Default
     };
 
-    // Helper para obtener iconos de energía
     private string GetEnergyIcon(int rating) => rating switch
     {
         1 => Icons.Material.Filled.BatteryAlert,
@@ -227,7 +276,6 @@
         _ => Icons.Material.Filled.QuestionMark
     };
 
-    // Helper para obtener colores de energía
     private Color GetEnergyColor(int rating) => rating switch
     {
         1 => Color.Error,

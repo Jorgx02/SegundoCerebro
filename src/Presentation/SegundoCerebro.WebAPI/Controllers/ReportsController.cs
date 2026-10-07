@@ -34,9 +34,10 @@ public class ReportsController : ControllerBase
     [HttpGet("export/excel")]
     public async Task<IActionResult> ExportToExcel(
         [FromQuery] DateTime startDate, 
-        [FromQuery] DateTime endDate)
+        [FromQuery] DateTime endDate,
+        [FromQuery] Guid? accountId = null)
     {
-        var fileBytes = await _mediator.Send(new ExportTransactionsToExcelQuery(startDate, endDate));
+        var fileBytes = await _mediator.Send(new ExportTransactionsToExcelQuery(startDate, endDate, accountId));
         
         return File(
             fileBytes, 
@@ -47,13 +48,21 @@ public class ReportsController : ControllerBase
     [HttpGet("export/pdf")]
     public async Task<IActionResult> ExportToPdf(
         [FromQuery] DateTime startDate, 
-        [FromQuery] DateTime endDate)
+        [FromQuery] DateTime endDate,
+        [FromQuery] Guid? accountId = null)
     {
-        var fileBytes = await _mediator.Send(new ExportTransactionsToPdfQuery(startDate, endDate));
+        var fileBytes = await _mediator.Send(new ExportTransactionsToPdfQuery(startDate, endDate, accountId));
         
         return File(
             fileBytes, 
             "application/pdf", 
             $"transactions_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.pdf");
+    }
+
+    [HttpGet("export/transaction/{id}/pdf")]
+    public async Task<IActionResult> ExportTransactionToPdf(Guid id)
+    {
+        var fileBytes = await _mediator.Send(new SegundoCerebro.Application.Features.Reports.Queries.ExportSingleTransactionToPdf.ExportSingleTransactionToPdfQuery(id));
+        return File(fileBytes, "application/pdf", $"factura_{id.ToString().Substring(0, 8)}.pdf");
     }
 }

@@ -93,13 +93,17 @@ public class GetHabitsForTrackerQueryHandler : IRequestHandler<GetHabitsForTrack
 
         // --- Calcular Racha Actual ---
         int currentStreak = 0;
-        if (logDates.Contains(today) || logDates.Contains(today.AddDays(-1)))
+        if (logDates.Any())
         {
-            var dateToCheck = logDates.Contains(today) ? today : today.AddDays(-1);
-            while (logDates.Contains(dateToCheck))
+            var maxDate = logDates.Max();
+            if (maxDate >= today.AddDays(-1))
             {
-                currentStreak++;
-                dateToCheck = dateToCheck.AddDays(-1);
+                var dateToCheck = maxDate;
+                while (logDates.Contains(dateToCheck))
+                {
+                    currentStreak++;
+                    dateToCheck = dateToCheck.AddDays(-1);
+                }
             }
         }
         habitDto.CurrentStreak = currentStreak;
@@ -144,16 +148,18 @@ public class GetHabitsForTrackerQueryHandler : IRequestHandler<GetHabitsForTrack
 
         // --- Calculate Current Streak ---
         int currentStreak = 0;
-        bool completedThisWeek = logDates.Any(d => d >= startOfThisWeek);
-        bool completedLastWeek = logDates.Any(d => d >= startOfLastWeek && d < startOfThisWeek);
-
-        if (completedThisWeek || completedLastWeek)
+        var weekStartsForStreak = logDates.Select(GetStartOfWeek).Distinct().ToList();
+        if (weekStartsForStreak.Any())
         {
-            var weekToCheckStart = completedThisWeek ? startOfThisWeek : startOfLastWeek;
-            while (logDates.Any(d => d >= weekToCheckStart && d < weekToCheckStart.AddDays(7)))
+            var maxWeek = weekStartsForStreak.Max();
+            if (maxWeek >= startOfLastWeek)
             {
-                currentStreak++;
-                weekToCheckStart = weekToCheckStart.AddDays(-7);
+                var weekToCheck = maxWeek;
+                while (weekStartsForStreak.Contains(weekToCheck))
+                {
+                    currentStreak++;
+                    weekToCheck = weekToCheck.AddDays(-7);
+                }
             }
         }
         habitDto.CurrentStreak = currentStreak;

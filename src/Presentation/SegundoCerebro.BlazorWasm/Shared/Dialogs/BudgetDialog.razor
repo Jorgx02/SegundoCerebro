@@ -1,0 +1,85 @@
+@using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Enums
+@using SegundoCerebro.BlazorWasm.Services
+@inject ICategoryService CategoryService
+@inject IBudgetService BudgetService
+
+<MudDialog Style="background-color: var(--mud-palette-surface); border: 1px solid rgba(255, 255, 255, 0.12);">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Style="font-weight: 700; color: var(--mud-palette-primary);">
+            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2" /> Crear Presupuesto
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="isValid">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="model.Name" Label="Nombre" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudNumericField @bind-Value="model.Amount" Label="Límite Mensual" Required="true" Variant="Variant.Outlined" Format="N2" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Euro" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="model.CategoryId" Label="Categoría" Required="true" Variant="Variant.Outlined">
+                        @foreach (var cat in categories.Where(c => c.Type == CategoryType.Expense))
+                        {
+                            <MudSelectItem Value="cat.Id">@cat.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="@(!isValid || isSubmitting)">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Guardando</MudText>
+            }
+            else
+            {
+                <MudText>Crear</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    private MudForm form = null!;
+    private bool isValid;
+    private bool isSubmitting;
+
+    private CreateBudgetDto model = new() { StartDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1), EndDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1).AddDays(-1), Period = BudgetPeriod.Monthly };
+    private IEnumerable<CategoryDto> categories = new List<CategoryDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await CategoryService.GetAllAsync();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (isValid)
+        {
+            isSubmitting = true;
+            StateHasChanged();
+            
+            try
+            {
+                var result = await BudgetService.CreateAsync(model);
+                MudDialog.Close(DialogResult.Ok(result));
+            }
+            finally
+            {
+                isSubmitting = false;
+            }
+        }
+    }
+}

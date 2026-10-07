@@ -11,16 +11,65 @@
 
 <PageTitle>Kanban - SegundoCerebro</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
-    <MudGrid>
-        <MudItem xs="12">
-            <div class="d-flex justify-space-between align-center mb-4">
-                <MudText Typo="Typo.h4">Tablero Kanban</MudText>
-            </div>
-        </MudItem>
-    </MudGrid>
+<style>
+    .kanban-container {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        min-height: calc(100vh - 250px);
+        align-items: flex-start;
+        padding-bottom: 16px;
+    }
+    .kanban-column {
+        flex-shrink: 0;
+        width: 320px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+    }
+    .kanban-column-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .kanban-card {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        background-color: var(--mud-palette-surface);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        cursor: grab;
+    }
+    .kanban-card:active {
+        cursor: grabbing;
+    }
+    .kanban-card:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+    .kanban-container::-webkit-scrollbar { width: 6px; height: 6px; }
+    .kanban-container::-webkit-scrollbar-track { background: transparent; }
+    .kanban-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    .kanban-container::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+</style>
 
-    <MudPaper Class="pa-4 rounded-lg mb-4" Elevation="2">
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row align-center justify-space-between mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Tablero Kanban</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Gestiona directamente las tareas con una vista mas sencilla.</MudText>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <MudPaper Class="pa-4 rounded-lg mb-6" Elevation="0" Style="background-color: transparent; border: 1px solid rgba(255,255,255,0.12);">
         <MudGrid Spacing="3" AlignItems="AlignItems.End">
             <MudItem xs="12" sm="12" md="6">
                 <MudSelect T="Guid?"
@@ -45,70 +94,67 @@
     </MudPaper>
 
     @if (loading)
-            {
-                <div class="d-flex justify-center align-center" style="height: 50vh;">
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-                </div>
-            }
-            else
-            {
-        <MudDropContainer T="TodoItemDto" Items="FilteredTasks" ItemsSelector="@((item, zoneIdentifier) => item.Status.ToString() == (string)zoneIdentifier)"
-                                  ItemDropped="ItemDropped" Class="d-flex flex-grow-1">
-                    <ChildContent>
-                        <MudGrid Spacing="3" Class="flex-grow-1">
-                            @foreach (var status in columnOrder)
-                            {
-                                <MudItem xs="12" sm="6" Class="mud-grid-item-md-true">
-                                    <MudPaper Elevation="2" Class="d-flex flex-column rounded-lg" Style="height: 100%;">
-                                        <div class="@($"pa-4 {GetColumnHeaderClass(status)}")">
-                                            <MudText Typo="Typo.h6">@status.ToString() (@FilteredTasks.Count(t => t.Status == status))</MudText>
+    {
+        <div class="d-flex justify-center align-center" style="height: 50vh;">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else
+    {
+        <MudDropContainer T="TodoItemDto" Items="FilteredTasks" ItemsSelector="@((item, zoneIdentifier) => item.Status.ToString() == (string)zoneIdentifier)" ItemDropped="ItemDropped" Class="d-flex flex-grow-1">
+            <ChildContent>
+                <div class="kanban-container">
+                    @foreach (var status in columnOrder)
+                    {
+                        <div class="kanban-column">
+                            <div class="kanban-column-header">
+                                <div class="d-flex align-center">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background-color: @(status == TodoItemStatus.InProgress ? "var(--mud-palette-primary)" : status == TodoItemStatus.Completed ? "var(--mud-palette-success)" : "rgba(255,255,255,0.3)"); margin-right: 8px;"></div>
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">@status.ToString()</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-2">(@FilteredTasks.Count(t => t.Status == status))</MudText>
+                                </div>
+                                <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" Size="Size.Small" Color="Color.Secondary" />
+                            </div>
+                            <MudDropZone T="TodoItemDto" Identifier="@status.ToString()" Class="d-flex flex-column flex-grow-1 pa-2" Style="overflow-y: auto; background-color: transparent;" NoItemsContent="noItemsContentFragment">
+                                <ItemRenderer>
+                                    <div class="kanban-card" style="border-left: 4px solid @GetPriorityColor(context.Priority);">
+                                        <div class="d-flex justify-space-between align-start mb-2">
+                                            <div style="background-color: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 12px; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; color: var(--mud-palette-primary);">
+                                                @context.ProjectName
+                                            </div>
+                                            <MudIcon Icon="@(context.Priority == 3 ? Icons.Material.Filled.KeyboardDoubleArrowUp : context.Priority == 2 ? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.Remove)" 
+                                                     Color="@(context.Priority == 3 ? Color.Error : context.Priority == 2 ? Color.Warning : Color.Info)" Size="Size.Small" />
                                         </div>
-                                        <MudDropZone T="TodoItemDto" Identifier="@status.ToString()"
-                                                     Class="d-flex flex-column flex-grow-1 pa-4 gap-4"
-                                                     Style="background-color: var(--mud-palette-background-grey);"
-                                                     NoItemsContent="noItemsContentFragment">
-                                            <ItemRenderer>
-                                                <MudCard Elevation="4"
-                                                         Style="@($"border-left: 4px solid {GetPriorityColor(context.Priority)};")">
-                                                    <MudCardHeader>
-                                                        <CardHeaderContent>
-                                                            <MudText Typo="Typo.body1">@context.Title</MudText>
-                                                        </CardHeaderContent>
-                                                        <CardHeaderActions>
-                                                            <MudRating SelectedValue="context.Priority" ReadOnly="true" MaxValue="3"
-                                                                       FullIcon="@Icons.Material.Filled.Flag"
-                                                                       EmptyIcon="@Icons.Material.Outlined.Flag" Size="Size.Small" />
-                                                        </CardHeaderActions>
-                                                    </MudCardHeader>
-                                                    @if (!string.IsNullOrEmpty(context.Description))
-                                                    {
-                                                        <MudCardContent>
-                                                            <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description
-                                                            </MudText>
-                                                        </MudCardContent>
-                                                    }
-                                                    <MudCardActions Class="d-flex justify-space-between">
-                                                        <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Assignment"
-                                                                 Color="Color.Primary">
-                                                            @context.ProjectName
-                                                        </MudChip>
-                                                        @if (context.DueDate.HasValue)
-                                                        {
-                                                            <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Event"
-                                                                     Color="@(context.DueDate.Value.Date < DateTime.Today ? Color.Error : Color.Default)">
-                                                                @context.DueDate.Value.ToString("MMM dd")
-                                                            </MudChip>
-                                                        }
-                                                    </MudCardActions>
-                                                </MudCard>
-                                            </ItemRenderer>
-                                        </MudDropZone>
-                                    </MudPaper>
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </ChildContent>
-                </MudDropContainer>
+                                        
+                                        <MudText Typo="Typo.body2" Style="font-weight: 500;" Class="mb-3">@context.Title</MudText>
+                                        
+                                        @if (!string.IsNullOrEmpty(context.Description))
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3 d-block" Style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">@context.Description</MudText>
+                                        }
+
+                                        <div class="d-flex justify-space-between align-center mt-3 pt-2" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                                            @if (context.DueDate.HasValue)
+                                            {
+                                                <div class="d-flex align-center" style="color: @(context.DueDate.Value.Date < DateTime.Today ? "var(--mud-palette-error)" : "var(--mud-palette-text-secondary)");">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Event" Size="Size.Small" Class="mr-1" />
+                                                    <MudText Typo="Typo.caption" Style="font-family: monospace;">@context.DueDate.Value.ToString("MMM dd")</MudText>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div></div>
+                                            }
+                                            <MudAvatar Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Style="width: 24px; height: 24px; font-size: 10px;">U</MudAvatar>
+                                        </div>
+                                    </div>
+                                </ItemRenderer>
+                            </MudDropZone>
+                        </div>
+                    }
+                </div>
+            </ChildContent>
+        </MudDropContainer>
     }
 </MudContainer>
 

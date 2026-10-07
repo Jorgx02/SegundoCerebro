@@ -11,4 +11,5 @@ public class HabitStatsDto
     public double WorstHabitSuccessRate { get; set; }
     public Dictionary<string, int> CompletionsByDayOfWeek { get; set; } = new();
     public Dictionary<string, int> CompletionsByMonth { get; set; } = new();
+    public Dictionary<int, int> CompletionsThisMonth { get; set; } = new();
 }

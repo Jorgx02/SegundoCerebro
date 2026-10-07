@@ -1,56 +1,313 @@
 @page "/"
 @using SegundoCerebro.BlazorWasm.Models
+@using SegundoCerebro.BlazorWasm.Models.Commands
+@using SegundoCerebro.BlazorWasm.Models.Enums
 @using SegundoCerebro.BlazorWasm.Services
 @inject IAccountService AccountService
 @inject ITransactionService TransactionService
 @inject IBudgetService BudgetService
 @inject IReportService ReportService
+@inject ITodoItemService TodoItemService
+@inject IHabitService HabitService
 @inject ISnackbar Snackbar
 
 <PageTitle>Dashboard - SegundoCerebro</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudText Typo="Typo.h4" GutterBottom="true">Dashboard</MudText>
-    <MudText Typo="Typo.body1" Class="mb-4">Bienvenido a SegundoCerebro</MudText>
+<style>
+    .card-outline {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: none !important;
+    }
+    .card-hover:hover {
+        background-color: var(--mud-palette-surface-dark) !important;
+        transition: background-color 0.2s ease-in-out;
+    }
+    .border-l-error {
+        border-left: 4px solid var(--mud-palette-error) !important;
+    }
+    .border-l-tertiary {
+        border-left: 4px solid var(--mud-palette-tertiary) !important;
+    }
+    .quick-action-btn {
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 9999px !important;
+        text-transform: none !important;
+        background-color: var(--mud-palette-surface) !important;
+        color: var(--mud-palette-text-primary) !important;
+    }
+    .quick-action-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    .task-checkbox-checked {
+        text-decoration: line-through;
+        color: var(--mud-palette-text-secondary);
+    }
+    .tx-item:hover {
+        background-color: rgba(255,255,255,0.03);
+    }
+</style>
 
-    <MudGrid>
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard>
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">Balance total</MudText>
-                    <!-- <MudText Typo="Typo.h4">$0.00</MudText> -->
-                    <MudText Typo="Typo.h4">€0.00</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    @if (loading)
+    {
+        <div class="d-flex justify-center align-center" style="height: 50vh;">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            <!-- Summary Cards Row -->
+            <MudItem xs="12" md="4">
+                <MudCard Class="card-outline card-hover h-100 d-flex flex-column pa-2">
+                    <MudCardContent Class="d-flex flex-column justify-space-between h-100 pb-2">
+                        <div class="d-flex justify-space-between">
+                            <div>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; letter-spacing: 1px;">Liquidez total</MudText>
+                                <MudText Typo="Typo.h5" Style="font-weight: 700; margin-top: 4px;">@((financialSummary?.TotalBalance ?? 0).ToString("C2"))</MudText>
+                            </div>
+                            <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Color="Color.Secondary" Size="Size.Large" />
+                        </div>
+                        <div class="d-flex align-center mt-auto pt-4" style="color: var(--mud-palette-secondary);">
+                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Class="mr-1" />
+                            <MudText Typo="Typo.caption" Style="font-weight: 700;">@(financialSummary?.NetIncome > 0 ? "+" : "")@((financialSummary?.NetIncome ?? 0).ToString("C0")) este período</MudText>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
 
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard>
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">Ingresos mensuales</MudText>
-                    <!-- <MudText Typo="Typo.h4" Color="Color.Success">$0.00</MudText> -->
-                    <MudText Typo="Typo.h4" Color="Color.Success">€0.00</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
+            <MudItem xs="12" md="4">
+                <MudCard Class="card-outline card-hover border-l-error h-100 d-flex flex-column pa-2">
+                    <MudCardContent Class="d-flex flex-column justify-space-between h-100 pb-2">
+                        <div class="d-flex justify-space-between">
+                            <div>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; letter-spacing: 1px;">Tareas críticas</MudText>
+                                <MudText Typo="Typo.h5" Style="font-weight: 700; margin-top: 4px;">@criticalTasksCount activas</MudText>
+                            </div>
+                            <MudIcon Icon="@Icons.Material.Filled.AssignmentLate" Color="Color.Error" Size="Size.Large" />
+                        </div>
+                        <div class="d-flex align-center mt-auto pt-4" style="color: var(--mud-palette-text-secondary);">
+                            <MudText Typo="Typo.caption" Color="Color.Error" Style="font-weight: 500;" Class="mr-2">@overdueTasksCount vencidas</MudText>
+                            <MudText Typo="Typo.caption">•</MudText>
+                            <MudText Typo="Typo.caption" Class="ml-2">@dueTodayTasksCount vencen hoy</MudText>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
 
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard>
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">Gastos mensuales</MudText>
-                    <!-- <MudText Typo="Typo.h4" Color="Color.Error">$0.00</MudText> -->
-                    <MudText Typo="Typo.h4" Color="Color.Error">€0.00</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
+            <MudItem xs="12" md="4">
+                <MudCard Class="card-outline card-hover border-l-tertiary h-100 d-flex flex-column pa-2">
+                    <MudCardContent Class="d-flex align-center h-100 pb-2">
+                        <div class="mr-4 position-relative d-flex align-center justify-center">
+                            <MudProgressCircular Value="@((int)(habitStats?.OverallSuccessRate ?? 0))" Color="Color.Tertiary" Size="Size.Large" StrokeWidth="4" />
+                            <MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Color="Color.Tertiary" Style="position: absolute;" />
+                        </div>
+                        <div>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; letter-spacing: 1px;">Consistencia de hábitos</MudText>
+                            <div class="d-flex align-end mt-1">
+                                <MudText Typo="Typo.h5" Style="font-weight: 700;" Class="mr-2">@((int)(habitStats?.OverallSuccessRate ?? 0))%</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Tertiary">Tasa de éxito</MudText>
+                            </div>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
 
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard>
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">Presupuestos activos</MudText>
-                    <MudText Typo="Typo.h4">0</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-    </MudGrid>
+            <!-- Quick Actions -->
+            <MudItem xs="12">
+                <div class="d-flex gap-4 overflow-x-auto pb-2" style="scrollbar-width: none;">
+                    <MudButton Href="/accounts" Variant="Variant.Outlined" Class="quick-action-btn px-4" StartIcon="@Icons.Material.Filled.SwapHoriz">
+                        Transferir
+                    </MudButton>
+                    <MudButton Href="/kanban" Variant="Variant.Outlined" Class="quick-action-btn px-4" StartIcon="@Icons.Material.Filled.EditNote">
+                        Crear tarea
+                    </MudButton>
+                    <MudButton Href="/habits" Variant="Variant.Outlined" Class="quick-action-btn px-4" StartIcon="@Icons.Material.Filled.Event">
+                        Ver hábitos
+                    </MudButton>
+                </div>
+            </MudItem>
+
+            <!-- Split Content Area -->
+            <MudItem xs="12" md="7">
+                <MudCard Class="card-outline h-100 pb-2">
+                    <MudCardHeader Class="border-b" Style="border-color: rgba(255,255,255,0.12) !important;">
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6" Style="font-weight: 700;">Movimientos recientes</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudButton Href="/accounts" Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">Ver todos</MudButton>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent Class="px-2">
+                        @if (!recentTransactions.Any())
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-4 text-center">No se han encontrado transacciones recientes.</MudText>
+                        }
+                        else
+                        {
+                            <MudList T="TransactionDto" Dense="true" Class="pa-0">
+                                @foreach (var tx in recentTransactions)
+                                {
+                                    <MudListItem Class="tx-item rounded-lg mb-1 pa-2">
+                                        <div class="d-flex justify-space-between align-center w-100">
+                                            <div class="d-flex align-center">
+                                                <MudAvatar Color="@(tx.Type == TransactionType.Income ? Color.Success : Color.Error)" Variant="Variant.Outlined" Size="Size.Medium" Class="mr-3" Style="border: none; background-color: rgba(255,255,255,0.05);">
+                                                    <MudIcon Icon="@(string.IsNullOrEmpty(tx.CategoryIcon) ? Icons.Material.Filled.AttachMoney : tx.CategoryIcon)" Color="@(tx.Type == TransactionType.Income ? Color.Success : Color.Error)" />
+                                                </MudAvatar>
+                                                <div>
+                                                    <MudText Typo="Typo.body2" Style="font-weight: 500;">@tx.Description</MudText>
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@tx.CategoryName • @tx.Date.ToString("g")</MudText>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <MudText Typo="Typo.body2" Color="@(tx.Type == TransactionType.Income ? Color.Success : Color.Error)" Style="font-weight: 700;">@tx.FormattedAmount</MudText>
+                                                <MudChip T="string" Color="Color.Default" Size="Size.Small" Variant="Variant.Text" Style="background-color: rgba(255, 255, 255, 0.1);">Procesado</MudChip>
+                                            </div>
+                                        </div>
+                                    </MudListItem>
+                                }
+                            </MudList>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <!-- Daily Directives -->
+            <MudItem xs="12" md="5">
+                <MudCard Class="card-outline h-100 d-flex flex-column pb-2">
+                    <MudCardHeader Class="border-b" Style="border-color: rgba(255,255,255,0.12) !important;">
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6" Style="font-weight: 700;">Tareas del día</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">@dailyDirectives.Count() pendientes</MudText>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent Class="d-flex flex-column flex-grow-1 px-2">
+                        @if (!dailyDirectives.Any())
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-4 text-center">Sin tareas pendientes. ¡Al día!</MudText>
+                        }
+                        else
+                        {
+                            <MudList T="TodoItemDto" Dense="true" Class="pa-0 mb-4">
+                                @foreach (var task in dailyDirectives)
+                                {
+                                    <MudListItem Class="tx-item rounded-lg mb-1 pa-2">
+                                        <div class="d-flex align-start w-100">
+                                            <MudCheckBox T="bool" Value="@(task.Status == TodoItemStatus.Completed)" ValueChanged="@((val) => ToggleTaskCompletion(task, val))" Color="Color.Primary" Dense="true" Class="mr-2 mt-n2" />
+                                            <div>
+                                                <MudText Typo="Typo.body2" Class="@(task.Status == TodoItemStatus.Completed ? "task-checkbox-checked" : "")">@task.Title</MudText>
+                                                <div class="d-flex align-center mt-1">
+                                                    @if (task.Priority > 2)
+                                                    {
+                                                        <div style="background-color: rgba(255, 180, 171, 0.15); color: var(--mud-palette-error); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;" class="mr-2">Alta</div>
+                                                    }
+                                                    else if (task.Priority == 2)
+                                                    {
+                                                        <div style="background-color: rgba(255, 152, 0, 0.15); color: var(--mud-palette-tertiary); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;" class="mr-2">Med</div>
+                                                    }
+                                                    <MudText Typo="Typo.caption" Color="@(task.DueDate?.Date < DateTime.UtcNow.Date ? Color.Error : Color.Secondary)">
+                                                        @(task.DueDate.HasValue ? $"Vence {task.DueDate.Value.ToString("g")}" : "Sin fecha")
+                                                    </MudText>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </MudListItem>
+                                }
+                            </MudList>
+                        }
+
+                        <MudButton Href="/kanban" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Class="mt-auto border-dashed py-2" StartIcon="@Icons.Material.Filled.Add">
+                            Ir al Kanban
+                        </MudButton>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+        </MudGrid>
+    }
 </MudContainer>
+
+@code {
+    private bool loading = true;
+    private FinancialSummaryDto? financialSummary;
+    private HabitStatsDto? habitStats;
+    private IEnumerable<TransactionDto> recentTransactions = new List<TransactionDto>();
+    private IEnumerable<TodoItemDto> dailyDirectives = new List<TodoItemDto>();
+    private int criticalTasksCount = 0;
+    private int overdueTasksCount = 0;
+    private int dueTodayTasksCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            loading = true;
+            StateHasChanged();
+
+            // Load financial data
+            financialSummary = await ReportService.GetFinancialSummaryAsync();
+            var allTransactions = await TransactionService.GetAllAsync();
+            recentTransactions = allTransactions.OrderByDescending(t => t.Date).Take(3).ToList();
+
+            // Load habits
+            habitStats = await HabitService.GetHabitStatsAsync();
+
+            // Load tasks
+            var allTasks = await TodoItemService.GetAllAsync();
+            var activeTasks = allTasks.Where(t => t.Status != TodoItemStatus.Completed).ToList();
+            
+            criticalTasksCount = activeTasks.Count;
+            overdueTasksCount = activeTasks.Count(t => t.DueDate.HasValue && t.DueDate.Value.Date < DateTime.UtcNow.Date);
+            dueTodayTasksCount = activeTasks.Count(t => t.DueDate.HasValue && t.DueDate.Value.Date == DateTime.UtcNow.Date);
+
+            dailyDirectives = activeTasks
+                .OrderByDescending(t => t.Priority)
+                .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
+                .Take(5)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar los datos del dashboard", Severity.Error);
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleTaskCompletion(TodoItemDto task, bool isCompleted)
+    {
+        try
+        {
+            var updateDto = new UpdateTodoItemDto
+            {
+                Title = task.Title,
+                Description = task.Description,
+                Status = isCompleted ? TodoItemStatus.Completed : TodoItemStatus.Inbox,
+                Priority = task.Priority,
+                DueDate = task.DueDate,
+                ProjectId = task.ProjectId
+            };
+
+            await TodoItemService.UpdateAsync(task.Id, updateDto);
+            
+            // Reload data
+            await LoadDataAsync();
+            Snackbar.Add($"Tarea '{(task.Title.Length > 20 ? task.Title.Substring(0, 20) + "..." : task.Title)}' actualizada", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al actualizar la tarea", Severity.Error);
+        }
+    }
+}

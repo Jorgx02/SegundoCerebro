@@ -9,95 +9,114 @@
 @* Título de la página que se mostrará en la pestaña del navegador. *@
 <PageTitle>Cuentas - SegundoCerebro</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudGrid>
-        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
-            <MudText Typo="Typo.h4">Cuentas</MudText>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="Icons.Material.Filled.Add"
-                       OnClick="OpenCreateDialog">
-                Nueva Cuenta
-            </MudButton>
+<style>
+    .bento-card {
+        background-color: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        padding: 24px;
+    }
+    .bento-card-bg-icon {
+        position: absolute;
+        right: -16px;
+        top: -16px;
+        width: 96px;
+        height: 96px;
+        background-color: rgba(89, 74, 226, 0.05);
+        border-radius: 50%;
+        filter: blur(20px);
+        transition: background-color 0.3s;
+    }
+    .bento-card:hover .bento-card-bg-icon {
+        background-color: rgba(89, 74, 226, 0.1);
+    }
+    .icon-container {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .accounts-table-card {
+        background-color: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        box-shadow: none !important;
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    <div class="d-flex justify-space-between align-center mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Cuentas</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Controla tu capital financiero.</MudText>
+        </div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateDialog">
+            Nueva Cuenta
+        </MudButton>
+    </div>
+
+    <!-- Summary Cards -->
+    <MudGrid Class="mb-6" Spacing="3">
+        <MudItem xs="12" md="4">
+            <div class="bento-card">
+                <div class="bento-card-bg-icon"></div>
+                <div class="d-flex justify-space-between align-start position-relative" style="z-index: 10;">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; letter-spacing: 1px;">Saldo total</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 4px;" Color="@(totalBalance >= 0 ? Color.Default : Color.Error)">@totalBalance.ToString("N2")</MudText>
+                    </div>
+                    <div class="icon-container">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Color="Color.Primary" />
+                    </div>
+                </div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <div class="bento-card">
+                <div class="d-flex justify-space-between align-start position-relative" style="z-index: 10;">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; letter-spacing: 1px;">Cuentas activas</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 4px;">@allAccounts.Count(a => a.IsActive)</MudText>
+                    </div>
+                    <div class="icon-container">
+                        <MudIcon Icon="@Icons.Material.Filled.CreditCard" Color="Color.Primary" />
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-4 position-relative" style="z-index: 10;">
+                    <MudChip Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text" Style="background-color: rgba(0, 200, 83, 0.15); font-weight: 700;">@allAccounts.Count(a => a.IsActive && a.Type == AccountType.Checking) NORMAL</MudChip>
+                    <MudChip Size="Size.Small" Color="Color.Info" Variant="Variant.Text" Style="background-color: rgba(33, 150, 243, 0.15); font-weight: 700;">@allAccounts.Count(a => a.IsActive && a.Type == AccountType.Savings) AHORROS</MudChip>
+                </div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <div class="bento-card">
+                <div class="d-flex justify-space-between align-start position-relative" style="z-index: 10;">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; letter-spacing: 1px;">Total Ahorros</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 4px;">@allAccounts.Where(a => a.IsActive && a.Type == AccountType.Savings).Sum(a => a.Balance).ToString("N2")</MudText>
+                    </div>
+                    <div class="icon-container">
+                        <MudIcon Icon="@Icons.Material.Filled.Savings" Color="Color.Tertiary" />
+                    </div>
+                </div>
+            </div>
         </MudItem>
     </MudGrid>
 
-    @* Tarjetas de resumen que muestran métricas clave sobre las cuentas. *@
-    <MudGrid Class="mb-6">
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="3" Class="rounded-lg">
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Saldo total</MudText>
-                            <MudText Typo="Typo.h5" Color="@(totalBalance >= 0 ? Color.Success : Color.Error)">
-                                @totalBalance.ToString("N2")
-                            </MudText>
-                        </div>
-                        <MudIcon Icon="Icons.Material.Filled.AccountBalance" Size="Size.Large" Color="Color.Primary" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="3" Class="rounded-lg">
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Cuentas activas</MudText>
-                            <MudText Typo="Typo.h5">@allAccounts.Count(a => a.IsActive)</MudText>
-                        </div>
-                        <MudIcon Icon="Icons.Material.Filled.AccountBalanceWallet" Size="Size.Large"
-                                 Color="Color.Secondary" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="3" Class="rounded-lg">
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Normal</MudText>
-                            <MudText Typo="Typo.h6">
-                                @allAccounts.Where(a => a.IsActive && a.Type == AccountType.Checking).Sum(a =>
-                                a.Balance).ToString("N2")
-                            </MudText>
-                        </div>
-                        <MudIcon Icon="Icons.Material.Filled.Payment" Size="Size.Large" Color="Color.Info" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="3" Class="rounded-lg">
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Ahorros</MudText>
-                            <MudText Typo="Typo.h6">
-                                @allAccounts.Where(a => a.IsActive && a.Type == AccountType.Savings).Sum(a =>
-                                a.Balance).ToString("N2")
-                            </MudText>
-                        </div>
-                        <MudIcon Icon="Icons.Material.Filled.Savings" Size="Size.Large" Color="Color.Success" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-    </MudGrid>
-
-    @* Tabla principal que muestra la lista de todas las cuentas. *@
-    <MudCard Elevation="4" Class="rounded-lg">
-        <MudCardHeader>
+    <MudCard Class="accounts-table-card">
+        <MudCardHeader Class="border-b" Style="border-color: rgba(255,255,255,0.12) !important;">
             <CardHeaderContent>
                 <div class="d-flex justify-space-between align-center">
-                    <MudText Typo="Typo.h6">Todas las cuentas</MudText>
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">Cuentas</MudText>
                     <MudSelect T="AccountStatusFilter" Value="statusFilter" ValueChanged="OnStatusFilterChanged"
-                               Label="Tipo de cuenta" Variant="Variant.Text" Margin="Margin.Dense" Dense="true"
-                               Style="max-width: 110px;" Class="ml-auto" AnchorOrigin="Origin.BottomRight"
-                               TransformOrigin="Origin.TopRight">
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               Style="width: 150px; background-color: var(--mud-palette-surface); border-radius: 8px;">
                         <MudSelectItem Value="AccountStatusFilter.Active">Activas</MudSelectItem>
                         <MudSelectItem Value="AccountStatusFilter.Inactive">Inactivas</MudSelectItem>
                         <MudSelectItem Value="AccountStatusFilter.All">Todas</MudSelectItem>
@@ -105,71 +124,58 @@
                 </div>
             </CardHeaderContent>
         </MudCardHeader>
-        @* Contenido de la tarjeta que alberga la tabla de cuentas. *@
-        <MudCardContent>
-            <MudTable Items="@FilteredAccounts" Hover="true" Striped="true" Dense="true" Elevation="0"
-                      Loading="@loading" LoadingProgressColor="Color.Info">
+        <MudCardContent Class="pa-0">
+            <MudTable Items="@FilteredAccounts" Hover="true" Dense="false" Elevation="0" Style="background-color: transparent;" Loading="@loading" LoadingProgressColor="Color.Info">
                 <HeaderContent>
-                    <MudTh>Nombre</MudTh>
-                    <MudTh>Tipo</MudTh>
-                    <MudTh>Balance</MudTh>
-                    <MudTh>Banco</MudTh>
-                    <MudTh>Estado</MudTh>
-                    <MudTh>Acciones</MudTh>
+                    <MudTh><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Fav</MudText></MudTh>
+                    <MudTh><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Cuenta</MudText></MudTh>
+                    <MudTh><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Tipo</MudText></MudTh>
+                    <MudTh><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Banco</MudText></MudTh>
+                    <MudTh Style="text-align: right;"><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Balance</MudText></MudTh>
+                    <MudTh Style="text-align: center;"><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Estado</MudText></MudTh>
+                    <MudTh Style="text-align: right;"><MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight: 700; text-transform: uppercase;">Acciones</MudText></MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Name">
-                        @* Celda que muestra el nombre, descripción e icono de la cuenta. *@
-                        <div class="d-flex align-center">
-                            <MudIconButton
-                            Icon="@(context.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)"
-                            Color="Color.Warning" Size="Size.Small" OnClick="() => ToggleFavoriteStatus(context)"
-                            Class="mr-1" />
-                            <MudIcon Icon="@GetAccountIcon(context.Type)" Class="mr-3" />
+                    <MudTd DataLabel="Fav" Style="width: 50px; text-align: center;">
+                        <MudIconButton Icon="@(context.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Filled.StarBorder)"
+                                       Color="@(context.IsFavorite ? Color.Warning : Color.Secondary)" Size="Size.Small" OnClick="() => ToggleFavoriteStatus(context)" />
+                    </MudTd>
+                    <MudTd DataLabel="Cuenta">
+                        <div class="d-flex align-center gap-3">
+                            <div class="icon-container" style="width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.1);">
+                                <MudIcon Icon="@GetAccountIcon(context.Type)" Color="@GetTypeColor(context.Type)" Size="Size.Small" />
+                            </div>
                             <div>
-                                <div class="d-flex align-center">
-                                    <MudLink Href="@($"/accounts/{context.Id}")" Typo="Typo.body1" Color="Color.Default"
-                                             Underline="Underline.None">
-                                        @context.Name
-                                    </MudLink>
-                                    @if (context.CardCount > 0)
-                                    {
-                                        <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.CreditCard"
-                                                 Color="Color.Info" Class="ml-2" Label="true">@context.CardCount
-                                        </MudChip>
-                                    }
-                                </div>
-                                @if (!string.IsNullOrEmpty(context.Description))
-                                {
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText>
-                                }
+                                <MudLink Href="@($"/accounts/{context.Id}")" Typo="Typo.body2" Color="Color.Default" Underline="Underline.None" Style="font-weight: 700;">
+                                    @context.Name
+                                </MudLink>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">@(string.IsNullOrEmpty(context.Description) ? "Cuenta" : context.Description)</MudText>
                             </div>
                         </div>
                     </MudTd>
                     <MudTd DataLabel="Tipo">
-                        @* Chip de color para identificar visualmente el tipo de cuenta. *@
-                        <MudChip Size="Size.Small" Color="@GetTypeColor(context.Type)">
+                        <MudChip Size="Size.Small" Color="@GetTypeColor(context.Type)" Variant="Variant.Outlined" Style="font-size: 10px; font-weight: 700; text-transform: uppercase; border-color: rgba(255,255,255,0.12);">
                             @context.TypeName
                         </MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Balance">
-                        <MudText Typo="Typo.body1" Color="@(context.Balance >= 0 ? Color.Success : Color.Error)">
+                    <MudTd DataLabel="Banco">
+                        <MudText Typo="Typo.body2">@(context.BankName ?? "-")</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Balance" Style="text-align: right;">
+                        <MudText Typo="Typo.body2" Style="font-family: monospace; font-weight: 700;" Color="@(context.Balance >= 0 ? Color.Default : Color.Error)">
                             @context.Balance.ToString("N2")
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Banco">@(context.BankName ?? "-")</MudTd>
-                    <MudTd DataLabel="Estado">
-                        @* Chip de color para indicar si la cuenta está activa o inactiva. *@
-                        <MudChip Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)">
-                            @(context.IsActive ? "Activa" : "Inactiva")
+                    <MudTd DataLabel="Estado" Style="text-align: center;">
+                        <MudChip Size="Size.Small" Color="@(context.IsActive ? Color.Secondary : Color.Default)" Variant="Variant.Text" Style="@(context.IsActive ? "background-color: rgba(0, 200, 83, 0.15); font-weight: 700;" : "background-color: rgba(255,255,255,0.1); font-weight: 700;")">
+                            @(context.IsActive ? "ACTIVE" : "INACTIVE")
                         </MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Actions">
-                        @* Botones de acción para editar y eliminar (desactivar) una cuenta. *@
-                        <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
-                                       Variant="Variant.Filled" Class="mr-2" OnClick="() => OpenEditDialog(context)" />
-                        <MudIconButton Icon="Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                       Variant="Variant.Filled" OnClick="() => DeleteAccount(context)" />
+                    <MudTd DataLabel="Acciones" Style="text-align: right;">
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                            <MudMenuItem OnClick="() => OpenEditDialog(context)" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
+                            <MudMenuItem OnClick="() => DeleteAccount(context)" Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error">Eliminar</MudMenuItem>
+                        </MudMenu>
                     </MudTd>
                 </RowTemplate>
             </MudTable>

@@ -1,250 +1,334 @@
 @page "/budgets"
 @using SegundoCerebro.BlazorWasm.Models
-@using SegundoCerebro.BlazorWasm.Models.Enums
 @using SegundoCerebro.BlazorWasm.Services
 @inject IBudgetService BudgetService
-@inject ICategoryService CategoryService
-@inject IAccountService AccountService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@using SegundoCerebro.BlazorWasm.Shared.Dialogs
 
 <PageTitle>Presupuestos - SegundoCerebro</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudGrid>
-        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
-            <MudText Typo="Typo.h4">Presupuestos</MudText>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="OpenCreateDialog">
-                Nuevo presupuesto
+<style>
+    .card-outline {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: none !important;
+    }
+    .kpi-card {
+        background-color: var(--mud-palette-surface-dark) !important;
+        position: relative;
+        overflow: hidden;
+    }
+    .budget-card {
+        background-color: var(--mud-palette-surface-dark) !important;
+        transition: all 0.2s ease;
+    }
+    .budget-card:hover {
+        border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+    .progress-bar-container {
+        height: 8px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    .glow-bg {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        filter: blur(40px);
+        opacity: 0.2;
+        pointer-events: none;
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row align-center justify-space-between mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Presupuestos mensuales</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Control de límites de gasto, ritmo de ejecución y optimización de capital por categoría de alto impacto.</MudText>
+        </div>
+        <div class="d-flex align-center gap-4 mt-4 mt-md-0">
+            <MudSelect T="int" @bind-Value="SelectedMonth" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="card-outline" Style="width: 180px;">
+                <MudSelectItem Value="DateTime.Today.Month">Este mes</MudSelectItem>
+                <MudSelectItem Value="DateTime.Today.AddMonths(-1).Month">Mes pasado</MudSelectItem>
+                <MudSelectItem Value="DateTime.Today.AddMonths(-2).Month">Hace 2 meses</MudSelectItem>
+            </MudSelect>
+            <MudButton OnClick="OpenNewBudgetDialog" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">
+                Crear Presupuesto
             </MudButton>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <MudGrid Spacing="3" Class="mb-6">
+        <MudItem xs="12" md="6">
+            <MudCard Class="card-outline kpi-card h-100 pa-6">
+                <div class="glow-bg" style="top: -50px; right: -50px; background-color: var(--mud-palette-primary);"></div>
+                <div class="d-flex justify-space-between align-start" style="position: relative; z-index: 1;">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Capital Mensual Global</MudText>
+                        <MudText Typo="Typo.h3" Style="font-weight: 700;" Class="mt-1">@TotalBudget.ToString("C0")</MudText>
+                    </div>
+                    <MudChip T="string" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.PieChart">@TotalPercentage.ToString("F1")% Utilizado</MudChip>
+                </div>
+                
+                <div class="mt-6" style="position: relative; z-index: 1;">
+                    <div class="d-flex justify-space-between align-end mb-2">
+                        <div>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Ejecutado a la fecha</MudText>
+                            <MudText Typo="Typo.body1" Style="font-weight: 700;">@TotalSpent.ToString("C2")</MudText>
+                        </div>
+                        <div class="text-right">
+                            <MudText Typo="Typo.caption" Style="color: var(--mud-palette-secondary);">Margen remanente</MudText>
+                            <MudText Typo="Typo.body1" Style="font-weight: 700; color: var(--mud-palette-secondary);">+@TotalRemaining.ToString("C2") (@((100-TotalPercentage).ToString("F1"))%)</MudText>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: @(Math.Min(TotalPercentage, 100).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%; background: linear-gradient(90deg, var(--mud-palette-primary), var(--mud-palette-tertiary));"></div>
+                    </div>
+                </div>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="3">
+            <MudCard Class="card-outline kpi-card h-100 pa-6">
+                <div class="glow-bg" style="bottom: -50px; right: -50px; background-color: var(--mud-palette-error);"></div>
+                <div style="position: relative; z-index: 1;">
+                    <div class="d-flex justify-space-between align-center">
+                        <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Mayor Desvío</MudText>
+                        <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Tertiary" Size="Size.Small" />
+                    </div>
+                    @if (WorstBudget != null)
+                    {
+                        <MudText Typo="Typo.h6" Style="font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" Class="mt-2">@WorstBudget.Name</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1 d-block">Categoría con mayor % de uso.</MudText>
+                        
+                        <div class="mt-4 pt-4 border-t" style="border-color: rgba(255,255,255,0.12) !important;">
+                            <div class="d-flex justify-space-between align-center mb-1">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Límite comprometido</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Tertiary" Style="font-weight: 700;">@WorstBudget.PercentageUsed.ToString("F1")%</MudText>
+                            </div>
+                            <div class="progress-bar-container mt-1">
+                                <div class="progress-bar-fill" style="width: @(Math.Min(WorstBudget.PercentageUsed, 100).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%; background-color: var(--mud-palette-tertiary);"></div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;" Class="mt-2">-</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1 d-block">Sin datos.</MudText>
+                    }
+                </div>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="3">
+            <MudCard Class="card-outline kpi-card h-100 pa-6">
+                <div class="glow-bg" style="top: -50px; right: -50px; background-color: var(--mud-palette-secondary);"></div>
+                <div style="position: relative; z-index: 1;">
+                    <div class="d-flex justify-space-between align-center">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Cadencia de Burn</MudText>
+                        <MudIcon Icon="@Icons.Material.Filled.Timelapse" Color="Color.Secondary" Size="Size.Small" />
+                    </div>
+                    <div class="d-flex align-baseline gap-1 mt-2">
+                        <MudText Typo="Typo.h3" Style="font-weight: 700;">@DaysRemainingInMonth</MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Secondary">días restantes</MudText>
+                    </div>
+                    <MudText Typo="Typo.caption" Style="color: var(--mud-palette-secondary);" Class="mt-1 d-flex align-center gap-1">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" /> Ritmo general calculable
+                    </MudText>
+                    
+                    <div class="mt-4 pt-4 border-t d-flex justify-space-between align-center" style="border-color: rgba(255,255,255,0.12) !important;">
+                        <div>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Burn diario sugerido</MudText>
+                            <MudText Typo="Typo.body2" Style="font-weight: 700;">@SuggestedDailyBurn.ToString("C2") / día</MudText>
+                        </div>
+                    </div>
+                </div>
+            </MudCard>
         </MudItem>
     </MudGrid>
 
-    <!-- Summary Cards -->
-    <MudGrid Class="mb-6">
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard>
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Presupuestos activos</MudText>
-                            <MudText Typo="Typo.h6">@budgets.Count(b => b.IsActive)</MudText>
-                        </div>
-                        <MudIcon Icon="@Icons.Material.Filled.PieChart" Size="Size.Large" Color="Color.Primary" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard>
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Asignación total</MudText>
-                            <MudText Typo="Typo.h6">@budgets.Sum(b => b.Amount).ToString("C")</MudText>
-                        </div>
-                        <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Size="Size.Large"
-                                 Color="Color.Info" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard>
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Gasto total</MudText>
-                            <MudText Typo="Typo.h6">@budgets.Sum(b => b.Spent).ToString("C")</MudText>
-                        </div>
-                        <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" Size="Size.Large" Color="Color.Warning" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard>
-                <MudCardContent>
-                    <div class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Por encima del presupuesto</MudText>
-                            <MudText Typo="Typo.h6" Color="Color.Error">@budgets.Count(b => b.IsOverBudget)</MudText>
-                        </div>
-                        <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Large" Color="Color.Error" />
-                    </div>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-    </MudGrid>
+    <!-- Header Section -->
+    <div class="d-flex align-center justify-space-between mb-4 mt-6">
+        <div class="d-flex align-center gap-2">
+            <MudText Typo="Typo.h6" Style="font-weight: 700;">Distribución por partida</MudText>
+            <MudChip T="string" Size="Size.Small" Style="background-color: var(--mud-palette-surface-dark);">@budgets.Count() Categorías</MudChip>
+        </div>
+        <div class="d-flex gap-4">
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-flex align-center gap-1">
+                <div style="width: 10px; height: 10px; border-radius: 2px; background-color: var(--mud-palette-secondary);"></div> &lt;70% Óptimo
+            </MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-flex align-center gap-1">
+                <div style="width: 10px; height: 10px; border-radius: 2px; background-color: var(--mud-palette-primary);"></div> 70-80% Normal
+            </MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-flex align-center gap-1">
+                <div style="width: 10px; height: 10px; border-radius: 2px; background-color: var(--mud-palette-tertiary);"></div> &gt;80% Precaución
+            </MudText>
+        </div>
+    </div>
 
     <!-- Budgets List -->
-    <MudCard>
-        <MudCardHeader>
-            <CardHeaderContent>
-                <MudText Typo="Typo.h6">Todos los presupuestos (@budgets.Count)</MudText>
-            </CardHeaderContent>
-        </MudCardHeader>
-        <MudCardContent>
-            @if (loading)
+    @if (loading)
+    {
+        <div class="d-flex justify-center my-8">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else if (!budgets.Any())
+    {
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">No hay presupuestos activos en este periodo.</MudText>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            @foreach (var budget in budgets)
             {
-                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                string barColor = budget.PercentageUsed >= 80 ? "var(--mud-palette-tertiary)" :
+                                  budget.PercentageUsed >= 70 ? "var(--mud-palette-primary)" : 
+                                  "var(--mud-palette-secondary)";
+                                  
+                <MudItem xs="12" md="6" lg="4">
+                    <MudCard Class="card-outline budget-card h-100 pa-4" Style="@($"border-top: 4px solid {barColor} !important;")">
+                        <div class="d-flex justify-space-between align-start mb-4">
+                            <div class="d-flex gap-3">
+                                <MudAvatar Color="Color.Surface" Variant="Variant.Filled" Style="@($"background-color: {barColor}22; color: {barColor};")">
+                                    <MudIcon Icon="@Icons.Material.Filled.Folder" />
+                                </MudAvatar>
+                                <div>
+                                    <MudText Typo="Typo.body1" Style="font-weight: 700;">@budget.Name</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@budget.CategoryName</MudText>
+                                </div>
+                            </div>
+                            <MudChip T="string" Size="Size.Small" Style="@($"background-color: {barColor}22; color: {barColor}; font-weight: bold;")">
+                                @budget.PercentageUsed.ToString("F0")%
+                            </MudChip>
+                        </div>
+
+                        <div class="d-flex justify-space-between align-end mb-2">
+                            <div>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Gastado</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 700;">@budget.Spent.ToString("C0")</MudText>
+                            </div>
+                            <div class="text-right">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Límite mensual</MudText>
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">@budget.Amount.ToString("C2")</MudText>
+                            </div>
+                        </div>
+
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: @(Math.Min(budget.PercentageUsed, 100).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%; background-color: @barColor;"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-space-between mt-4 pt-3 border-t" style="border-color: rgba(255,255,255,0.05) !important;">
+                            <MudText Typo="Typo.caption" Style="@($"color: {barColor}; font-weight: 500;")">
+                                Quedan @budget.Remaining.ToString("C2")
+                            </MudText>
+                        </div>
+                    </MudCard>
+                </MudItem>
             }
-            else if (!budgets.Any())
-            {
-                <MudAlert Severity="Severity.Info">No se encontraron presupuestos. Crea tu primer presupuesto</MudAlert>
-            }
-            else
-            {
-                <MudGrid>
-                    @foreach (var budget in budgets.OrderByDescending(b => b.IsActive).ThenBy(b => b.CategoryName))
-                    {
-                        <MudItem xs="12" md="6">
-                            <MudCard Outlined="true">
-                                <MudCardContent>
-                                    <div class="d-flex justify-space-between align-center mb-2">
-                                        <div>
-                                            <MudText Typo="Typo.h6">@budget.Name</MudText>
-                                            <MudText Typo="Typo.body2" Color="Color.Secondary">@budget.CategoryName</MudText>
-                                        </div>
-                                        <MudChip Size="Size.Small" Color="@(budget.IsActive ? Color.Success : Color.Default)">
-                                            @(budget.IsActive ? "Activo" : "Inactivo")
-                                        </MudChip>
-                                    </div>
-
-                                    @if (!string.IsNullOrEmpty(budget.Description))
-                                    {
-                                        <MudText Typo="Typo.body2" Class="mb-2">@budget.Description</MudText>
-                                    }
-
-                                    <MudDivider Class="my-2" />
-
-                                    <div class="mb-2">
-                                        <MudText Typo="Typo.caption" Class="mb-1">
-                                            @budget.PercentageUsed.ToString("F1")% usado
-                                        </MudText>
-                                        <MudProgressLinear Color="@budget.StatusColor" Value="@((double)budget.PercentageUsed)"
-                                                           Size="Size.Medium" />
-                                    </div>
-
-                                    <div class="d-flex justify-space-between mb-2">
-                                        <div>
-                                            <MudText Typo="Typo.caption" Color="Color.Secondary">Gastado</MudText>
-                                            <MudText Typo="Typo.body1">@budget.Spent.ToString("C")</MudText>
-                                        </div>
-                                        <div>
-                                            <MudText Typo="Typo.caption" Color="Color.Secondary">Presupuesto</MudText>
-                                            <MudText Typo="Typo.body1">@budget.Amount.ToString("C")</MudText>
-                                        </div>
-                                        <div>
-                                            <MudText Typo="Typo.caption" Color="Color.Secondary">Restante</MudText>
-                                            <MudText Typo="Typo.body1"
-                                                     Color="@(budget.Remaining >= 0 ? Color.Success : Color.Error)">
-                                                @budget.Remaining.ToString("C")
-                                            </MudText>
-                                        </div>
-                                    </div>
-
-                                    <MudDivider Class="my-2" />
-
-                                    <div class="d-flex justify-space-between align-center">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                            @budget.StartDate.ToString("dd/MM/yyyy") - @budget.EndDate.ToString("dd/MM/yyyy")
-                                        </MudText>
-                                        <div>
-                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
-                                                           Color="Color.Primary" OnClick="@(() => OpenEditDialog(budget))" />
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
-                                                           Color="Color.Error" OnClick="@(() => DeleteBudget(budget))" />
-                                        </div>
-                                    </div>
-                                </MudCardContent>
-                            </MudCard>
-                        </MudItem>
-                    }
-                </MudGrid>
-            }
-        </MudCardContent>
-    </MudCard>
+        </MudGrid>
+    }
 </MudContainer>
 
 @code {
-    private List<BudgetDto> budgets = new();
-    private bool loading = false;
+    private bool loading = true;
+    private IEnumerable<BudgetDto> budgets = new List<BudgetDto>();
+
+    private int _selectedMonth = DateTime.Today.Month;
+    private int SelectedMonth
+    {
+        get => _selectedMonth;
+        set
+        {
+            if (_selectedMonth != value)
+            {
+                _selectedMonth = value;
+                _ = LoadBudgets();
+            }
+        }
+    }
+
+    private decimal TotalBudget => budgets.Sum(b => b.Amount);
+    private decimal TotalSpent => budgets.Sum(b => b.Spent);
+    private decimal TotalRemaining => TotalBudget - TotalSpent;
+    private double TotalPercentage => TotalBudget > 0 ? (double)(TotalSpent / TotalBudget) * 100 : 0;
+    
+    private BudgetDto? WorstBudget => budgets.OrderByDescending(b => b.PercentageUsed).FirstOrDefault();
+    
+    private int DaysRemainingInMonth
+    {
+        get
+        {
+            var year = DateTime.Today.Year;
+            if (SelectedMonth > DateTime.Today.Month) year--;
+            
+            if (year < DateTime.Today.Year || (year == DateTime.Today.Year && SelectedMonth < DateTime.Today.Month))
+                return 0; // Past month
+                
+            if (year > DateTime.Today.Year || (year == DateTime.Today.Year && SelectedMonth > DateTime.Today.Month))
+                return DateTime.DaysInMonth(year, SelectedMonth); // Future month
+                
+            return DateTime.DaysInMonth(year, SelectedMonth) - DateTime.Today.Day; // Current month
+        }
+    }
+    
+    private decimal SuggestedDailyBurn => DaysRemainingInMonth > 0 ? (TotalRemaining > 0 ? TotalRemaining / DaysRemainingInMonth : 0) : 0;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadBudgets();
     }
-
+    
     private async Task LoadBudgets()
     {
-        loading = true;
         try
         {
-            var result = await BudgetService.GetAllAsync();
-            budgets = result.ToList();
+            loading = true;
+            StateHasChanged();
+            
+            var year = DateTime.Today.Year;
+            if (SelectedMonth > DateTime.Today.Month)
+            {
+                year--;
+            }
+            
+            var startDate = new DateTime(year, SelectedMonth, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+            
+            budgets = await BudgetService.GetByPeriodAsync(startDate, endDate);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error cargando presupuestos: {ex.Message}", Severity.Error);
+            Snackbar.Add("Error al cargar presupuestos", Severity.Error);
         }
         finally
         {
             loading = false;
+            StateHasChanged();
         }
     }
-
-    private async Task OpenCreateDialog()
+    private async Task OpenNewBudgetDialog()
     {
-        var dialog = await DialogService.ShowAsync<Components.Dialogs.CreateBudgetDialog>("Crear presupuesto");
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<BudgetDialog>("Crear Presupuesto", options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
-            await LoadBudgets();
-        }
-    }
-
-    private async Task OpenEditDialog(BudgetDto budget)
-    {
-        var parameters = new DialogParameters
-        {
-            { nameof(Components.Dialogs.EditBudgetDialog.Budget), budget }
-        };
-
-        var dialog = await DialogService.ShowAsync<Components.Dialogs.EditBudgetDialog>("Editar presupuesto", parameters);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
-        {
-            await LoadBudgets();
-        }
-    }
-
-    private async Task DeleteBudget(BudgetDto budget)
-    {
-        bool? confirm = await DialogService.ShowMessageBox(
-            "Confirmar eliminación",
-            $"¿Estas seguro que quieres eliminar este presupuesto '{budget.Name}'?",
-            yesText: "Eliminar",
-            cancelText: "Cancelar");
-
-        if (confirm == true)
-        {
-            try
-            {
-                await BudgetService.DeleteAsync(budget.Id);
-                Snackbar.Add("Presupuesto eliminado con éxito", Severity.Success);
-                await LoadBudgets();
-            }
-            catch (Exception ex)
-            {
-                Snackbar.Add($"Error eliminando presupuesto: {ex.Message}", Severity.Error);
-            }
+            Snackbar.Add("Presupuesto creado con éxito", Severity.Success);
+            // Refresh list
+            budgets = await BudgetService.GetActiveBudgetsAsync();
+            StateHasChanged();
         }
     }
 }

@@ -20,6 +20,12 @@ public class ExportTransactionsToPdfQueryHandler : IRequestHandler<ExportTransac
     public async Task<byte[]> Handle(ExportTransactionsToPdfQuery request, CancellationToken cancellationToken)
     {
         var transactions = await _unitOfWork.Transactions.GetByDateRangeAsync(request.StartDate, request.EndDate);
+        
+        if (request.AccountId.HasValue)
+        {
+            transactions = transactions.Where(t => t.AccountId == request.AccountId.Value);
+        }
+        
         var transactionsList = transactions.OrderByDescending(t => t.Date).ToList();
 
         var document = Document.Create(container =>

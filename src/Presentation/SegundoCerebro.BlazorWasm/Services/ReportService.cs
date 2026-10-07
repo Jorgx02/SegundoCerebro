@@ -25,20 +25,31 @@ public class ReportService : IReportService
         return result ?? new FinancialSummaryDto();
     }
 
-    public async Task<byte[]> ExportTransactionsToExcelAsync(DateTime startDate, DateTime endDate)
+    public async Task<byte[]> ExportTransactionsToExcelAsync(DateTime startDate, DateTime endDate, Guid? accountId = null)
     {
-        var response = await _httpClient.GetAsync(
-            $"api/reports/export/excel?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}");
+        var url = $"api/reports/export/excel?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
+        if (accountId.HasValue) url += $"&accountId={accountId.Value}";
+        
+        var response = await _httpClient.GetAsync(url);
         
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
 
-    public async Task<byte[]> ExportTransactionsToPdfAsync(DateTime startDate, DateTime endDate)
+    public async Task<byte[]> ExportTransactionsToPdfAsync(DateTime startDate, DateTime endDate, Guid? accountId = null)
     {
-        var response = await _httpClient.GetAsync(
-            $"api/reports/export/pdf?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}");
+        var url = $"api/reports/export/pdf?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
+        if (accountId.HasValue) url += $"&accountId={accountId.Value}";
         
+        var response = await _httpClient.GetAsync(url);
+        
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync();
+    }
+
+    public async Task<byte[]> ExportTransactionInvoiceToPdfAsync(Guid transactionId)
+    {
+        var response = await _httpClient.GetAsync($"api/reports/export/transaction/{transactionId}/pdf");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }

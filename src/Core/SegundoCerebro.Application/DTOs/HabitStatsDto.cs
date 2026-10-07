@@ -18,4 +18,6 @@ public class HabitStatsDto
     public Dictionary<string, int> CompletionsByDayOfWeek { get; set; } = new();
     /// <summary>Clave: Mes en formato "yyyy-MM". Valor: Número de completados.</summary>
     public Dictionary<string, int> CompletionsByMonth { get; set; } = new();
+    /// <summary>Clave: Día del mes actual (1-31). Valor: Número de completados.</summary>
+    public Dictionary<int, int> CompletionsThisMonth { get; set; } = new();
 }

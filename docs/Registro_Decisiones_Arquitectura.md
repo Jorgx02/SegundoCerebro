@@ -345,6 +345,45 @@ El tracker de hábitos semanal es excelente para el seguimiento a corto plazo, p
 
 Esta decisión demuestra la capacidad de ir más allá de un simple CRUD y construir funcionalidades de visualización de datos avanzadas que mejoran la experiencia de usuario y el valor del producto. Documenta la creación de un componente de UI complejo y su correspondiente endpoint de API optimizado.
 
+## ADR 014: Refactorización de Tema Visual y Compatibilidad Light/Dark Mode
+
+**Fecha:** Fase de Pulido Frontend
+
+### Contexto y Problema
+
+Durante el desarrollo de la interfaz de usuario con MudBlazor, se utilizaron colores "hardcodeados" (ej. `rgba(30, 30, 30, 0.6)`) para fondos y bordes con el objetivo de lograr una estética premium en modo oscuro ("glassmorphism"). Sin embargo, este enfoque estático provocaba que la aplicación fuera ilegible y visualmente defectuosa cuando el usuario cambiaba al tema claro (Light Mode) del sistema operativo o navegador.
+
+### Decisión
+
+1. **Eliminar variables hardcodeadas:** Reemplazar todos los colores absolutos en los componentes Razor (`Index.razor`, `Calendar.razor`, `Projects.razor`, etc.) por las variables CSS nativas que expone MudBlazor.
+2. **Uso de paleta temática:** Emplear `var(--mud-palette-surface)` para los fondos de las tarjetas, `var(--mud-palette-lines-default)` para los bordes, y variables como `var(--mud-palette-action-hover)` para las interacciones.
+
+### Consecuencias
+
+- **Positivas:** La aplicación ahora es totalmente compatible con los modos claro y oscuro, adaptándose dinámicamente a las preferencias del usuario sin perder la estética "premium" (manteniendo efectos de blur, etc.). Facilita enormemente el mantenimiento futuro del diseño.
+- **Negativas:** Requirió un proceso de revisión manual y modificación de múltiples componentes y clases CSS distribuidas a lo largo del frontend.
+
+---
+
+## ADR 015: Refactorización de la Lógica Estadística de Hábitos
+
+**Fecha:** Fase 3 - Pulido del Módulo de Hábitos
+
+### Contexto y Problema
+
+Los gráficos de estadísticas del módulo de hábitos (`HabitStats.razor`) presentaban imprecisiones al visualizar hábitos semanales y el progreso anual. Un hábito semanal solo se contabilizaba un día (el lunes) en el gráfico, desvirtuando la consistencia semanal real. Además, el gráfico anual no representaba el espectro completo de meses (Enero a Diciembre) de forma robusta.
+
+### Decisión
+
+1. **Expansión de Hábitos Semanales:** Se modificó la lógica en el `GetHabitStatsQueryHandler` para que un hábito semanal completado sume progreso estadístico a todos los días de esa semana en los cálculos del frontend (gráficos de Consistencia Semanal).
+2. **Escala Temporal Completa:** El gráfico de Progreso Anual se forzó a mostrar siempre 12 columnas (Enero a Diciembre del año actual) para ofrecer una referencia visual estable, en lugar de mostrar solo los meses con actividad.
+3. **Validación de Fechas en Tracker:** Se añadió lógica en la UI para deshabilitar las interacciones (checkboxes) en fechas previas a la fecha de creación original del hábito (`CreatedAt`), garantizando la coherencia de la "Tasa de Éxito".
+
+### Consecuencias
+
+- **Positivas:** Los gráficos ahora reflejan de manera fiel el progreso real del usuario, especialmente en lo relativo a tareas semanales, y la UI previene el ingreso de datos históricamente inválidos.
+- **Negativas:** Mayor carga lógica en el handler de CQRS, que ahora debe iterar y expandir fechas ("esparcir" el valor semanal a través de 7 días) antes de devolver el DTO al cliente.
+
 ---
 
 _(Nuevas decisiones se añadirán a continuación...)_

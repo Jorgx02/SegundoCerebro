@@ -11,20 +11,19 @@ public class BudgetService : ApiService<BudgetDto, CreateBudgetDto, UpdateBudget
 
     public async Task<IEnumerable<BudgetDto>> GetActiveBudgetsAsync()
     {
-        var result = await _httpClient.GetFromJsonAsync<IEnumerable<BudgetDto>>("api/budgets/active");
-        return result ?? Enumerable.Empty<BudgetDto>();
+        var allBudgets = await GetAllAsync();
+        return allBudgets.Where(b => b.IsActive);
     }
 
     public async Task<IEnumerable<BudgetDto>> GetOverBudgetsAsync()
     {
-        var result = await _httpClient.GetFromJsonAsync<IEnumerable<BudgetDto>>("api/budgets/over");
-        return result ?? Enumerable.Empty<BudgetDto>();
+        var allBudgets = await GetAllAsync();
+        return allBudgets.Where(b => b.IsOverBudget);
     }
 
     public async Task<IEnumerable<BudgetDto>> GetByPeriodAsync(DateTime startDate, DateTime endDate)
     {
-        var result = await _httpClient.GetFromJsonAsync<IEnumerable<BudgetDto>>(
-            $"api/budgets/period?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}");
-        return result ?? Enumerable.Empty<BudgetDto>();
+        var allBudgets = await GetAllAsync();
+        return allBudgets.Where(b => b.StartDate >= startDate && b.EndDate <= endDate);
     }
 }

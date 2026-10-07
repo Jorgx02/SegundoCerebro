@@ -8,77 +8,120 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
-<PageTitle>Todas las tareas - SegundoCerebro</PageTitle>
+<PageTitle>Tareas - SegundoCerebro</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudGrid>
-        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
-            <MudText Typo="Typo.h4">Todas las tareas</MudText>
-        </MudItem>
-    </MudGrid>
+<style>
+    .card-outline {
+        border: 1px solid var(--mud-palette-lines-default);
+        background-color: var(--mud-palette-surface) !important;
+        backdrop-filter: blur(12px);
+    }
+    
+    .glow-bg {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.15;
+        pointer-events: none;
+    }
 
-    <MudCard Elevation="4" Class="rounded-lg">
-        <MudTable Items="@tasks" Hover="true" Striped="true" Dense="true" Elevation="0" Loading="@loading"
-                  LoadingProgressColor="Color.Info" GroupBy="@_groupDefinition"
-                  GroupHeaderClass="mud-table-group-header-custom">
+    .mud-table-cell {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    .mud-table-root {
+        background: transparent !important;
+    }
+    
+    .task-row:hover {
+        background-color: rgba(255, 255, 255, 0.02) !important;
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row align-center justify-space-between mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Gestión de tareas</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Organiza, prioriza y registra el tiempo de tus actividades.</MudText>
+        </div>
+
+    </div>
+
+    <MudCard Class="card-outline pa-0" Style="position: relative; overflow: hidden;">
+        <div class="glow-bg" style="top: -50px; left: -50px; background-color: var(--mud-palette-primary);"></div>
+        
+        <MudTable Items="@tasks" Hover="true" Dense="true" Elevation="0" Loading="@loading" Class="bg-transparent"
+                  LoadingProgressColor="Color.Info" GroupBy="@_groupDefinition" RowClass="task-row">
             <HeaderContent>
-                <MudTh>Tareas</MudTh>
-                <MudTh>Estado</MudTh>
-                <MudTh>Prioridad</MudTh>
-                <MudTh>Fecha de vencimiento</MudTh>
-                <MudTh Style="text-align: center;">Tiempo</MudTh>
+                <MudTh Style="font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Tarea</MudTh>
+                <MudTh Style="font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Estado</MudTh>
+                <MudTh Style="font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Prioridad</MudTh>
+                <MudTh Style="font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Vencimiento</MudTh>
+                <MudTh Style="font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; text-align: center;">Tiempo</MudTh>
             </HeaderContent>
             <GroupHeaderTemplate>
-                <MudTh colspan="5">
-                    <MudText Typo="Typo.h6">@context.Key</MudText>
+                <MudTh colspan="5" Style="background-color: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700; color: var(--mud-palette-primary);">
+                        <MudIcon Icon="@Icons.Material.Filled.FolderOpen" Size="Size.Small" Class="mr-2" Style="vertical-align: text-bottom;" />
+                        @context.Key
+                    </MudText>
                 </MudTh>
             </GroupHeaderTemplate>
             <RowTemplate>
                 <MudTd DataLabel="Tarea">
-                    <MudLink Href="@($"/projects/{context.ProjectId}")" Typo="Typo.body1" Color="Color.Default"
-                             Underline="Underline.None" Disabled="@(context.ProjectId == null)">
-                        @context.Title
-                    </MudLink>
-                    @if (!string.IsNullOrEmpty(context.Description))
-                    {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText>
-                    }
+                    <div class="d-flex flex-column">
+                        <MudLink Href="@($"/projects/{context.ProjectId}")" Typo="Typo.body1" Style="font-weight: 600;" Color="Color.Inherit"
+                                 Underline="Underline.None" Disabled="@(context.ProjectId == null)">
+                            @context.Title
+                        </MudLink>
+                        @if (!string.IsNullOrEmpty(context.Description))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="font-size: 0.85rem;">@context.Description</MudText>
+                        }
+                    </div>
                 </MudTd>
                 <MudTd DataLabel="Estado">
-                    <MudChip Size="Size.Small" Color="@GetStatusColor(context.Status)">
+                    <MudChip Size="Size.Small" Color="@GetStatusColor(context.Status)" Variant="Variant.Text" Style="font-weight: 600;">
                         @context.StatusName
                     </MudChip>
                 </MudTd>
                 <MudTd DataLabel="Prioridad">
-                    <MudRating SelectedValue="context.Priority" ReadOnly="true" MaxValue="3"
-                               FullIcon="@Icons.Material.Filled.Flag" EmptyIcon="@Icons.Material.Outlined.Flag" />
+                    <MudRating SelectedValue="context.Priority" ReadOnly="true" MaxValue="3" Size="Size.Small"
+                               FullIcon="@Icons.Material.Filled.LocalFireDepartment" EmptyIcon="@Icons.Material.Outlined.LocalFireDepartment" Color="Color.Warning" />
                 </MudTd>
-                <MudTd DataLabel="Fecha de vencimiento">
+                <MudTd DataLabel="Vencimiento">
                     @if (context.DueDate.HasValue)
                     {
-                        <MudChip Size="Size.Small" Icon="@Icons.Material.Filled.Event"
-                                 Color="@(context.DueDate.Value.Date < DateTime.Today ? Color.Error : Color.Default)">
-                            @context.DueDate.Value.ToString("MMM dd")
-                        </MudChip>
+                        <MudText Typo="Typo.body2" Style="@(context.DueDate.Value.Date < DateTime.Today ? "color: var(--mud-palette-error); font-weight: 600;" : "color: var(--mud-palette-text-secondary);")">
+                            <MudIcon Icon="@Icons.Material.Filled.Event" Size="Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
+                            @context.DueDate.Value.ToString("dd MMM yyyy")
+                        </MudText>
                     }
                     else
                     {
-                        <MudText>-</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">-</MudText>
                     }
                 </MudTd>
-                <MudTd DataLabel="Tiempo">
-                    <div class="d-flex align-center justify-center">
-                        <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" Class="mr-1" />
-                        <MudText Typo="Typo.caption">@FormatTimeSpan(context.TotalTimeTracked)</MudText>
+                <MudTd DataLabel="Tiempo" Style="text-align: center;">
+                    <div class="d-flex align-center justify-center gap-2">
+                        <MudChip Size="Size.Small" Color="Color.Surface" Variant="Variant.Filled" Style="border: 1px solid rgba(255,255,255,0.1); font-family: monospace; font-size: 0.9rem;">
+                            @FormatTimeSpan(context.TotalTimeTracked)
+                        </MudChip>
                         <MudIconButton
-                        Icon="@(context.IsCurrentlyTracking ? Icons.Material.Filled.StopCircle : Icons.Material.Filled.PlayCircle)"
-                        Color="@(context.IsCurrentlyTracking ? Color.Error : Color.Success)" Size="Size.Small"
-                        OnClick="() => ToggleTimeTracking(context)" Class="ml-2" OnClickStopPropagation="true" />
+                            Icon="@(context.IsCurrentlyTracking ? Icons.Material.Filled.StopCircle : Icons.Material.Filled.PlayCircle)"
+                            Color="@(context.IsCurrentlyTracking ? Color.Error : Color.Success)" Size="Size.Medium"
+                            OnClick="() => ToggleTimeTracking(context)" Class="ml-2" OnClickStopPropagation="true" />
                     </div>
                 </MudTd>
             </RowTemplate>
             <NoRecordsContent>
-                <MudText>Ninguna tarea encontrada.</MudText>
+                <div class="pa-8 text-center">
+                    <MudIcon Icon="@Icons.Material.Filled.CheckCircleOutline" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Color="Color.Secondary">No hay tareas pendientes</MudText>
+                </div>
             </NoRecordsContent>
         </MudTable>
     </MudCard>
@@ -103,7 +146,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error al cargar las tareas: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error al cargar las tareas", Severity.Error);
         }
         finally
         {
@@ -120,13 +163,13 @@
                 var stoppedLog = await TimeLogService.StopAsync(task.Id);
                 task.IsCurrentlyTracking = false;
                 task.TotalTimeTracked += stoppedLog.Duration;
-                Snackbar.Add($"Temporizador detenido para '{task.Title}'.", Severity.Info);
+                Snackbar.Add($"Temporizador detenido.", Severity.Info);
             }
             else
             {
                 await TimeLogService.StartAsync(task.Id);
                 task.IsCurrentlyTracking = true;
-                Snackbar.Add($"Temporizador iniciado para '{task.Title}'.", Severity.Success);
+                Snackbar.Add($"Temporizador iniciado.", Severity.Success);
             }
         }
         catch (Exception ex)

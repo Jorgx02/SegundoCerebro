@@ -45,7 +45,7 @@
 
 @code {
     bool _drawerOpen = true;
-    bool _isDarkMode = false;
+    bool _isDarkMode = true;
 
     void DrawerToggle()
     {
@@ -61,26 +61,29 @@
     {
         Palette = new PaletteLight()
         {
-            Primary = "#512BD4", // Color morado corporativo de tu README
-            Secondary = "#10b981", // Verde esmeralda para acentos
-            AppbarBackground = "#512BD4",
-            Background = "#f4f6f8", // Gris muy sutil para contraste
+            Primary = "#594ae2", 
+            Secondary = "#00C853",
+            Tertiary = "#FF9800",
+            AppbarBackground = "#ffffff",
+            Background = "#f4f6f8", 
             DrawerBackground = "#ffffff"
         },
         PaletteDark = new PaletteDark()
         {
-            Primary = "#7c5cdb", // Morado un poco más claro para modo oscuro
-            Secondary = "#10b981",
-            AppbarBackground = "#1e1e2d",
-            Background = "#1a1a27",
-            Surface = "#1e1e2d",
-            DrawerBackground = "#1a1a27",
+            Primary = "#594ae2", 
+            Secondary = "#00C853",
+            Tertiary = "#FF9800",
+            Error = "#ffb4ab",
+            AppbarBackground = "#121212",
+            Background = "#121212",
+            Surface = "#1e1e1e",
+            DrawerBackground = "#121212",
             TextPrimary = "#ffffff",
             TextSecondary = "#b2b0bf"
         },
         LayoutProperties = new LayoutProperties()
         {
-            DefaultBorderRadius = "12px" // Bordes redondeados en toda la app
+            DefaultBorderRadius = "12px" 
         }
     };
 }

@@ -3,191 +3,339 @@
 @using SegundoCerebro.BlazorWasm.Models.Enums
 @using SegundoCerebro.BlazorWasm.Services
 @inject ITransactionService TransactionService
+@inject IReportService ReportService
+@inject ICategoryService CategoryService
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 @inject IDialogService DialogService
+@using SegundoCerebro.BlazorWasm.Shared.Dialogs
 
 <PageTitle>Transacciones - SegundoCerebro</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudGrid>
-        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
-            <MudText Typo="Typo.h4">Transacciones</MudText>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="Icons.Material.Filled.Add"
-                       OnClick="OpenCreateDialog">
-                Nueva transacción
+<style>
+    .card-outline {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: none !important;
+    }
+    .kpi-card {
+        background-color: var(--mud-palette-surface-dark) !important;
+    }
+    .bg-income { background-color: rgba(64, 229, 108, 0.1); color: #40e56c; }
+    .bg-expense { background-color: rgba(255, 180, 171, 0.2); color: #ffb4ab; }
+    .bg-net { background-color: rgba(89, 74, 226, 0.2); color: #c5c0ff; }
+    .tx-table {
+        background-color: var(--mud-palette-surface);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .tx-row:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row align-center justify-space-between mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Style="font-weight: 700;">Transacciones</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Historial consolidado de movimientos, conciliación bancaria y auditoría de flujos de capital.</MudText>
+        </div>
+        <div class="d-flex gap-4 mt-4 mt-md-0">
+            <MudButton OnClick="ExportTransactions" Variant="Variant.Filled" Color="Color.Surface" StartIcon="@Icons.Material.Filled.IosShare" Class="card-outline">
+                Exportar PDF
             </MudButton>
+            <MudButton OnClick="OpenNewTransactionDialog" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">
+                Nueva Transacción
+            </MudButton>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <MudGrid Spacing="3" Class="mb-6">
+        <MudItem xs="12" md="4">
+            <MudCard Class="card-outline kpi-card h-100 pa-4">
+                <div class="d-flex justify-space-between align-start mb-4">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Ingresos del Mes</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700; color: #40e56c;">@((financialSummary?.TotalIncome ?? 0).ToString("C2"))</MudText>
+                    </div>
+                    <div class="pa-2 rounded-lg bg-income">
+                        <MudIcon Icon="@Icons.Material.Filled.TrendingUp" />
+                    </div>
+                </div>
+                <div class="d-flex align-center mt-auto">
+                    <MudChip T="string" Size="Size.Small" Style="background-color: rgba(64,229,108,0.2); color: #40e56c; font-weight: bold;">+12%</MudChip>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-2">vs mes anterior</MudText>
+                </div>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudCard Class="card-outline kpi-card h-100 pa-4">
+                <div class="d-flex justify-space-between align-start mb-4">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Gastos del Mes</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700; color: #ffb4ab;">@((financialSummary?.TotalExpenses ?? 0).ToString("C2"))</MudText>
+                    </div>
+                    <div class="pa-2 rounded-lg bg-expense">
+                        <MudIcon Icon="@Icons.Material.Filled.TrendingDown" />
+                    </div>
+                </div>
+                <div class="d-flex align-center mt-auto">
+                    <MudChip T="string" Size="Size.Small" Style="background-color: rgba(255,180,171,0.2); color: #ffb4ab; font-weight: bold;">-4%</MudChip>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-2">optimizado s/ presup.</MudText>
+                </div>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudCard Class="card-outline kpi-card h-100 pa-4">
+                <div class="d-flex justify-space-between align-start mb-4">
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Flujo Neto Operativo</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700; color: var(--mud-palette-primary);">@((financialSummary?.NetIncome ?? 0).ToString("C2"))</MudText>
+                    </div>
+                    <div class="pa-2 rounded-lg bg-net">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalance" />
+                    </div>
+                </div>
+                <div class="d-flex align-center mt-auto">
+                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Style="font-weight: bold;">Tasa ahorro</MudChip>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-2">Capacidad alta</MudText>
+                </div>
+            </MudCard>
         </MudItem>
     </MudGrid>
 
     <!-- Filters -->
-    <MudCard Elevation="3" Class="mb-4 rounded-lg">
-        <MudCardContent>
-            <MudGrid>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudDatePicker Label="Fecha de inicio" @bind-Date="startDate" />
-                </MudItem>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudDatePicker Label="Fecha de fin" @bind-Date="endDate" />
-                </MudItem>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudSelect T="Guid?" Label="Cuenta" @bind-Value="selectedAccountId">
-                        <MudSelectItem T="Guid?" Value="@((Guid?)null)">Todas las cuentas</MudSelectItem>
-                        @foreach (var account in accounts)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)account.Id)">@account.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudSelect T="TransactionType?" Label="Tipo" @bind-Value="selectedType">
-                        <MudSelectItem T="TransactionType?" Value="@((TransactionType?)null)">All Types</MudSelectItem>
-                        <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Income)">Ingreso
-                        </MudSelectItem>
-                        <MudSelectItem T="TransactionType?" Value="@((TransactionType?)TransactionType.Expense)">Gasto
-                        </MudSelectItem>
-                    </MudSelect>
-                </MudItem>
-            </MudGrid>
-        </MudCardContent>
-    </MudCard>
+    <MudPaper Class="pa-4 mb-4 card-outline" Elevation="0" Style="background-color: var(--mud-palette-surface-dark);">
+        <MudGrid Spacing="2" Class="align-center">
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="searchString" Placeholder="Buscar por concepto o comercio..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" md="2">
+                <MudSelect T="Guid?" @bind-Value="selectedAccountId" Label="Cuenta" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Clearable="true">
+                    @foreach(var acc in accounts)
+                    {
+                        <MudSelectItem Value="(Guid?)acc.Id">@acc.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="2">
+                <MudSelect T="Guid?" @bind-Value="selectedCategoryId" Label="Categoría" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Clearable="true">
+                    @foreach(var cat in categories)
+                    {
+                        <MudSelectItem Value="(Guid?)cat.Id">@cat.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="4" Class="d-flex align-center">
+                <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Style="width: 100%;">
+                    <MudButton Variant="@(selectedType == null ? Variant.Filled : Variant.Outlined)" OnClick="() => SetTypeFilter(null)">Todos</MudButton>
+                    <MudButton Variant="@(selectedType == TransactionType.Income ? Variant.Filled : Variant.Outlined)" OnClick="() => SetTypeFilter(TransactionType.Income)">Ing</MudButton>
+                    <MudButton Variant="@(selectedType == TransactionType.Expense ? Variant.Filled : Variant.Outlined)" OnClick="() => SetTypeFilter(TransactionType.Expense)">Gas</MudButton>
+                </MudButtonGroup>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
-    <!-- Transactions Table -->
-    <MudCard Elevation="4" Class="rounded-lg">
-        <MudCardHeader>
-            <CardHeaderContent>
-                <MudText Typo="Typo.h6">Todas las transacciones (@filteredTransactions.Count())</MudText>
-            </CardHeaderContent>
-        </MudCardHeader>
-        <MudCardContent>
-            <MudTable Items="@filteredTransactions" Hover="true" Striped="true" Dense="true" Elevation="0"
-                      Loading="@loading" LoadingProgressColor="Color.Info">
-                <HeaderContent>
-                    <MudTh>Fecha</MudTh>
-                    <MudTh>Descripción</MudTh>
-                    <MudTh>Categoría</MudTh>
-                    <MudTh>Cuenta</MudTh>
-                    <MudTh>Monto</MudTh>
-                    <MudTh>Tipo</MudTh>
-                    <MudTh>Editar transacción</MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd DataLabel="Fecha">
-                        <MudText Typo="Typo.body2">@context.Date.ToString("dd/MM/yyyy")</MudText>
-                    </MudTd>
-                    <MudTd DataLabel="Descripción">
-                        <div>
-                            <MudText Typo="Typo.body2">@context.Description</MudText>
-                            @if (!string.IsNullOrEmpty(context.Reference))
-                            {
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Ref: @context.Reference</MudText>
-                            }
-                        </div>
-                    </MudTd>
-                    <MudTd DataLabel="Categoría">
-                        <div class="d-flex align-center">
-                            @if (!string.IsNullOrEmpty(context.CategoryIcon))
-                            {
-                                <MudIcon Icon="@context.CategoryIcon" Size="Size.Small" Class="mr-2" />
-                            }
-                            <MudText Typo="Typo.body2">@context.CategoryName</MudText>
-                        </div>
-                    </MudTd>
-                    <MudTd DataLabel="Cuenta">
-                        <MudText Typo="Typo.body2">@context.AccountName</MudText>
-                    </MudTd>
-                    <MudTd DataLabel="Monto">
-                        <MudText Typo="Typo.body2"
-                                 Color="@(context.Type == TransactionType.Income ? Color.Success : Color.Error)">
-                            @context.FormattedAmount
-                        </MudText>
-                    </MudTd>
-                    <MudTd DataLabel="Tipo">
-                        <MudChip Size="Size.Small"
-                                 Color="@(context.Type == TransactionType.Income ? Color.Success : Color.Error)">
-                            @context.TypeName
-                        </MudChip>
-                    </MudTd>
-                    <MudTd DataLabel="Acciones">
-                        <MudIconButton Icon="Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
-                                       Variant="Variant.Filled" OnClick="() => OpenEditDialog(context)" />
-                    </MudTd>
-                </RowTemplate>
-                <NoRecordsContent>
-                    <MudText>Ninguna transacción encontrada</MudText>
-                </NoRecordsContent>
-            </MudTable>
-        </MudCardContent>
-    </MudCard>
+    <!-- Table -->
+    <MudTable Items="@FilteredTransactions" Dense="false" Hover="true" Bordered="false" Striped="false" Class="tx-table card-outline" Elevation="0" Loading="loading">
+        <HeaderContent>
+            <MudTh><MudText Typo="Typo.caption" Style="font-weight: 700; text-transform: uppercase;">Fecha</MudText></MudTh>
+            <MudTh><MudText Typo="Typo.caption" Style="font-weight: 700; text-transform: uppercase;">Transacción</MudText></MudTh>
+            <MudTh><MudText Typo="Typo.caption" Style="font-weight: 700; text-transform: uppercase;">Categoría</MudText></MudTh>
+            <MudTh><MudText Typo="Typo.caption" Style="font-weight: 700; text-transform: uppercase;">Cuenta</MudText></MudTh>
+            <MudTh><MudText Typo="Typo.caption" Style="font-weight: 700; text-transform: uppercase;">Estado</MudText></MudTh>
+            <MudTh Style="text-align: right;"><MudText Typo="Typo.caption" Style="font-weight: 700; text-transform: uppercase;">Monto</MudText></MudTh>
+            <MudTh Style="text-align: center;"><MudText Typo="Typo.caption" Style="font-weight: 700; text-transform: uppercase;">Acciones</MudText></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Fecha">
+                <MudText Typo="Typo.body2" Style="font-weight: 500;">@context.Date.ToString("dd MMM yyyy")</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Date.ToString("hh:mm tt")</MudText>
+            </MudTd>
+            <MudTd DataLabel="Transacción">
+                <div class="d-flex align-center gap-3">
+                    <MudAvatar Color="@(context.Type == TransactionType.Income ? Color.Success : Color.Error)" Variant="Variant.Outlined" Size="Size.Medium" Style="border: none; background-color: rgba(255,255,255,0.05);">
+                        <MudIcon Icon="@(string.IsNullOrEmpty(context.CategoryIcon) ? Icons.Material.Filled.AttachMoney : context.CategoryIcon)" />
+                    </MudAvatar>
+                    <div>
+                        <MudText Typo="Typo.body2" Style="font-weight: 700;">@context.Description</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@(string.IsNullOrEmpty(context.Reference) ? "Sin Referencia" : context.Reference)</MudText>
+                    </div>
+                </div>
+            </MudTd>
+            <MudTd DataLabel="Categoría">
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Style="background-color: rgba(255,255,255,0.05); font-weight: 600;">@context.CategoryName</MudChip>
+            </MudTd>
+            <MudTd DataLabel="Cuenta">
+                <div class="d-flex align-center gap-1">
+                    <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="Size.Small" Color="Color.Secondary" />
+                    <MudText Typo="Typo.body2">@context.AccountName</MudText>
+                </div>
+            </MudTd>
+            <MudTd DataLabel="Estado">
+                <div class="d-flex align-center gap-1">
+                    <div style="width: 6px; height: 6px; border-radius: 50%; background-color: #40e56c;"></div>
+                    <MudText Typo="Typo.caption" Style="font-weight: 700; color: #40e56c;">Cleared</MudText>
+                </div>
+            </MudTd>
+            <MudTd DataLabel="Monto" Style="text-align: right;">
+                <MudText Typo="Typo.h6" Style="font-weight: 700;" Color="@(context.Type == TransactionType.Income ? Color.Success : Color.Error)">
+                    @context.FormattedAmount
+                </MudText>
+            </MudTd>
+            <MudTd DataLabel="Acciones" Style="text-align: center;">
+                <MudIconButton OnClick='() => DownloadInvoice(context.Id)' Icon="@Icons.Material.Filled.ReceiptLong" Size="Size.Small" Color="Color.Secondary" />
+                <MudIconButton OnClick='() => OpenEditTransactionDialog(context)' Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Secondary" />
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
 </MudContainer>
 
 @code {
-    private List<TransactionDto> transactions = new();
-    private List<AccountDto> accounts = new();
     private bool loading = true;
+    private string searchString = "";
+    private Guid? selectedAccountId = null;
+    private Guid? selectedCategoryId = null;
+    private TransactionType? selectedType = null;
+    
+    private IEnumerable<TransactionDto> transactions = new List<TransactionDto>();
+    private IEnumerable<AccountDto> accounts = new List<AccountDto>();
+    private IEnumerable<CategoryDto> categories = new List<CategoryDto>();
+    private FinancialSummaryDto? financialSummary;
 
-    // Filters
-    private DateTime? startDate = DateTime.Today.AddDays(-30);
-    private DateTime? endDate = DateTime.Today;
-    private Guid? selectedAccountId;
-    private TransactionType? selectedType;
+    private IEnumerable<TransactionDto> FilteredTransactions 
+    {
+        get 
+        {
+            var query = transactions.AsQueryable();
 
-    private IEnumerable<TransactionDto> filteredTransactions => transactions.Where(t =>
-            (!startDate.HasValue || t.Date >= startDate.Value) &&
-            (!endDate.HasValue || t.Date <= endDate.Value) &&
-            (!selectedAccountId.HasValue || t.AccountId == selectedAccountId.Value) &&
-            (!selectedType.HasValue || t.Type == selectedType.Value));
+            if (!string.IsNullOrWhiteSpace(searchString))
+                query = query.Where(t => t.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase) || t.CategoryName.Contains(searchString, StringComparison.OrdinalIgnoreCase));
+            
+            if (selectedAccountId.HasValue)
+                query = query.Where(t => t.AccountId == selectedAccountId.Value);
+                
+            if (selectedCategoryId.HasValue)
+                query = query.Where(t => t.CategoryId == selectedCategoryId.Value);
+                
+            if (selectedType.HasValue)
+                query = query.Where(t => t.Type == selectedType.Value);
+
+            return query.ToList();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
-    }
-
-    private async Task LoadData()
-    {
-        loading = true;
         try
         {
-            var transactionsTask = TransactionService.GetAllAsync();
-            var accountsTask = AccountService.GetAllAsync();
-
-            await Task.WhenAll(transactionsTask, accountsTask);
-
-            transactions = (await transactionsTask).ToList();
-            accounts = (await accountsTask).ToList();
+            loading = true;
+            financialSummary = await ReportService.GetFinancialSummaryAsync();
+            transactions = await TransactionService.GetAllAsync();
+            transactions = transactions.OrderByDescending(t => t.Date).ToList();
+            
+            accounts = await AccountService.GetAllAsync();
+            categories = await CategoryService.GetAllAsync();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error cargando los datos: {ex.Message}", Severity.Error);
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
         }
         finally
         {
             loading = false;
         }
     }
-
-    private async Task OpenCreateDialog()
+    
+    private void SetTypeFilter(TransactionType? type)
     {
-        var dialog = DialogService.Show<CreateTransactionDialog>("Crear nueva transacción");
+        selectedType = type;
+    }
+
+    private void ShowSnackbar(string message)
+    {
+        Snackbar.Add(message, Severity.Info);
+    }
+    
+    private async Task OpenNewTransactionDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<TransactionDialog>("Nueva Transacción", options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
-            await LoadData();
             Snackbar.Add("Transacción creada con éxito", Severity.Success);
+            // Refresh list and summary
+            financialSummary = await ReportService.GetFinancialSummaryAsync();
+            transactions = await TransactionService.GetAllAsync();
+            transactions = transactions.OrderByDescending(t => t.Date).ToList();
+            StateHasChanged();
+        }
+    }
+    
+    private async Task OpenEditTransactionDialog(TransactionDto transaction)
+    {
+        var parameters = new DialogParameters { ["Transaction"] = transaction };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<EditTransactionDialog>("Modificar Transacción", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            Snackbar.Add("Transacción modificada con éxito", Severity.Success);
+            financialSummary = await ReportService.GetFinancialSummaryAsync();
+            transactions = await TransactionService.GetAllAsync();
+            transactions = transactions.OrderByDescending(t => t.Date).ToList();
+            StateHasChanged();
+        }
+    }
+    
+    private async Task DownloadInvoice(Guid id)
+    {
+        try 
+        {
+            Snackbar.Add("Generando factura PDF...", Severity.Info);
+            var data = await ReportService.ExportTransactionInvoiceToPdfAsync(id);
+            if (data != null && data.Length > 0)
+            {
+                var b64 = Convert.ToBase64String(data);
+                await JSRuntime.InvokeVoidAsync("downloadFile", $"factura_{id.ToString().Substring(0,8)}.pdf", "application/pdf", b64);
+                Snackbar.Add($"Factura generada correctamente.", Severity.Success);
+            }
+        }
+        catch(Exception ex)
+        {
+            Snackbar.Add("Error al generar factura: " + ex.Message, Severity.Error);
         }
     }
 
-    private async Task OpenEditDialog(TransactionDto transaction)
+    private async Task ExportTransactions()
     {
-        var parameters = new DialogParameters { ["Transaction"] = transaction };
-        var dialog = DialogService.Show<EditTransactionDialog>("Editar transacción", parameters);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
+        try 
         {
-            await LoadData();
-            Snackbar.Add("Transacción actualizada con éxito", Severity.Success);
+            Snackbar.Add("Generando exportación PDF...", Severity.Info);
+            var startDate = new DateTime(2000, 1, 1); // Get all past transactions
+            var endDate = DateTime.Now;
+            var data = await ReportService.ExportTransactionsToPdfAsync(startDate, endDate, selectedAccountId);
+            
+            if (data != null && data.Length > 0)
+            {
+                var b64 = Convert.ToBase64String(data);
+                await JSRuntime.InvokeVoidAsync("downloadFile", $"transacciones_export.pdf", "application/pdf", b64);
+                Snackbar.Add($"Reporte exportado correctamente.", Severity.Success);
+            }
+        }
+        catch(Exception ex)
+        {
+            Snackbar.Add("Error al exportar: " + ex.Message, Severity.Error);
         }
     }
 }
